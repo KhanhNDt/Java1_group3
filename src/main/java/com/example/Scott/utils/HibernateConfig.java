@@ -1,5 +1,7 @@
 package com.example.Scott.utils;
 
+import com.example.Scott.entity.DiaChiKhachHang;
+import com.example.Scott.entity.KhachHang;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
@@ -25,7 +27,8 @@ public class HibernateConfig {
         conf.setProperties(properties);
 //        conf.addAnnotatedClass(NhanVien.class);
 //        conf.addAnnotatedClass(TaiKhoan.class);
-//        conf.addAnnotatedClass(KhachHang.class);
+        conf.addAnnotatedClass(KhachHang.class);
+        conf.addAnnotatedClass(DiaChiKhachHang.class);
 //        conf.addAnnotatedClass(ThuongHieu.class);
 //        conf.addAnnotatedClass(MauSac.class);
 //        conf.addAnnotatedClass(Size.class);
