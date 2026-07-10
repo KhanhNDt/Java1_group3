@@ -154,7 +154,7 @@
 
     <div class="menu">
 
-        <a href="/dashboard" class="active">
+        <a href="/dashboard" class="${menu == 'dashboard' ? 'active' : ''}">
 
             <i class="bi bi-grid-fill"></i>
 
@@ -191,6 +191,14 @@
             <i class="bi bi-graph-up-arrow"></i>
 
             Báo cáo
+
+        </a>
+
+        <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
+           class="${menu == 'khachhang' ? 'active' : ''}">
+            <i class="bi bi-people-fill"></i>
+
+            Khách hàng
 
         </a>
 

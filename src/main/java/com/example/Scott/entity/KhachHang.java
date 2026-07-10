@@ -27,12 +27,9 @@ public class KhachHang {
     @Column
     private  String sdt;
 
-    @Column
-    private String email;
 
     @Column(name = "dia_chi")
     private String diaChi;
 
-    @Column(name = "trang_thai")
-    private Integer trangThai;
+
 }
