@@ -170,11 +170,11 @@
 
         </a>
 
-        <a href="/hoa-don">
+        <a href="/quanlyhoadon">
 
             <i class="bi bi-cart-fill"></i>
 
-            Đơn hàng
+            Hóa Đơn
 
         </a>
 
