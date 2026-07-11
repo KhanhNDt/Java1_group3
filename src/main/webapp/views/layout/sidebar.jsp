@@ -202,13 +202,6 @@
 
         </a>
 
-        <a href="#">
-
-            <i class="bi bi-chat-left-text-fill"></i>
-
-            Tin nhắn
-
-        </a>
 
         <a href="#">
 
