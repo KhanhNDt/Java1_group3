@@ -6,9 +6,10 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
 <head>
-    <title>Quản lý khách hàng</title>
+    <title>Quản lý phiếu giảm giá</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -39,17 +40,27 @@
 
             <div class="col-md-4 mb-3">
                 <label>Giá trị giảm</label>
-                <input type="number" class="form-control" name="giaTriGiamGia">
+                <input type="number"
+                       class="form-control"
+                       name="giaTriGiamGia"
+                       step="0.01">
             </div>
 
             <div class="col-md-4 mb-3">
                 <label>Giảm tối đa</label>
-                <input type="number" class="form-control" name="giamToiDa">
+                <input type="number"
+                       class="form-control"
+                       name="giamToiDa"
+                       step="0.01">
+
             </div>
 
             <div class="col-md-4 mb-3">
                 <label>Đơn tối thiểu</label>
-                <input type="number" class="form-control" name="donToiThieu">
+                <input type="number"
+                       class="form-control"
+                       name="donToiThieu"
+                       step="0.01">
             </div>
 
             <div class="col-md-6 mb-3">
@@ -64,7 +75,7 @@
 
         </div>
 
-        <button class="btn btn-success">
+        <button class="btn btn-success" type="submit">
             <i class="bi bi-plus-circle"></i> Thêm
         </button>
 

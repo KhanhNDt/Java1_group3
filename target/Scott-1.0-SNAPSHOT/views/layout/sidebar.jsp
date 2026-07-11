@@ -193,6 +193,13 @@
             Báo cáo
 
         </a>
+        <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi"
+           class="${menu == 'phieugiamgia' ? 'active' : ''}">
+            <i class="bi bi-people-fill"></i>
+
+            Phiếu Giảm Giá
+
+        </a>
 
         <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
            class="${menu == 'khachhang' ? 'active' : ''}">
@@ -202,13 +209,6 @@
 
         </a>
 
-        <a href="#">
-
-            <i class="bi bi-chat-left-text-fill"></i>
-
-            Tin nhắn
-
-        </a>
 
         <a href="#">
 
