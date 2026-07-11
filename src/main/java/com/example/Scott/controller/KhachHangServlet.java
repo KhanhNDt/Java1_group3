@@ -14,7 +14,8 @@ import java.io.IOException;
         "/khachhang/add",
         "/khachhang/delete",
         "/khachhang/update",
-        "/khachhang/view-update"
+        "/khachhang/view-update",
+        "/khachhang/search"
 
 })
 public class KhachHangServlet extends HttpServlet {
@@ -29,9 +30,26 @@ public class KhachHangServlet extends HttpServlet {
             this.hienThiKhachHang(request, response);
         } else if(uri.contains("delete")){
             this.deleteKhachHang(request, response);
-        } else {
+        } else if(uri.contains("view-update")){
             this.viewUpdateKhachHang(request,response);
+        } else{
+            this.searchKhachHang(request,response);
         }
+    }
+
+    private void searchKhachHang(HttpServletRequest request,
+                                 HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String keyword = request.getParameter("keyword");
+
+        request.setAttribute(
+                "listKhachHang",
+                khachHangResponsitory.search(keyword));
+
+        request.getRequestDispatcher("/views/khachhangn3/khachhangs.jsp")
+                .forward(request,response);
+
     }
 
     private void viewUpdateKhachHang(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

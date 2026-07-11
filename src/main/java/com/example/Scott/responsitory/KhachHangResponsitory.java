@@ -2,7 +2,6 @@ package com.example.Scott.responsitory;
 
 import com.example.Scott.entity.KhachHang;
 import com.example.Scott.utils.HibernateConfig;
-import org.eclipse.tags.shaded.org.apache.bcel.generic.PUSH;
 import org.hibernate.Session;
 
 import java.util.List;
@@ -46,6 +45,13 @@ public class KhachHangResponsitory {
             e.printStackTrace();
             s.getTransaction().rollback();
         }
+    }
+    public List<KhachHang> search(String keyword) {
+        return s.createQuery(
+                "FROM KhachHang WHERE ma LIKE :kw",
+                KhachHang.class)
+                .setParameter("kw", "%" + keyword + "%")
+                .list();
     }
 
     public static void main(String[] args) {
