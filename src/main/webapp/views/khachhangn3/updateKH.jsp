@@ -11,6 +11,18 @@
     <title>Title</title>
 </head>
 <body>
-
+<form action="/khachhang/update" method="post">
+    ID :<input type="text" name="id" value="${khachHangS.id}">
+    <br>
+    Ma KH : <input type="text" name="ma" value="${khachHangS.ma}"/>
+    <br>
+    Ho Ten: <input type="text" name="hoTen" value="${khachHangS.hoTen}"/>
+    <br>
+    SDT : <input type="text" name="sdt" value="${khachHangS.sdt}"/>
+    <br>
+    Dia Chi : <input type="text" name="diaChi" value="${khachHangS.diaChi}"/>
+    <br>
+    <button type="submit">Update</button>
+</form>
 </body>
 </html>

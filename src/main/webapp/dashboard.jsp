@@ -12,7 +12,7 @@
 </head>
 <body>
 <%@ include file="/views/layout/sidebar.jsp" %>
-
+<%@ include file="/views/layout/header.jsp" %>
 <div style="margin-left:280px;padding:30px;">
 
     <h2>Dashboard</h2>
