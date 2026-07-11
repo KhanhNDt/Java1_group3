@@ -15,7 +15,8 @@ import java.io.IOException;
         "/khachhang/delete",
         "/khachhang/update",
         "/khachhang/view-update",
-        "/khachhang/search"
+        "/khachhang/search",
+        "/khachhang/detail",
 
 })
 public class KhachHangServlet extends HttpServlet {
@@ -28,13 +29,30 @@ public class KhachHangServlet extends HttpServlet {
         String uri = request.getRequestURI();
         if (uri.contains("hien-thi")) {
             this.hienThiKhachHang(request, response);
-        } else if(uri.contains("delete")){
+        } else if (uri.contains("delete")) {
             this.deleteKhachHang(request, response);
-        } else if(uri.contains("view-update")){
-            this.viewUpdateKhachHang(request,response);
-        } else{
-            this.searchKhachHang(request,response);
+        } else if (uri.contains("view-update")) {
+            this.viewUpdateKhachHang(request, response);
+        } else if (uri.contains("search")) {
+            this.searchKhachHang(request, response);
+        } else {
+            this.detailKhachHang(request, response);
         }
+    }
+
+    private void detailKhachHang(HttpServletRequest request,
+                                 HttpServletResponse response)
+            throws ServletException, IOException {
+
+        Integer id = Integer.valueOf(request.getParameter("id"));
+
+        KhachHang kh = khachHangResponsitory.getOne(id);
+
+        request.setAttribute("khachHangS", kh);
+        request.setAttribute("listKhachHang", khachHangResponsitory.getAll());
+
+        request.getRequestDispatcher("/views/khachhangn3/detailKhachHang.jsp")
+                .forward(request, response);
     }
 
     private void searchKhachHang(HttpServletRequest request,
@@ -48,7 +66,7 @@ public class KhachHangServlet extends HttpServlet {
                 khachHangResponsitory.search(keyword));
 
         request.getRequestDispatcher("/views/khachhangn3/khachhangs.jsp")
-                .forward(request,response);
+                .forward(request, response);
 
     }
 
@@ -56,8 +74,8 @@ public class KhachHangServlet extends HttpServlet {
         request.setAttribute("menu", "khachhang");
         Integer id = Integer.valueOf(request.getParameter("id"));
         KhachHang KH = khachHangResponsitory.getOne(id);
-        request.setAttribute("khachHangS",KH);
-        request.getRequestDispatcher("/views/khachhangn3/updateKH.jsp").forward(request,response);
+        request.setAttribute("khachHangS", KH);
+        request.getRequestDispatcher("/views/khachhangn3/updateKH.jsp").forward(request, response);
     }
 
     private void deleteKhachHang(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -76,12 +94,12 @@ public class KhachHangServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-String uri = request.getRequestURI();
-if (uri.contains("add")){
-    this.addKhachHang(request,response);
-}else {
-    this.updateKhachHang(request,response);
-}
+        String uri = request.getRequestURI();
+        if (uri.contains("add")) {
+            this.addKhachHang(request, response);
+        } else {
+            this.updateKhachHang(request, response);
+        }
     }
 
     private void updateKhachHang(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -89,8 +107,11 @@ if (uri.contains("add")){
         String ma = request.getParameter("ma");
         String hoTen = request.getParameter("hoTen");
         String sdt = request.getParameter("sdt");
+        String email = request.getParameter("email");
         String diaChi = request.getParameter("diaChi");
-        KhachHang KH = new KhachHang(id,ma,hoTen,sdt,diaChi);
+        String gioiTinh = request.getParameter("gioiTinh");
+        Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
+        KhachHang KH = new KhachHang(id, ma, hoTen, sdt, email, diaChi, gioiTinh, trangThai);
         khachHangResponsitory.UpdateKhachHang(KH);
         response.sendRedirect("/khachhang/hien-thi");
     }
@@ -99,8 +120,11 @@ if (uri.contains("add")){
         String ma = request.getParameter("ma");
         String hoTen = request.getParameter("hoTen");
         String sdt = request.getParameter("sdt");
+        String email = request.getParameter("email");
         String diaChi = request.getParameter("diaChi");
-        KhachHang KH = new KhachHang(null,ma,hoTen,sdt,diaChi);
+        String gioiTinh = request.getParameter("gioiTinh");
+        Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
+        KhachHang KH = new KhachHang(null, ma, hoTen, sdt, email, diaChi, gioiTinh, trangThai);
         khachHangResponsitory.addKhachHang(KH);
         response.sendRedirect("/khachhang/hien-thi");
 

@@ -22,14 +22,14 @@ public class PhieuGiamGia {
     private String maVoucher;
     @Column(name = "ten_voucher")
     private String tenVoucher;
-    @Column(name = "gia_tri_giam")
-    private BigDecimal giaTriGiamGia;
-    @Column(name = " giam_toi_da")
-    private BigDecimal giamToiDa;
-    @Column(name = "don_toi_thieu")
-    private BigDecimal donToiThieu;
+    @Column(name = "loai_giam_gia")
+    private String loaiGiamGia;
+    @Column(name = "so_luong")
+    private Integer soLuong;
     @Column(name = "ngay_bat_dau")
     private Date ngayBatDau;
     @Column(name = "ngay_ket_thuc")
     private Date ngayKetThuc;
+    @Column(name = "trang_thai")
+    private Integer trangThai;
 }

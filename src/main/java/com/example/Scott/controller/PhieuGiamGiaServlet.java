@@ -17,7 +17,8 @@ import java.util.Date;
         "/phieugiamgia/delete",
         "/phieugiamgia/update",
         "/phieugiamgia/view-update",
-        "/phieugiamgia/search"
+        "/phieugiamgia/search",
+        "/phieugiamgia/detail"
 })
 
 public class PhieuGiamGiaServlet extends HttpServlet {
@@ -32,9 +33,23 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             this.deletePhieuGiamGia(request, response);
         } else if(uri.contains("view-update")){
             this.viewUpdatePhieuGiamGia(request,response);
-        } else{
+        } else if(uri.contains("search")){
             this.searchPhieuGiamGia(request,response);
+        }else {
+            this.detailPGG(request,response);
         }
+    }
+
+    private void detailPGG(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Integer id = Integer.valueOf(request.getParameter("id"));
+
+        PhieuGiamGia kh = phieuGiamGiaResponsitory.getOne(id);
+
+        request.setAttribute("phieugiamgiaS", kh);
+        request.setAttribute("listPhieuGiamGia", phieuGiamGiaResponsitory.getAll());
+
+        request.getRequestDispatcher("/views/phieugiamgian3/detailPGG.jsp")
+                .forward(request, response);
     }
 
     private void searchPhieuGiamGia(HttpServletRequest request, HttpServletResponse response) {
@@ -75,12 +90,12 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         Integer id = Integer.valueOf(request.getParameter("id"));
         String maVoucher = request.getParameter("maVoucher");
         String tenVoucher = request.getParameter("tenVoucher");
-        BigDecimal giaTriGiamGia = new BigDecimal(request.getParameter("giaTriGiamGia"));
-        BigDecimal giamToiDa = new BigDecimal(request.getParameter("giamToiDa"));
-        BigDecimal donToiThieu = new BigDecimal(request.getParameter("donToiThieu"));
+        String loaiGiamGia = request.getParameter("loaiGiamGia");
+        Integer soLuong= Integer.valueOf(request.getParameter("soLuong"));
         java.sql.Date ngayBatDau = java.sql.Date.valueOf(request.getParameter("ngayBatDau"));
         java.sql.Date ngayKetThuc = java.sql.Date.valueOf(request.getParameter("ngayKetThuc"));
-        PhieuGiamGia PGG = new PhieuGiamGia(id,maVoucher,tenVoucher,giaTriGiamGia,giamToiDa,donToiThieu,ngayBatDau,ngayKetThuc);
+        Integer trangThai= Integer.valueOf(request.getParameter("trangThai"));
+        PhieuGiamGia PGG = new PhieuGiamGia(id,maVoucher,tenVoucher,loaiGiamGia,soLuong,ngayBatDau,ngayKetThuc,trangThai);
         phieuGiamGiaResponsitory.updatePhieuGiamGia(PGG);
         response.sendRedirect("/phieugiamgia/hien-thi");
 
@@ -90,12 +105,12 @@ public class PhieuGiamGiaServlet extends HttpServlet {
 
         String maVoucher = request.getParameter("maVoucher");
         String tenVoucher = request.getParameter("tenVoucher");
-        BigDecimal giaTriGiamGia = new BigDecimal(request.getParameter("giaTriGiamGia"));
-        BigDecimal giamToiDa = new BigDecimal(request.getParameter("giamToiDa"));
-        BigDecimal donToiThieu = new BigDecimal(request.getParameter("donToiThieu"));
+        String loaiGiamGia = request.getParameter("loaiGiamGia");
+        Integer soLuong= Integer.valueOf(request.getParameter("soLuong"));
         java.sql.Date ngayBatDau = java.sql.Date.valueOf(request.getParameter("ngayBatDau"));
         java.sql.Date ngayKetThuc = java.sql.Date.valueOf(request.getParameter("ngayKetThuc"));
-        PhieuGiamGia PGG = new PhieuGiamGia(null,maVoucher,tenVoucher,giaTriGiamGia,giamToiDa,donToiThieu,ngayBatDau,ngayKetThuc);
+        Integer trangThai= Integer.valueOf(request.getParameter("trangThai"));
+        PhieuGiamGia PGG = new PhieuGiamGia(null,maVoucher,tenVoucher,loaiGiamGia,soLuong,ngayBatDau,ngayKetThuc,trangThai);
         phieuGiamGiaResponsitory.addPhieuGiamGia(PGG);
         response.sendRedirect("/phieugiamgia/hien-thi");
 

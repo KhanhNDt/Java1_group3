@@ -48,7 +48,7 @@ public class KhachHangResponsitory {
     }
     public List<KhachHang> search(String keyword) {
         return s.createQuery(
-                "FROM KhachHang WHERE ma LIKE :kw",
+                "FROM KhachHang WHERE ma LIKE :kw OR hoTen LIKE :kw OR sdt LIKE :kw",
                 KhachHang.class)
                 .setParameter("kw", "%" + keyword + "%")
                 .list();
