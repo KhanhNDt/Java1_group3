@@ -161,11 +161,6 @@
             Dashboard
         </a>
 
-        <!-- Bảng xếp hạng -->
-        <a href="#">
-            <i class="bi bi-bar-chart-fill"></i>
-            Bảng xếp hạng
-        </a>
 
         <!-- Quản lý hóa đơn -->
         <a href="${pageContext.request.contextPath}/quanlyhoadon"

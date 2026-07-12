@@ -10,31 +10,42 @@ import java.util.List;
 
 public class NhanVienRepository {
 
-    // Hiển thị tất cả
+
     public List<NhanVien> getAll() {
-        Session session = HibernateConfig.getFACTORY().openSession();
-        List<NhanVien> list = session.createQuery("from NhanVien", NhanVien.class).list();
-        session.close();
-        return list;
+
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+
+            return session.createQuery("from NhanVien").list();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    // Lấy theo ID
+
     public NhanVien getOne(Integer id) {
-        Session session = HibernateConfig.getFACTORY().openSession();
-        NhanVien nv = session.get(NhanVien.class, id);
-        session.close();
-        return nv;
+
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+
+            return session.get(NhanVien.class, id);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    // Thêm
+
     public boolean add(NhanVien nv) {
+
         Transaction transaction = null;
 
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
 
             transaction = session.beginTransaction();
 
-            session.persist(nv);
+            session.save(nv);
 
             transaction.commit();
 
@@ -47,12 +58,11 @@ public class NhanVienRepository {
             }
 
             e.printStackTrace();
-
             return false;
         }
     }
 
-    // Cập nhật
+
     public boolean update(NhanVien nv) {
 
         Transaction transaction = null;
@@ -61,7 +71,7 @@ public class NhanVienRepository {
 
             transaction = session.beginTransaction();
 
-            session.merge(nv);
+            session.update(nv);
 
             transaction.commit();
 
@@ -74,12 +84,11 @@ public class NhanVienRepository {
             }
 
             e.printStackTrace();
-
             return false;
         }
     }
 
-    // Xóa
+
     public boolean delete(Integer id) {
 
         Transaction transaction = null;
@@ -91,7 +100,7 @@ public class NhanVienRepository {
             NhanVien nv = session.get(NhanVien.class, id);
 
             if (nv != null) {
-                session.remove(nv);
+                session.delete(nv);
             }
 
             transaction.commit();
@@ -105,7 +114,6 @@ public class NhanVienRepository {
             }
 
             e.printStackTrace();
-
             return false;
         }
     }
@@ -113,38 +121,49 @@ public class NhanVienRepository {
 
     public NhanVien findByMa(String ma) {
 
-        Session session = HibernateConfig.getFACTORY().openSession();
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
 
-        Query<NhanVien> query = session.createQuery(
-                "from NhanVien where maNhanVien = :ma",
-                NhanVien.class
-        );
+            Query query = session.createQuery(
+                    "from NhanVien where maNhanVien = :ma"
+            );
 
-        query.setParameter("ma", ma);
+            query.setParameter("ma", ma);
 
-        NhanVien nv = query.uniqueResult();
+            return (NhanVien) query.uniqueResult();
 
-        session.close();
-
-        return nv;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
-    // Tìm kiếm theo mã hoặc tên
+
     public List<NhanVien> search(String keyword) {
 
-        Session session = HibernateConfig.getFACTORY().openSession();
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
 
-        Query<NhanVien> query = session.createQuery(
-                "from NhanVien where maNhanVien like :kw or hoTen like :kw",
-                NhanVien.class
-        );
+            if (keyword == null || keyword.trim().isEmpty()) {
 
-        query.setParameter("kw", "%" + keyword + "%");
+                return session.createQuery("from NhanVien").list();
+            }
 
-        List<NhanVien> list = query.list();
+            Query query = session.createQuery(
+                    "from NhanVien " +
+                            "where maNhanVien like :kw " +
+                            "or hoTen like :kw"
+            );
 
-        session.close();
+            query.setParameter("kw", "%" + keyword.trim() + "%");
 
-        return list;
+            return query.list();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new NhanVienRepository().getAll());
     }
 }
