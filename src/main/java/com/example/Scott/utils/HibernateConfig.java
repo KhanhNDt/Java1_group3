@@ -28,6 +28,7 @@ public class HibernateConfig {
 //        conf.addAnnotatedClass(TaiKhoan.class);
         conf.addAnnotatedClass(KhachHang.class);
         conf.addAnnotatedClass(DiaChiKhachHang.class);
+        conf.addAnnotatedClass(NhanVien.class);
 //        conf.addAnnotatedClass(ThuongHieu.class);
 //        conf.addAnnotatedClass(MauSac.class);
 //        conf.addAnnotatedClass(Size.class);
