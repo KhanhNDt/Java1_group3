@@ -115,13 +115,13 @@ public class HoaDonServlet extends HttpServlet {
             req.setAttribute("revenueToday", hoaDonRepo.getTotalRevenueToday());
             req.setAttribute("pending", hoaDonRepo.getPendingOrders());
             req.setAttribute("cancelled", hoaDonRepo.getCancelledOrders());
-            req.setAttribute("menu", "khachhang");
+            req.setAttribute("menu", "quanlyhoadon");
 
         } catch (Exception e) {
             e.printStackTrace();
             req.setAttribute("error", "Lỗi hệ thống khi tải dữ liệu: " + e.getMessage());
         }
-        req.setAttribute("menu", "khachhang");
+        req.setAttribute("menu", "quanlyshoado");
         req.getRequestDispatcher("/views/hoadon/hoa-don.jsp").forward(req, resp);
     }
 
@@ -142,7 +142,7 @@ public class HoaDonServlet extends HttpServlet {
             }
             List<HoaDonChiTiet> details = hoaDonRepo.getChiTietByHoaDonId(id);
             req.setAttribute("invoice", hd);
-            req.setAttribute("menu", "khachhang");
+            req.setAttribute("menu", "quanlyhoadon");
             req.setAttribute("details", details);
             req.getRequestDispatcher("/views/hoadon/hoa-don-detail.jsp").forward(req, resp);
         } catch (NumberFormatException e) {

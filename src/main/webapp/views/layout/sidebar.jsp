@@ -5,140 +5,140 @@
 
 <style>
 
-    *{
-        margin:0;
-        padding:0;
-        box-sizing:border-box;
-        font-family:'Segoe UI',sans-serif;
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', sans-serif;
     }
 
-    body{
-        background:#f4f7fe;
+    body {
+        background: #f4f7fe;
     }
 
-    .sidebar{
+    .sidebar {
 
-        position:fixed;
+        position: fixed;
 
-        left:0;
+        left: 0;
 
-        top:0;
+        top: 0;
 
-        width:260px;
+        width: 260px;
 
-        height:100vh;
+        height: 100vh;
 
-        background:#5E35B1;
+        background: #5E35B1;
 
-        color:white;
+        color: white;
 
-        overflow:auto;
-
-    }
-
-    .logo{
-
-        text-align:center;
-
-        padding:30px 20px;
+        overflow: auto;
 
     }
 
-    .logo h2{
+    .logo {
 
-        font-weight:bold;
+        text-align: center;
 
-        letter-spacing:2px;
-
-    }
-
-    .logo span{
-
-        color:#FFD54F;
+        padding: 30px 20px;
 
     }
 
-    .menu{
+    .logo h2 {
 
-        padding:10px;
+        font-weight: bold;
 
-    }
-
-    .menu a{
-
-        display:flex;
-
-        align-items:center;
-
-        text-decoration:none;
-
-        color:white;
-
-        padding:14px 18px;
-
-        margin-bottom:8px;
-
-        border-radius:12px;
-
-        transition:.3s;
+        letter-spacing: 2px;
 
     }
 
-    .menu a i{
+    .logo span {
 
-        font-size:20px;
-
-        margin-right:15px;
+        color: #FFD54F;
 
     }
 
-    .menu a:hover{
+    .menu {
 
-        background:white;
-
-        color:#5E35B1;
+        padding: 10px;
 
     }
 
-    .menu .active{
+    .menu a {
 
-        background:white;
+        display: flex;
 
-        color:#5E35B1;
+        align-items: center;
 
-    }
+        text-decoration: none;
 
-    .bottom{
+        color: white;
 
-        position:absolute;
+        padding: 14px 18px;
 
-        bottom:20px;
+        margin-bottom: 8px;
 
-        width:100%;
+        border-radius: 12px;
 
-        padding:0 10px;
-
-    }
-
-    .bottom a{
-
-        display:flex;
-
-        align-items:center;
-
-        color:white;
-
-        text-decoration:none;
-
-        padding:14px 18px;
-
-        border-radius:12px;
+        transition: .3s;
 
     }
 
-    .bottom a:hover{
+    .menu a i {
 
-        background:#7E57C2;
+        font-size: 20px;
+
+        margin-right: 15px;
+
+    }
+
+    .menu a:hover {
+
+        background: white;
+
+        color: #5E35B1;
+
+    }
+
+    .menu .active {
+
+        background: white;
+
+        color: #5E35B1;
+
+    }
+
+    .bottom {
+
+        position: absolute;
+
+        bottom: 20px;
+
+        width: 100%;
+
+        padding: 0 10px;
+
+    }
+
+    .bottom a {
+
+        display: flex;
+
+        align-items: center;
+
+        color: white;
+
+        text-decoration: none;
+
+        padding: 14px 18px;
+
+        border-radius: 12px;
+
+    }
+
+    .bottom a:hover {
+
+        background: #7E57C2;
 
     }
 
@@ -154,82 +154,61 @@
 
     <div class="menu">
 
-        <a href="/dashboard" class="${menu == 'dashboard' ? 'active' : ''}">
-
+        <!-- Dashboard -->
+        <a href="${pageContext.request.contextPath}/dashboard"
+           class="${menu == 'dashboard' ? 'active' : ''}">
             <i class="bi bi-grid-fill"></i>
-
             Dashboard
-
         </a>
 
+        <!-- Bảng xếp hạng -->
         <a href="#">
-
             <i class="bi bi-bar-chart-fill"></i>
-
             Bảng xếp hạng
-
         </a>
 
-        <a href="/hoa-don">
-
+        <!-- Quản lý hóa đơn -->
+        <a href="${pageContext.request.contextPath}/quanlyhoadon"
+           class="${menu == 'quanlyhoadon' ? 'active' : ''}">
             <i class="bi bi-cart-fill"></i>
-
-            Quản lý hóa đơn
-
+             Hóa đơn
         </a>
 
-        <a href="/san-pham">
-
+        <!-- Sản phẩm -->
+        <a href="${pageContext.request.contextPath}/san-pham"
+           class="${menu == 'sanpham' ? 'active' : ''}">
             <i class="bi bi-bag-fill"></i>
-
             Sản phẩm
-
         </a>
 
+        <!-- Báo cáo -->
         <a href="#">
-
             <i class="bi bi-graph-up-arrow"></i>
-
             Báo cáo
-
         </a>
+
+        <!-- Phiếu giảm giá -->
         <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi"
            class="${menu == 'phieugiamgia' ? 'active' : ''}">
-            <i class="bi bi-people-fill"></i>
-
+            <i class="bi bi-ticket-perforated-fill"></i>
             Phiếu Giảm Giá
-
         </a>
 
+        <!-- Khách hàng -->
         <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
            class="${menu == 'khachhang' ? 'active' : ''}">
             <i class="bi bi-people-fill"></i>
-
             Khách hàng
-
         </a>
 
-
+        <!-- Cài đặt -->
         <a href="#">
-
             <i class="bi bi-gear-fill"></i>
-
             Cài đặt
-
         </a>
 
     </div>
-
-    <div class="bottom">
-
-        <a href="/logout">
-
-            <i class="bi bi-box-arrow-right"></i>
-
-            Đăng xuất
-
-        </a>
-
-    </div>
+    <div class="bottom"><a href="/logout">
+        <i class="bi bi-box-arrow-right"></i> Đăng xuất </a></div>
 
 </div>
