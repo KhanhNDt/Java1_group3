@@ -55,7 +55,7 @@ public class NhanVienServlet extends HttpServlet {
 
             request.setAttribute("list", repo.search(keyword));
         }
-
+        request.setAttribute("menu", "nhanvien");
         request.getRequestDispatcher("/views/nhan-vien.jsp")
                 .forward(request, response);
     }

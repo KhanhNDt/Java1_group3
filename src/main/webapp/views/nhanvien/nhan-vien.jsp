@@ -86,7 +86,7 @@
 </head>
 
 <body>
-
+<%@ include file="/views/layout/sidebar.jsp"%>
 <div class="container">
 
     <h2>QUẢN LÝ NHÂN VIÊN</h2>
