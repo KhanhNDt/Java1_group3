@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ArtifactsWorkspaceSettings">
     <artifacts-to-build>
-      <artifact name="Scott:war exploded" />
+      <artifact name="Scott:war" />
     </artifacts-to-build>
   </component>
   <component name="AutoImportSettings">
@@ -10,22 +10,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/webContexts.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/chitiet.jsp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhanvien.jsp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/themnhanvien.jsp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/NhanVien.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/NhanVien.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/nhanvien.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/khachhangs.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/khachhangs.jsp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/META-INF/MANIFEST.MF" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/utils/HibernateConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/utils/HibernateConfig.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/nhanvien.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/nhanvien.jsp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/sidebar.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/sidebar.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/utils/HibernateConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/example/Scott/utils/HibernateConfig.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,15 +76,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
+    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
           <option name="containerStateName" value="" />
         </value>
       </option>
-      <option name="TEST_OBJECT" value="CLASS" />
-      <properties />
-      <listeners />
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -203,6 +191,54 @@
       <predefined_log_file id="Tomcat Manager" />
       <predefined_log_file id="Tomcat Host Manager" />
       <predefined_log_file id="Tomcat Localhost Access" />
+      <RunnerSettings RunnerId="Debug">
+        <option name="DEBUG_PORT" value="57113" />
+      </RunnerSettings>
+      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Cover">
+        <option name="USE_ENV_VARIABLES" value="true" />
+        <STARTUP>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </STARTUP>
+        <SHUTDOWN>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </SHUTDOWN>
+      </ConfigurationWrapper>
+      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Debug">
+        <option name="USE_ENV_VARIABLES" value="true" />
+        <STARTUP>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </STARTUP>
+        <SHUTDOWN>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </SHUTDOWN>
+      </ConfigurationWrapper>
+      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Profile">
+        <option name="USE_ENV_VARIABLES" value="true" />
+        <STARTUP>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </STARTUP>
+        <SHUTDOWN>
+          <option name="USE_DEFAULT" value="true" />
+          <option name="SCRIPT" value="" />
+          <option name="VM_PARAMETERS" value="" />
+          <option name="PROGRAM_PARAMETERS" value="" />
+        </SHUTDOWN>
+      </ConfigurationWrapper>
       <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Run">
         <option name="USE_ENV_VARIABLES" value="true" />
         <STARTUP>
@@ -250,6 +286,7 @@
       <updated>1783825595794</updated>
       <workItem from="1783825598207" duration="1487000" />
       <workItem from="1783828497177" duration="296000" />
+      <workItem from="1783996693921" duration="4792000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1783837991503</created>

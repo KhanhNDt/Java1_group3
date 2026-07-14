@@ -73,8 +73,7 @@
 
                             <button type="button"
                                     class="btn btn-success"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalThem">
+                                    onclick="location.href='${pageContext.request.contextPath}/khachhang/view-add'">
                                 <i class="bi bi-plus-lg"></i> Thêm mới
                             </button>
 

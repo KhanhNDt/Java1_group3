@@ -193,7 +193,7 @@
         <a href="${pageContext.request.contextPath}/nhan-vien/hien-thi"
            class="${menu == 'nhanvien' ? 'active' : ''}">
             <i class="bi bi-person-badge-fill"></i>
-            Nhân Vien
+            Nhân viên
         </a>
         <!-- Khách hàng -->
         <a href="${pageContext.request.contextPath}/khachhang/hien-thi"

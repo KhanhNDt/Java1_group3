@@ -17,6 +17,7 @@ import java.io.IOException;
         "/khachhang/view-update",
         "/khachhang/search",
         "/khachhang/detail",
+        "/khachhang/view-add"
 
 })
 public class KhachHangServlet extends HttpServlet {
@@ -35,10 +36,12 @@ public class KhachHangServlet extends HttpServlet {
             this.viewUpdateKhachHang(request, response);
         } else if (uri.contains("search")) {
             this.searchKhachHang(request, response);
-        } else {
+        } else if(uri.contains("detail")){
             this.detailKhachHang(request, response);
         }
     }
+
+
 
     private void detailKhachHang(HttpServletRequest request,
                                  HttpServletResponse response)

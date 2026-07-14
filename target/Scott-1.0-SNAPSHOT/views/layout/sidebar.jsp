@@ -161,6 +161,12 @@
             Dashboard
         </a>
 
+        <!-- Sản phẩm -->
+        <a href="${pageContext.request.contextPath}/san-pham"
+           class="${menu == 'sanpham' ? 'active' : ''}">
+            <i class="bi bi-bag-fill"></i>
+            Sản phẩm
+        </a>
 
         <!-- Quản lý hóa đơn -->
         <a href="${pageContext.request.contextPath}/quanlyhoadon"
@@ -169,12 +175,6 @@
              Hóa đơn
         </a>
 
-        <!-- Sản phẩm -->
-        <a href="${pageContext.request.contextPath}/san-pham"
-           class="${menu == 'sanpham' ? 'active' : ''}">
-            <i class="bi bi-bag-fill"></i>
-            Sản phẩm
-        </a>
 
         <!-- Báo cáo -->
         <a href="#">
@@ -189,6 +189,12 @@
             Phiếu Giảm Giá
         </a>
 
+        <!-- Nhân Viên -->
+        <a href="${pageContext.request.contextPath}/nhan-vien/hien-thi"
+           class="${menu == 'nhanvien' ? 'active' : ''}">
+            <i class="bi bi-person-badge-fill"></i>
+            Nhân Vien
+        </a>
         <!-- Khách hàng -->
         <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
            class="${menu == 'khachhang' ? 'active' : ''}">
