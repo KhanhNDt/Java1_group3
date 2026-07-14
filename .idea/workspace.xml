@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ArtifactsWorkspaceSettings">
     <artifacts-to-build>
-      <artifact name="Scott:war" />
+      <artifact name="Scott:war exploded" />
     </artifacts-to-build>
   </component>
   <component name="AutoImportSettings">
@@ -10,12 +10,115 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/DiaChiKhachHangResponsitory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/DiaChiKhachHangResponsitory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/KhachHangResponsitory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/KhachHangResponsitory.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/khachhangs.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/khachhangs.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/sidebar.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/sidebar.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/HelloServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/DashboardServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/HoaDonServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/KhachHangServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/PhieuGiamGiaServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/Servlet1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/Servlet2.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/DiaChiKhachHang$DiaChiKhachHangBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/DiaChiKhachHang.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/HoaDon$HoaDonBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/HoaDon.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/HoaDonChiTiet$HoaDonChiTietBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/HoaDonChiTiet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/KhachHang$KhachHangBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/KhachHang.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/PhieuGiamGia.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/responsitory/DiaChiKhachHangResponsitory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/responsitory/HoaDonRepo.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/responsitory/KhachHangResponsitory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/responsitory/PhieuGiamGiaResponsitory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/utils/HibernateConfig.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/SparseBitSet-1.3.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/antlr-2.7.7.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/byte-buddy-1.12.9.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/classmate-1.5.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/commons-beanutils-1.9.4.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/commons-codec-1.16.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/commons-collections-3.2.2.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/commons-collections4-4.4.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/commons-compress-1.25.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/commons-io-2.15.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/commons-logging-1.2.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/commons-math3-3.6.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/curvesapi-1.08.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/dom4j-2.1.3.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/error_prone_annotations-2.38.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/gson-2.13.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/hibernate-commons-annotations-5.1.2.Final.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/hibernate-core-jakarta-5.6.10.Final.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/istack-commons-runtime-4.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jakarta.activation-2.0.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jakarta.activation-api-2.0.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jakarta.el-api-5.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jakarta.persistence-api-3.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jakarta.servlet.jsp.jstl-3.0.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jakarta.servlet.jsp.jstl-api-3.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jakarta.transaction-api-2.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jakarta.xml.bind-api-3.0.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jandex-2.4.2.Final.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jaxb-core-3.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jaxb-runtime-3.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/jboss-logging-3.4.3.Final.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/log4j-api-2.21.1.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/mssql-jdbc-12.2.0.jre11.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/poi-5.2.5.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/poi-ooxml-5.2.5.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/poi-ooxml-lite-5.2.5.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/txw2-3.0.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/lib/xmlbeans-5.2.0.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/web.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/assets.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/assets/css/style.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/assets/js/main.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/dashboard.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/nhanvien.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/order.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/product.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/hoadon/hoa-don-detail.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/hoadon/hoa-don.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/hoadon/index.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/detailKhachHang.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/khachhangs.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/updateKH.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/footer.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/header.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/sidebar.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/phieugiamgian3/detailPGG.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/phieugiamgian3/phieugiamgias.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/phieugiamgian3/updatePGG.jsp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/HelloServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/DashboardServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/HoaDonServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/KhachHangServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/PhieuGiamGiaServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/Servlet1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/Servlet2.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/DiaChiKhachHang$DiaChiKhachHangBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/DiaChiKhachHang.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/HoaDon$HoaDonBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/HoaDon.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/HoaDonChiTiet$HoaDonChiTietBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/HoaDonChiTiet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/KhachHang$KhachHangBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/KhachHang.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/PhieuGiamGia.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/responsitory/DiaChiKhachHangResponsitory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/responsitory/HoaDonRepo.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/responsitory/KhachHangResponsitory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/responsitory/PhieuGiamGiaResponsitory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/utils/HibernateConfig.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,8 +128,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="Jsp File" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -58,9 +161,9 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="project.structure.last.edited" value="Project" />
-    <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.0" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
   </component>
   <component name="RunManager" selected="Tomcat Server.Tomcat 10.1.54">
     <configuration name="NhanVienRepository" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
@@ -76,115 +179,35 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
+    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
           <option name="containerStateName" value="" />
         </value>
       </option>
-      <option name="TEST_OBJECT" value="class" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
+    </configuration>
+    <configuration name="viewAddKH.jsp" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:8080/views/khachhangn3/viewAddKH.jsp">
+      <method v="2" />
     </configuration>
     <configuration name="Tomcat 10.1.54" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 10.1.54" ALTERNATIVE_JRE_ENABLED="false" nameIsGenerated="true">
       <option name="OPEN_IN_BROWSER_URL" value="http://localhost:8080/dashboard" />
       <option name="BROWSER_ID" value="98ca6316-2f89-46d9-a9e5-fa9e2b0625b3" />
       <option name="UPDATING_POLICY" value="restart-server" />
       <deployment>
-        <artifact name="Scott:war">
-          <settings>
-            <option name="CONTEXT_PATH" value="" />
-          </settings>
-        </artifact>
-      </deployment>
-      <server-settings>
-        <option name="BASE_DIRECTORY_NAME" value="8a2edf81-22c2-4299-92e3-837b86d71ecf" />
-      </server-settings>
-      <predefined_log_file enabled="true" id="Tomcat" />
-      <predefined_log_file enabled="true" id="Tomcat Catalina" />
-      <predefined_log_file id="Tomcat Manager" />
-      <predefined_log_file id="Tomcat Host Manager" />
-      <predefined_log_file id="Tomcat Localhost Access" />
-      <RunnerSettings RunnerId="Debug">
-        <option name="DEBUG_PORT" value="51666" />
-      </RunnerSettings>
-      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Cover">
-        <option name="USE_ENV_VARIABLES" value="true" />
-        <STARTUP>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </STARTUP>
-        <SHUTDOWN>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </SHUTDOWN>
-      </ConfigurationWrapper>
-      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Debug">
-        <option name="USE_ENV_VARIABLES" value="true" />
-        <STARTUP>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </STARTUP>
-        <SHUTDOWN>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </SHUTDOWN>
-      </ConfigurationWrapper>
-      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Profile">
-        <option name="USE_ENV_VARIABLES" value="true" />
-        <STARTUP>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </STARTUP>
-        <SHUTDOWN>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </SHUTDOWN>
-      </ConfigurationWrapper>
-      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Run">
-        <option name="USE_ENV_VARIABLES" value="true" />
-        <STARTUP>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </STARTUP>
-        <SHUTDOWN>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </SHUTDOWN>
-      </ConfigurationWrapper>
-      <method v="2">
-        <option name="Make" enabled="true" />
-        <option name="BuildArtifacts" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="nhanvien.jsp" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" temporary="true" APPLICATION_SERVER_NAME="Tomcat 10.1.54" ALTERNATIVE_JRE_ENABLED="false">
-      <option name="OPEN_IN_BROWSER_URL" value="http://localhost:8080/nhanvien.jsp" />
-      <deployment>
         <artifact name="Scott:war exploded">
           <settings>
-            <option name="CONTEXT_PATH" value="/Scott_war_exploded" />
+            <option name="CONTEXT_PATH" value="/" />
           </settings>
         </artifact>
       </deployment>
       <server-settings>
-        <option name="BASE_DIRECTORY_NAME" value="729f066e-cb71-4c14-8277-ef6a9a86821a" />
+        <option name="BASE_DIRECTORY_NAME" value="e702116c-b430-4a5d-8ce9-5fb24c73a6e1" />
       </server-settings>
       <predefined_log_file enabled="true" id="Tomcat" />
       <predefined_log_file enabled="true" id="Tomcat Catalina" />
@@ -192,7 +215,7 @@
       <predefined_log_file id="Tomcat Host Manager" />
       <predefined_log_file id="Tomcat Localhost Access" />
       <RunnerSettings RunnerId="Debug">
-        <option name="DEBUG_PORT" value="57113" />
+        <option name="DEBUG_PORT" value="61506" />
       </RunnerSettings>
       <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Cover">
         <option name="USE_ENV_VARIABLES" value="true" />
@@ -261,9 +284,14 @@
         </option>
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Application.NhanVienRepository" />
+      <item itemvalue="JavaScript Debug.viewAddKH.jsp" />
+      <item itemvalue="Tomcat Server.Tomcat 10.1.54" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Tomcat Server.nhanvien.jsp" />
+        <item itemvalue="JavaScript Debug.viewAddKH.jsp" />
         <item itemvalue="Application.NhanVienRepository" />
       </list>
     </recent_temporary>
@@ -286,7 +314,8 @@
       <updated>1783825595794</updated>
       <workItem from="1783825598207" duration="1487000" />
       <workItem from="1783828497177" duration="296000" />
-      <workItem from="1783996693921" duration="4792000" />
+      <workItem from="1783996693921" duration="5122000" />
+      <workItem from="1784018434872" duration="6893000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1783837991503</created>
@@ -295,7 +324,14 @@
       <option name="project" value="LOCAL" />
       <updated>1783837991503</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Changes">
+      <created>1784002048359</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1784002048359</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

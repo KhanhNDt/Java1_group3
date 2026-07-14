@@ -1,6 +1,7 @@
 package com.example.Scott.controller;
 
 import com.example.Scott.entity.KhachHang;
+import com.example.Scott.entity.DiaChiKhachHang;
 import com.example.Scott.responsitory.DiaChiKhachHangResponsitory;
 import com.example.Scott.responsitory.KhachHangResponsitory;
 import jakarta.servlet.*;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet(name = "KhachHangServlet", value = {
         "/khachhang/hien-thi",
@@ -18,16 +20,17 @@ import java.io.IOException;
         "/khachhang/search",
         "/khachhang/detail",
         "/khachhang/view-add"
-
 })
 public class KhachHangServlet extends HttpServlet {
 
-    private KhachHangResponsitory khachHangResponsitory = new KhachHangResponsitory();
-    private DiaChiKhachHangResponsitory diaChiKhachHangResponsitory = new DiaChiKhachHangResponsitory();
+    private final KhachHangResponsitory khachHangResponsitory = new KhachHangResponsitory();
+    private final DiaChiKhachHangResponsitory diaChiKhachHangResponsitory = new DiaChiKhachHangResponsitory();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        System.out.println("==== KhachHangServlet ====");
         String uri = request.getRequestURI();
+
         if (uri.contains("hien-thi")) {
             this.hienThiKhachHang(request, response);
         } else if (uri.contains("delete")) {
@@ -36,55 +39,47 @@ public class KhachHangServlet extends HttpServlet {
             this.viewUpdateKhachHang(request, response);
         } else if (uri.contains("search")) {
             this.searchKhachHang(request, response);
-        } else if(uri.contains("detail")){
+        } else if (uri.contains("detail")) {
             this.detailKhachHang(request, response);
+        } else {
+            this.viewAdd(request, response);
         }
     }
 
+    private void viewAdd(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.getRequestDispatcher("/views/khachhangn3/viewAddKH.jsp").forward(request, response);
+    }
 
-
-    private void detailKhachHang(HttpServletRequest request,
-                                 HttpServletResponse response)
-            throws ServletException, IOException {
-
+    private void detailKhachHang(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Integer id = Integer.valueOf(request.getParameter("id"));
-
         KhachHang kh = khachHangResponsitory.getOne(id);
 
         request.setAttribute("khachHangS", kh);
         request.setAttribute("listKhachHang", khachHangResponsitory.getAll());
 
-        request.getRequestDispatcher("/views/khachhangn3/detailKhachHang.jsp")
-                .forward(request, response);
+        request.getRequestDispatcher("/views/khachhangn3/detailKhachHang.jsp").forward(request, response);
     }
 
-    private void searchKhachHang(HttpServletRequest request,
-                                 HttpServletResponse response)
-            throws ServletException, IOException {
-
+    private void searchKhachHang(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String keyword = request.getParameter("keyword");
-
-        request.setAttribute(
-                "listKhachHang",
-                khachHangResponsitory.search(keyword));
-
-        request.getRequestDispatcher("/views/khachhangn3/khachhangs.jsp")
-                .forward(request, response);
-
+        request.setAttribute("listKhachHang", khachHangResponsitory.search(keyword));
+        request.getRequestDispatcher("/views/khachhangn3/khachhangs.jsp").forward(request, response);
     }
 
     private void viewUpdateKhachHang(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("menu", "khachhang");
         Integer id = Integer.valueOf(request.getParameter("id"));
-        KhachHang KH = khachHangResponsitory.getOne(id);
-        request.setAttribute("khachHangS", KH);
+        KhachHang kh = khachHangResponsitory.getOne(id);
+        request.setAttribute("khachHangS", kh);
         request.getRequestDispatcher("/views/khachhangn3/updateKH.jsp").forward(request, response);
     }
 
     private void deleteKhachHang(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Integer id = Integer.valueOf(request.getParameter("id"));
-        KhachHang KH = khachHangResponsitory.getOne(id);
-        khachHangResponsitory.DeleteKhachHang(KH);
+        KhachHang kh = khachHangResponsitory.getOne(id);
+        if (kh != null) {
+            khachHangResponsitory.DeleteKhachHang(kh);// Đồng bộ tên hàm viết thường chữ cái đầu
+        }
         response.sendRedirect("/khachhang/hien-thi");
     }
 
@@ -114,8 +109,9 @@ public class KhachHangServlet extends HttpServlet {
         String diaChi = request.getParameter("diaChi");
         String gioiTinh = request.getParameter("gioiTinh");
         Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
-        KhachHang KH = new KhachHang(id, ma, hoTen, sdt, email, diaChi, gioiTinh, trangThai);
-        khachHangResponsitory.UpdateKhachHang(KH);
+
+        KhachHang kh = new KhachHang(id, ma, hoTen, sdt, email, diaChi, gioiTinh, trangThai);
+        khachHangResponsitory.UpdateKhachHang(kh); // Đồng bộ tên hàm
         response.sendRedirect("/khachhang/hien-thi");
     }
 
@@ -124,12 +120,46 @@ public class KhachHangServlet extends HttpServlet {
         String hoTen = request.getParameter("hoTen");
         String sdt = request.getParameter("sdt");
         String email = request.getParameter("email");
-        String diaChi = request.getParameter("diaChi");
+        String diaChiGoc = request.getParameter("diaChi");
         String gioiTinh = request.getParameter("gioiTinh");
         Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
-        KhachHang KH = new KhachHang(null, ma, hoTen, sdt, email, diaChi, gioiTinh, trangThai);
-        khachHangResponsitory.addKhachHang(KH);
-        response.sendRedirect("/khachhang/hien-thi");
 
+        // 1. Tạo mới Khách hàng
+        KhachHang kh = new KhachHang(null, ma, hoTen, sdt, email, diaChiGoc, gioiTinh, trangThai);
+        khachHangResponsitory.addKhachHang(kh);
+
+        // 2. Tìm lại khách hàng vừa thêm dựa trên 'ma' bằng hàm chuyên biệt findByMa()
+        // Đảm bảo bạn đã định nghĩa phương thức `findByMa(String ma)` trong KhachHangResponsitory
+        KhachHang khachVuaThem = khachHangResponsitory.findByMa(ma);
+        Integer idKhachHangMoi = (khachVuaThem != null) ? khachVuaThem.getId() : null;
+
+        // 3. Lấy thông tin Địa chỉ cụ thể từ Modal
+        String tenNguoiNhan = request.getParameter("mNguoiNhan");
+        String sdtNguoiNhan = request.getParameter("mSdtNhan");
+        String tinhThanh = request.getParameter("mTinhText");
+        String quanHuyen = request.getParameter("mHuyenText");
+        String phuongXa = request.getParameter("mXaText");
+        String diaChiCuToi = request.getParameter("mChiTiet");
+
+        String paramMacDinh = request.getParameter("mMacDinh");
+        Boolean isMacDinh = (paramMacDinh != null && paramMacDinh.equals("true"));
+
+        if (idKhachHangMoi != null && tenNguoiNhan != null && !tenNguoiNhan.trim().isEmpty()) {
+            DiaChiKhachHang dc = new DiaChiKhachHang(
+                    null,
+                    idKhachHangMoi,
+                    tenNguoiNhan,
+                    sdtNguoiNhan,
+                    tinhThanh,
+                    quanHuyen,
+                    phuongXa,
+                    diaChiCuToi,
+                    "Nhà riêng",
+                    isMacDinh
+            );
+            diaChiKhachHangResponsitory.AddDiaChiKH(dc); // Đồng bộ tên hàm
+        }
+
+        response.sendRedirect("/khachhang/hien-thi");
     }
 }
