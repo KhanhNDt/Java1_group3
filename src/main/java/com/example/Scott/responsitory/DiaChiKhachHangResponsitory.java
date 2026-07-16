@@ -16,13 +16,25 @@ public class DiaChiKhachHangResponsitory {
     public DiaChiKhachHang getOne(Integer id3){return s.find(DiaChiKhachHang.class,id3);}
 
 
-    public void AddDiaChiKH(DiaChiKhachHang DCKH){
-        try{
+    public DiaChiKhachHang AddDiaChiKH(DiaChiKhachHang DCKH) {
+        try {
             s.getTransaction().begin();
+
             s.persist(DCKH);
+
             s.getTransaction().commit();
-        }catch(Exception e){
+
+            return DCKH;
+
+        } catch (Exception e) {
+
+            if (s.getTransaction().isActive()) {
+                s.getTransaction().rollback();
+            }
+
             e.printStackTrace();
+
+            return null;
         }
     }
 

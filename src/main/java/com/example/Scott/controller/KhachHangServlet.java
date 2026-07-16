@@ -2,6 +2,8 @@ package com.example.Scott.controller;
 
 import com.example.Scott.entity.KhachHang;
 import com.example.Scott.entity.DiaChiKhachHang;
+import com.example.Scott.entity.DiaChiApiMapping;
+import com.example.Scott.responsitory.DiaChiApiMappingRepository;
 import com.example.Scott.responsitory.DiaChiKhachHangResponsitory;
 import com.example.Scott.responsitory.KhachHangResponsitory;
 import jakarta.servlet.*;
@@ -25,7 +27,7 @@ public class KhachHangServlet extends HttpServlet {
 
     private final KhachHangResponsitory khachHangResponsitory = new KhachHangResponsitory();
     private final DiaChiKhachHangResponsitory diaChiKhachHangResponsitory = new DiaChiKhachHangResponsitory();
-
+ private  final DiaChiApiMappingRepository diaChiApiMappingRepository = new DiaChiApiMappingRepository();
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         System.out.println("==== KhachHangServlet ====");
@@ -116,6 +118,7 @@ public class KhachHangServlet extends HttpServlet {
     }
 
     private void addKhachHang(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
         String ma = request.getParameter("ma");
         String hoTen = request.getParameter("hoTen");
         String sdt = request.getParameter("sdt");
@@ -124,38 +127,67 @@ public class KhachHangServlet extends HttpServlet {
         String gioiTinh = request.getParameter("gioiTinh");
         Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
 
-        // 1. Tạo mới Khách hàng
-        KhachHang kh = new KhachHang(null, ma, hoTen, sdt, email, diaChiGoc, gioiTinh, trangThai);
+        // Thêm khách hàng
+        KhachHang kh = new KhachHang(
+                null,
+                ma,
+                hoTen,
+                sdt,
+                email,
+                diaChiGoc,
+                gioiTinh,
+                trangThai
+        );
+
         khachHangResponsitory.addKhachHang(kh);
 
-        // 2. Tìm lại khách hàng vừa thêm dựa trên 'ma' bằng hàm chuyên biệt findByMa()
-        // Đảm bảo bạn đã định nghĩa phương thức `findByMa(String ma)` trong KhachHangResponsitory
+        // Lấy lại khách hàng vừa thêm
         KhachHang khachVuaThem = khachHangResponsitory.findByMa(ma);
-        Integer idKhachHangMoi = (khachVuaThem != null) ? khachVuaThem.getId() : null;
+        Integer idKhachHangMoi = (khachVuaThem != null)
+                ? khachVuaThem.getId()
+                : null;
 
-        // 3. Lấy thông tin Địa chỉ cụ thể từ Modal
-
+        // Lấy dữ liệu địa chỉ
         String tinhThanh = request.getParameter("mTinhText");
         String quanHuyen = request.getParameter("mHuyenText");
         String phuongXa = request.getParameter("mXaText");
-        String diaChiCuToi = request.getParameter("mChiTiet");
+        String diaChiCuThe = request.getParameter("mChiTiet");
+
+        Integer provinceCode = Integer.valueOf(request.getParameter("provinceCode"));
+        Integer districtCode = Integer.valueOf(request.getParameter("districtCode"));
+        Integer wardCode = Integer.valueOf(request.getParameter("wardCode"));
 
         String paramMacDinh = request.getParameter("mMacDinh");
-        Boolean isMacDinh = (paramMacDinh != null && paramMacDinh.equals("true"));
+        Boolean isMacDinh = paramMacDinh != null && paramMacDinh.equals("true");
+
+        DiaChiKhachHang diaChiMoi = null;
 
         if (idKhachHangMoi != null) {
+
             DiaChiKhachHang dc = new DiaChiKhachHang(
                     null,
                     idKhachHangMoi,
                     tinhThanh,
                     quanHuyen,
                     phuongXa,
-                    diaChiCuToi,
+                    diaChiCuThe,
                     "Nhà riêng",
                     isMacDinh
             );
 
-            diaChiKhachHangResponsitory.AddDiaChiKH(dc);
+            diaChiMoi = diaChiKhachHangResponsitory.AddDiaChiKH(dc);
+        }
+
+        if (diaChiMoi != null) {
+
+            DiaChiApiMapping mapping = new DiaChiApiMapping();
+
+            mapping.setIdDiaChiKhachHang(diaChiMoi.getId());
+            mapping.setProvinceCode(provinceCode);
+            mapping.setDistrictCode(districtCode);
+            mapping.setWardCode(wardCode);
+
+            diaChiApiMappingRepository.add(mapping);
         }
 
         response.sendRedirect("/khachhang/hien-thi");
