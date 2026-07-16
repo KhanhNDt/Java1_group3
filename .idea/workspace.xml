@@ -10,13 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/DiaChiApiMapping.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/DiaChiApiMappingRepository.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/DiaChiKhachHangResponsitory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/DiaChiKhachHangResponsitory.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/HibernateConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/HibernateConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,17 +68,6 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
-      <option name="arquillianRunConfiguration">
-        <value>
-          <option name="containerStateName" value="" />
-        </value>
-      </option>
-      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -217,7 +200,8 @@
       <workItem from="1784104352002" duration="1281000" />
       <workItem from="1784115522944" duration="28000" />
       <workItem from="1784115791596" duration="214000" />
-      <workItem from="1784168949854" duration="6917000" />
+      <workItem from="1784168949854" duration="7184000" />
+      <workItem from="1784190482525" duration="2994000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1783837991503</created>
@@ -261,7 +245,14 @@
       <option name="project" value="LOCAL" />
       <updated>1784171445354</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Changes">
+      <created>1784179549888</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1784179549888</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
