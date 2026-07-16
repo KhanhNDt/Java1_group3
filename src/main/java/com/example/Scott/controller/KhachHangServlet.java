@@ -134,8 +134,7 @@ public class KhachHangServlet extends HttpServlet {
         Integer idKhachHangMoi = (khachVuaThem != null) ? khachVuaThem.getId() : null;
 
         // 3. Lấy thông tin Địa chỉ cụ thể từ Modal
-        String tenNguoiNhan = request.getParameter("mNguoiNhan");
-        String sdtNguoiNhan = request.getParameter("mSdtNhan");
+
         String tinhThanh = request.getParameter("mTinhText");
         String quanHuyen = request.getParameter("mHuyenText");
         String phuongXa = request.getParameter("mXaText");
@@ -144,12 +143,10 @@ public class KhachHangServlet extends HttpServlet {
         String paramMacDinh = request.getParameter("mMacDinh");
         Boolean isMacDinh = (paramMacDinh != null && paramMacDinh.equals("true"));
 
-        if (idKhachHangMoi != null && tenNguoiNhan != null && !tenNguoiNhan.trim().isEmpty()) {
+        if (idKhachHangMoi != null) {
             DiaChiKhachHang dc = new DiaChiKhachHang(
                     null,
                     idKhachHangMoi,
-                    tenNguoiNhan,
-                    sdtNguoiNhan,
                     tinhThanh,
                     quanHuyen,
                     phuongXa,
@@ -157,7 +154,8 @@ public class KhachHangServlet extends HttpServlet {
                     "Nhà riêng",
                     isMacDinh
             );
-            diaChiKhachHangResponsitory.AddDiaChiKH(dc); // Đồng bộ tên hàm
+
+            diaChiKhachHangResponsitory.AddDiaChiKH(dc);
         }
 
         response.sendRedirect("/khachhang/hien-thi");

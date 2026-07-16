@@ -21,12 +21,6 @@ public class DiaChiKhachHang {
     @Column(name = "id_khach_hang")
     private Integer idKhachHang;
 
-    @Column(name = "ten_nguoi_nhan")
-    private String tenNguoiNhan;
-
-    @Column(name = "sdt_nguoi_nhan")
-    private String sdtNguoiNhan;
-
     @Column(name = "tinh_thanh")
     private String tinhThanh;
 
