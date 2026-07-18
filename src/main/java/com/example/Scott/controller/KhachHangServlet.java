@@ -1,11 +1,15 @@
 package com.example.Scott.controller;
 
+import com.example.Scott.data.PhuongXa;
 import com.example.Scott.entity.KhachHang;
 import com.example.Scott.entity.DiaChiKhachHang;
 import com.example.Scott.entity.DiaChiApiMapping;
 import com.example.Scott.responsitory.DiaChiApiMappingRepository;
 import com.example.Scott.responsitory.DiaChiKhachHangResponsitory;
 import com.example.Scott.responsitory.KhachHangResponsitory;
+import com.example.Scott.data.DiaChiData;
+import java.io.PrintWriter;
+
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -21,13 +25,15 @@ import java.util.List;
         "/khachhang/view-update",
         "/khachhang/search",
         "/khachhang/detail",
-        "/khachhang/view-add"
+        "/khachhang/view-add",
+        "/khachhang/api-phuong-xa"
 })
 public class KhachHangServlet extends HttpServlet {
 
     private final KhachHangResponsitory khachHangResponsitory = new KhachHangResponsitory();
     private final DiaChiKhachHangResponsitory diaChiKhachHangResponsitory = new DiaChiKhachHangResponsitory();
- private  final DiaChiApiMappingRepository diaChiApiMappingRepository = new DiaChiApiMappingRepository();
+    private final DiaChiApiMappingRepository diaChiApiMappingRepository = new DiaChiApiMappingRepository();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         System.out.println("==== KhachHangServlet ====");
@@ -43,12 +49,14 @@ public class KhachHangServlet extends HttpServlet {
             this.searchKhachHang(request, response);
         } else if (uri.contains("detail")) {
             this.detailKhachHang(request, response);
-        } else {
+        }  else {
             this.viewAdd(request, response);
-        }
+        } 
     }
 
     private void viewAdd(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+       request.setAttribute("listTinh", DiaChiData.getAllTinh());
+        request.setAttribute("listPhuong", DiaChiData.getAllPhuong());
         request.getRequestDispatcher("/views/khachhangn3/viewAddKH.jsp").forward(request, response);
     }
 
@@ -70,18 +78,31 @@ public class KhachHangServlet extends HttpServlet {
 
     private void viewUpdateKhachHang(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("menu", "khachhang");
-        Integer id = Integer.valueOf(request.getParameter("id"));
-        KhachHang kh = khachHangResponsitory.getOne(id);
+        Integer idKhachHang = Integer.valueOf(request.getParameter("id"));
+        // Lấy khách hàng
+        KhachHang kh = khachHangResponsitory.getOne(idKhachHang);
+        // Lấy địa chỉ của khách hàng
+        DiaChiKhachHang diaChiKH = diaChiKhachHangResponsitory.getByIdKhachHang(idKhachHang);
         request.setAttribute("khachHangS", kh);
+        request.setAttribute("diaChiKH", diaChiKH);
+        request.setAttribute("listTinh", DiaChiData.getAllTinh());
+        request.setAttribute("listPhuong", DiaChiData.getAllPhuong());
         request.getRequestDispatcher("/views/khachhangn3/updateKH.jsp").forward(request, response);
     }
 
     private void deleteKhachHang(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Integer id = Integer.valueOf(request.getParameter("id"));
+
         KhachHang kh = khachHangResponsitory.getOne(id);
+
         if (kh != null) {
-            khachHangResponsitory.DeleteKhachHang(kh);// Đồng bộ tên hàm viết thường chữ cái đầu
+            // Xóa địa chỉ trước
+            diaChiKhachHangResponsitory.deleteByKhachHang(id);
+
+            // Sau đó xóa khách hàng
+            khachHangResponsitory.DeleteKhachHang(kh);
         }
+
         response.sendRedirect("/khachhang/hien-thi");
     }
 
@@ -102,8 +123,11 @@ public class KhachHangServlet extends HttpServlet {
         }
     }
 
-    private void updateKhachHang(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void updateKhachHang(HttpServletRequest request,
+                                 HttpServletResponse response) throws IOException {
+
         Integer id = Integer.valueOf(request.getParameter("id"));
+
         String ma = request.getParameter("ma");
         String hoTen = request.getParameter("hoTen");
         String sdt = request.getParameter("sdt");
@@ -112,12 +136,83 @@ public class KhachHangServlet extends HttpServlet {
         String gioiTinh = request.getParameter("gioiTinh");
         Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
 
-        KhachHang kh = new KhachHang(id, ma, hoTen, sdt, email, diaChi, gioiTinh, trangThai);
-        khachHangResponsitory.UpdateKhachHang(kh); // Đồng bộ tên hàm
+        // ==========================
+        // Update khách hàng
+        // ==========================
+
+        KhachHang kh = new KhachHang(
+                id,
+                ma,
+                hoTen,
+                sdt,
+                email,
+                diaChi,
+                gioiTinh,
+                trangThai
+        );
+
+        khachHangResponsitory.UpdateKhachHang(kh);
+
+        // ==========================
+        // Lấy dữ liệu địa chỉ
+        // ==========================
+
+        String provinceStr = request.getParameter("provinceCode");
+        String wardStr = request.getParameter("wardCode");
+
+        Integer provinceCode = null;
+        Integer wardCode = null;
+
+        if (provinceStr != null && !provinceStr.trim().isEmpty()) {
+            provinceCode = Integer.valueOf(provinceStr);
+        }
+
+        if (wardStr != null && !wardStr.trim().isEmpty()) {
+            wardCode = Integer.valueOf(wardStr);
+        }
+
+        String diaChiCuThe = request.getParameter("mChiTiet");
+
+        Boolean isMacDinh =
+                "true".equals(request.getParameter("mMacDinh"));
+
+        String tinhThanh = "";
+
+        if (provinceCode != null) {
+            tinhThanh = DiaChiData.getTenTinh(provinceCode);
+        }
+
+        String phuongXa = "";
+
+        if (wardCode != null) {
+            phuongXa = DiaChiData.getTenPhuong(wardCode);
+        }
+
+        // ==========================
+        // Update địa chỉ
+        // ==========================
+
+        DiaChiKhachHang dc =
+                diaChiKhachHangResponsitory.getByIdKhachHang(id);
+
+        if (dc != null) {
+
+            dc.setTinhThanh(tinhThanh);
+            dc.setQuanHuyen("");
+            dc.setPhuongXa(phuongXa);
+            dc.setDiaChiCuThe(diaChiCuThe);
+            dc.setLoaiDiaChi("Nhà riêng");
+            dc.setIsMacDinh(isMacDinh);
+
+            diaChiKhachHangResponsitory.UpdateDiaChiKH(dc);
+
+        }
+
         response.sendRedirect("/khachhang/hien-thi");
     }
 
-    private void addKhachHang(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void addKhachHang(HttpServletRequest request,
+                              HttpServletResponse response) throws IOException {
 
         String ma = request.getParameter("ma");
         String hoTen = request.getParameter("hoTen");
@@ -127,7 +222,10 @@ public class KhachHangServlet extends HttpServlet {
         String gioiTinh = request.getParameter("gioiTinh");
         Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
 
+        // ==========================
         // Thêm khách hàng
+        // ==========================
+
         KhachHang kh = new KhachHang(
                 null,
                 ma,
@@ -141,28 +239,78 @@ public class KhachHangServlet extends HttpServlet {
 
         khachHangResponsitory.addKhachHang(kh);
 
-        // Lấy lại khách hàng vừa thêm
-        KhachHang khachVuaThem = khachHangResponsitory.findByMa(ma);
-        Integer idKhachHangMoi = (khachVuaThem != null)
-                ? khachVuaThem.getId()
-                : null;
+        // ==========================
+        // Lấy khách hàng vừa thêm
+        // ==========================
 
+        KhachHang khachVuaThem =
+                khachHangResponsitory.findByMa(ma);
+
+        Integer idKhachHangMoi = null;
+
+        if (khachVuaThem != null) {
+            idKhachHangMoi = khachVuaThem.getId();
+        }
+
+        // ==========================
         // Lấy dữ liệu địa chỉ
-        String tinhThanh = request.getParameter("mTinhText");
-        String quanHuyen = request.getParameter("mHuyenText");
-        String phuongXa = request.getParameter("mXaText");
-        String diaChiCuThe = request.getParameter("mChiTiet");
+        // ==========================
 
-        Integer provinceCode = Integer.valueOf(request.getParameter("provinceCode"));
-        Integer districtCode = Integer.valueOf(request.getParameter("districtCode"));
-        Integer wardCode = Integer.valueOf(request.getParameter("wardCode"));
+        String provinceStr =
+                request.getParameter("provinceCode");
 
-        String paramMacDinh = request.getParameter("mMacDinh");
-        Boolean isMacDinh = paramMacDinh != null && paramMacDinh.equals("true");
+        String wardStr =
+                request.getParameter("wardCode");
+
+        Integer provinceCode = null;
+        Integer wardCode = null;
+
+        if (provinceStr != null && !provinceStr.trim().isEmpty()) {
+            provinceCode = Integer.valueOf(provinceStr);
+        }
+
+        if (wardStr != null && !wardStr.trim().isEmpty()) {
+            wardCode = Integer.valueOf(wardStr);
+        }
+
+        String diaChiCuThe =
+                request.getParameter("mChiTiet");
+
+        // ==========================
+        // Lấy tên tỉnh
+        // ==========================
+
+        String tinhThanh = "";
+
+        if (provinceCode != null) {
+            tinhThanh = DiaChiData.getTenTinh(provinceCode);
+        }
+
+        // ==========================
+        // Lấy tên phường
+        // ==========================
+
+        String phuongXa = "";
+
+        if (wardCode != null) {
+            phuongXa = DiaChiData.getTenPhuong(wardCode);
+        }
+
+        // Không dùng huyện
+        String quanHuyen = "";
+
+        Boolean isMacDinh =
+                "true".equals(request.getParameter("mMacDinh"));
+
+        // ==========================
+        // Thêm địa chỉ
+        // ==========================
 
         DiaChiKhachHang diaChiMoi = null;
 
-        if (idKhachHangMoi != null) {
+        if (idKhachHangMoi != null
+                && provinceCode != null
+                && wardCode != null) {
 
             DiaChiKhachHang dc = new DiaChiKhachHang(
                     null,
@@ -175,16 +323,27 @@ public class KhachHangServlet extends HttpServlet {
                     isMacDinh
             );
 
-            diaChiMoi = diaChiKhachHangResponsitory.AddDiaChiKH(dc);
+            diaChiMoi =
+                    diaChiKhachHangResponsitory.AddDiaChiKH(dc);
         }
+
+        // ==========================
+        // Lưu mapping
+        // ==========================
 
         if (diaChiMoi != null) {
 
-            DiaChiApiMapping mapping = new DiaChiApiMapping();
+            DiaChiApiMapping mapping =
+                    new DiaChiApiMapping();
 
-            mapping.setIdDiaChiKhachHang(diaChiMoi.getId());
+            mapping.setIdDiaChiKhachHang(
+                    diaChiMoi.getId()
+            );
+
             mapping.setProvinceCode(provinceCode);
-            mapping.setDistrictCode(districtCode);
+
+            mapping.setDistrictCode(null);
+
             mapping.setWardCode(wardCode);
 
             diaChiApiMappingRepository.add(mapping);

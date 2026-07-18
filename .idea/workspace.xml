@@ -10,7 +10,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="Changes">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/data/DiaChiData.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/data/PhuongXa.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/data/TinhThanh.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/data/phuong.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/data/phuong_xa.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/DiaChiKhachHangResponsitory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/DiaChiKhachHangResponsitory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/KhachHangResponsitory.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/KhachHangResponsitory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/updateKH.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/updateKH.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,12 +64,34 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../New folder/RunMaxV2/RunMax" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/main/resources/data" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
   </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Java3\Project\Java1_group3_new1\src\main\resources\data" />
+      <recent name="C:\Java3\Project\Java1_group3_new1\src\main\java\com\example\Scott\data" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Java3\Project\Java1_group3_new1\src\main\resources\data" />
+    </key>
+  </component>
   <component name="RunManager" selected="Tomcat Server.Tomcat 10.1.54">
+    <configuration name="DiaChiData" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.example.Scott.data.DiaChiData" />
+      <module name="Scott" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.Scott.data.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="NhanVienRepository" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.example.Scott.responsitory.NhanVienRepository" />
       <module name="Scott" />
@@ -68,6 +101,19 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
+      <option name="arquillianRunConfiguration">
+        <value>
+          <option name="containerStateName" value="" />
+        </value>
+      </option>
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -168,9 +214,11 @@
       <item itemvalue="Application.NhanVienRepository" />
       <item itemvalue="JavaScript Debug.viewAddKH.jsp" />
       <item itemvalue="Tomcat Server.Tomcat 10.1.54" />
+      <item itemvalue="Application.DiaChiData" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.DiaChiData" />
         <item itemvalue="JavaScript Debug.viewAddKH.jsp" />
         <item itemvalue="Application.NhanVienRepository" />
       </list>
@@ -201,7 +249,11 @@
       <workItem from="1784115522944" duration="28000" />
       <workItem from="1784115791596" duration="214000" />
       <workItem from="1784168949854" duration="7184000" />
-      <workItem from="1784190482525" duration="2994000" />
+      <workItem from="1784190482525" duration="3090000" />
+      <workItem from="1784253741245" duration="7436000" />
+      <workItem from="1784272993920" duration="4764000" />
+      <workItem from="1784295936609" duration="2072000" />
+      <workItem from="1784365560313" duration="7381000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1783837991503</created>
@@ -252,7 +304,14 @@
       <option name="project" value="LOCAL" />
       <updated>1784179549888</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Changes">
+      <created>1784193583081</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1784193583081</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

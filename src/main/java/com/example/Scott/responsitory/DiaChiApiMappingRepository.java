@@ -3,105 +3,89 @@ package com.example.Scott.responsitory;
 import com.example.Scott.entity.DiaChiApiMapping;
 import com.example.Scott.utils.HibernateConfig;
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 public class DiaChiApiMappingRepository {
 
-    public boolean add(DiaChiApiMapping mapping) {
-        Transaction transaction = null;
+    private Session s;
 
-        try (Session session = HibernateConfig.getFACTORY().openSession()) {
-
-            transaction = session.beginTransaction();
-
-            session.persist(mapping);
-
-            transaction.commit();
-
-            return true;
-
-        } catch (Exception e) {
-
-            if (transaction != null) {
-                transaction.rollback();
-            }
-
-            e.printStackTrace();
-
-            return false;
-        }
+    public DiaChiApiMappingRepository() {
+        s = HibernateConfig.getFACTORY().openSession();
     }
 
-    public boolean update(DiaChiApiMapping mapping) {
+    public void add(DiaChiApiMapping mapping) {
 
-        Transaction transaction = null;
+        try {
 
-        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            s.getTransaction().begin();
 
-            transaction = session.beginTransaction();
+            s.persist(mapping);
 
-            session.merge(mapping);
-
-            transaction.commit();
-
-            return true;
+            s.getTransaction().commit();
 
         } catch (Exception e) {
 
-            if (transaction != null) {
-                transaction.rollback();
-            }
-
             e.printStackTrace();
 
-            return false;
+            if (s.getTransaction().isActive()) {
+                s.getTransaction().rollback();
+            }
+
         }
+
     }
 
-    public boolean delete(DiaChiApiMapping mapping) {
+    public void update(DiaChiApiMapping mapping) {
 
-        Transaction transaction = null;
+        try {
 
-        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            s.getTransaction().begin();
 
-            transaction = session.beginTransaction();
+            s.merge(mapping);
 
-            session.remove(session.contains(mapping)
-                    ? mapping
-                    : session.merge(mapping));
-
-            transaction.commit();
-
-            return true;
+            s.getTransaction().commit();
 
         } catch (Exception e) {
 
-            if (transaction != null) {
-                transaction.rollback();
+            e.printStackTrace();
+
+            if (s.getTransaction().isActive()) {
+                s.getTransaction().rollback();
             }
+
+        }
+
+    }
+
+    public void delete(DiaChiApiMapping mapping) {
+
+        try {
+
+            s.getTransaction().begin();
+
+            s.delete(mapping);
+
+            s.getTransaction().commit();
+
+        } catch (Exception e) {
 
             e.printStackTrace();
 
-            return false;
+            if (s.getTransaction().isActive()) {
+                s.getTransaction().rollback();
+            }
+
         }
+
     }
 
     public DiaChiApiMapping findByDiaChiId(Integer idDiaChiKhachHang) {
 
-        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+        return s.createQuery(
+                "FROM DiaChiApiMapping WHERE idDiaChiKhachHang = :id",
+                DiaChiApiMapping.class)
+                .setParameter("id", idDiaChiKhachHang)
+                .uniqueResult();
 
-            return session.createQuery(
-                    "FROM DiaChiApiMapping WHERE idDiaChiKhachHang = :id",
-                    DiaChiApiMapping.class)
-                    .setParameter("id", idDiaChiKhachHang)
-                    .uniqueResult();
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-            return null;
-        }
     }
 
 }

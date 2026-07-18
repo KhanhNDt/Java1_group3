@@ -65,6 +65,7 @@ public class KhachHangResponsitory {
                 .list();
     }
 
+
     public static void main(String[] args) {
         System.out.println(new KhachHangResponsitory().getAll());
     }
