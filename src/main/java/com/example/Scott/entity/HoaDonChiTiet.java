@@ -38,4 +38,16 @@ public class HoaDonChiTiet {
 
     @Transient
     private String tenSanPham;
+
+    @Transient
+    private String maSanPham;
+
+    @Transient
+    private String maBienThe;
+
+    @Transient
+    private String mauSac;
+
+    @Transient
+    private String kichThuoc;
 }

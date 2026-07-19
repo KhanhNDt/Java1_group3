@@ -14,6 +14,17 @@ public class KhachHangResponsitory {
     public KhachHang getOne(Integer id2){return s.find(KhachHang.class,id2);}
 
 
+    public KhachHang findByMa(String ma) {
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            return s.createQuery("from KhachHang where ma = :ma", KhachHang.class)
+                    .setParameter("ma", ma)
+                    .uniqueResult(); // Trả về 1 đối tượng duy nhất hoặc null
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public void addKhachHang(KhachHang KH){
         try {
             s.getTransaction().begin();
@@ -53,6 +64,7 @@ public class KhachHangResponsitory {
                 .setParameter("kw", "%" + keyword + "%")
                 .list();
     }
+
 
     public static void main(String[] args) {
         System.out.println(new KhachHangResponsitory().getAll());

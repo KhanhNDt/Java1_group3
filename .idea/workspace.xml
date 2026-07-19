@@ -10,11 +10,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="Changes">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/HoaDonServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/HoaDonServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/HoaDon.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/HoaDon.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/HoaDonChiTiet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/HoaDonChiTiet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/HoaDonRepo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/HoaDonRepo.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/HibernateConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/HibernateConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/hoadon/hoa-don-detail.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/hoadon/hoa-don-detail.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/hoadon/hoa-don.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/hoadon/hoa-don.jsp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,7 +35,6 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitSEFilterConfiguration">
@@ -41,8 +45,8 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" root0="FORCE_HIGHLIGHTING" root1="FORCE_HIGHLIGHTING" root2="FORCE_HIGHLIGHTING" />
+  <component name="JpbToolWindowState">
+    <option name="isToolWindowVisible" value="false" />
   </component>
   <component name="LogFilters">
     <option name="FILTER_ERRORS" value="false" />
@@ -51,27 +55,60 @@
     <option name="FILTER_DEBUG" value="true" />
     <option name="CUSTOM_FILTER" />
   </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 5
+}]]></component>
   <component name="ProjectId" id="3GNwz9hcVJVVjCKVHlvjtPDghc9" />
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="aspect.path.notification.shown" value="true" />
-    <property name="project.structure.last.edited" value="Project" />
-    <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.0" />
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.git.unshallow": "true",
+    "Tomcat Server.Tomcat 10.1.50.executor": "Run",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "E:/Java1_group3",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Java3\Project\Java1_group3_new1\src\main\resources\data" />
+      <recent name="C:\Java3\Project\Java1_group3_new1\src\main\java\com\example\Scott\data" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Java3\Project\Java1_group3_new1\src\main\resources\data" />
+    </key>
   </component>
-  <component name="RunManager" selected="Tomcat Server.Tomcat 10.1.54">
-    <configuration name="HibernateConfig" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="com.example.Scott.utils.HibernateConfig" />
+  <component name="RunManager" selected="Tomcat Server.Tomcat 10.1.50">
+    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
+      <option name="arquillianRunConfiguration">
+        <value>
+          <option name="containerStateName" value="" />
+        </value>
+      </option>
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="DiaChiData" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.example.Scott.data.DiaChiData" />
       <module name="Scott" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.example.Scott.utils.*" />
+          <option name="PATTERN" value="com.example.Scott.data.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -92,24 +129,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="Tomcat 10.1.54" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 10.1.54" ALTERNATIVE_JRE_ENABLED="false" nameIsGenerated="true">
+    <configuration name="viewAddKH.jsp" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:8080/views/khachhangn3/viewAddKH.jsp">
+      <method v="2" />
+    </configuration>
+    <configuration name="Tomcat 10.1.50" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 10.1.50" ALTERNATIVE_JRE_ENABLED="false" nameIsGenerated="true">
       <option name="OPEN_IN_BROWSER_URL" value="http://localhost:8080/dashboard" />
       <option name="BROWSER_ID" value="98ca6316-2f89-46d9-a9e5-fa9e2b0625b3" />
       <option name="UPDATING_POLICY" value="restart-server" />
       <deployment>
-        <artifact name="Scott:war">
-          <settings>
-            <option name="CONTEXT_PATH" value="" />
-          </settings>
-        </artifact>
         <artifact name="Scott:war exploded">
           <settings>
-            <option name="CONTEXT_PATH" value="" />
+            <option name="CONTEXT_PATH" value="/" />
           </settings>
         </artifact>
       </deployment>
       <server-settings>
-        <option name="BASE_DIRECTORY_NAME" value="8a2edf81-22c2-4299-92e3-837b86d71ecf" />
+        <option name="BASE_DIRECTORY_NAME" value="e702116c-b430-4a5d-8ce9-5fb24c73a6e1" />
       </server-settings>
       <predefined_log_file enabled="true" id="Tomcat" />
       <predefined_log_file enabled="true" id="Tomcat Catalina" />
@@ -117,7 +152,7 @@
       <predefined_log_file id="Tomcat Host Manager" />
       <predefined_log_file id="Tomcat Localhost Access" />
       <RunnerSettings RunnerId="Debug">
-        <option name="DEBUG_PORT" value="51666" />
+        <option name="DEBUG_PORT" value="61506" />
       </RunnerSettings>
       <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Cover">
         <option name="USE_ENV_VARIABLES" value="true" />
@@ -186,56 +221,17 @@
         </option>
       </method>
     </configuration>
-    <configuration name="nhanvien.jsp" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" temporary="true" APPLICATION_SERVER_NAME="Tomcat 10.1.54" ALTERNATIVE_JRE_ENABLED="false">
-      <option name="OPEN_IN_BROWSER_URL" value="http://localhost:8080/nhanvien.jsp" />
-      <deployment>
-        <artifact name="Scott:war exploded">
-          <settings>
-            <option name="CONTEXT_PATH" value="/Scott_war_exploded" />
-          </settings>
-        </artifact>
-      </deployment>
-      <server-settings>
-        <option name="BASE_DIRECTORY_NAME" value="729f066e-cb71-4c14-8277-ef6a9a86821a" />
-      </server-settings>
-      <predefined_log_file enabled="true" id="Tomcat" />
-      <predefined_log_file enabled="true" id="Tomcat Catalina" />
-      <predefined_log_file id="Tomcat Manager" />
-      <predefined_log_file id="Tomcat Host Manager" />
-      <predefined_log_file id="Tomcat Localhost Access" />
-      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Run">
-        <option name="USE_ENV_VARIABLES" value="true" />
-        <STARTUP>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </STARTUP>
-        <SHUTDOWN>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </SHUTDOWN>
-      </ConfigurationWrapper>
-      <method v="2">
-        <option name="Make" enabled="true" />
-        <option name="BuildArtifacts" enabled="true">
-          <artifact name="Scott:war exploded" />
-        </option>
-      </method>
-    </configuration>
     <list>
       <item itemvalue="Application.NhanVienRepository" />
-      <item itemvalue="Application.HibernateConfig" />
-      <item itemvalue="Tomcat Server.Tomcat 10.1.54" />
-      <item itemvalue="Tomcat Server.nhanvien.jsp" />
+      <item itemvalue="Application.DiaChiData" />
+      <item itemvalue="JavaScript Debug.viewAddKH.jsp" />
+      <item itemvalue="Tomcat Server.Tomcat 10.1.50" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.DiaChiData" />
+        <item itemvalue="JavaScript Debug.viewAddKH.jsp" />
         <item itemvalue="Application.NhanVienRepository" />
-        <item itemvalue="Application.HibernateConfig" />
-        <item itemvalue="Tomcat Server.nhanvien.jsp" />
       </list>
     </recent_temporary>
   </component>
@@ -257,10 +253,19 @@
       <updated>1783825595794</updated>
       <workItem from="1783825598207" duration="1487000" />
       <workItem from="1783828497177" duration="296000" />
-      <workItem from="1783994492686" duration="7174000" />
-      <workItem from="1784218284566" duration="596000" />
-      <workItem from="1784376841999" duration="1200000" />
-      <workItem from="1784405548909" duration="4040000" />
+      <workItem from="1783996693921" duration="5122000" />
+      <workItem from="1784018434872" duration="7132000" />
+      <workItem from="1784099886361" duration="99000" />
+      <workItem from="1784104352002" duration="1281000" />
+      <workItem from="1784115522944" duration="28000" />
+      <workItem from="1784115791596" duration="214000" />
+      <workItem from="1784168949854" duration="7184000" />
+      <workItem from="1784190482525" duration="3090000" />
+      <workItem from="1784253741245" duration="7436000" />
+      <workItem from="1784272993920" duration="4764000" />
+      <workItem from="1784295936609" duration="2072000" />
+      <workItem from="1784365560313" duration="7381000" />
+      <workItem from="1784426365363" duration="378000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1783837991503</created>
@@ -270,27 +275,55 @@
       <updated>1783837991503</updated>
     </task>
     <task id="LOCAL-00002" summary="Changes">
-      <created>1783858929633</created>
+      <created>1784002048359</created>
       <option name="number" value="00002" />
       <option name="presentableId" value="LOCAL-00002" />
       <option name="project" value="LOCAL" />
-      <updated>1783858929633</updated>
+      <updated>1784002048359</updated>
     </task>
     <task id="LOCAL-00003" summary="Changes">
-      <created>1783862519098</created>
+      <created>1784039442806</created>
       <option name="number" value="00003" />
       <option name="presentableId" value="LOCAL-00003" />
       <option name="project" value="LOCAL" />
-      <updated>1783862519098</updated>
+      <updated>1784039442806</updated>
     </task>
     <task id="LOCAL-00004" summary="Changes">
-      <created>1784436454627</created>
+      <created>1784104417357</created>
       <option name="number" value="00004" />
       <option name="presentableId" value="LOCAL-00004" />
       <option name="project" value="LOCAL" />
-      <updated>1784436454627</updated>
+      <updated>1784104417357</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Changes">
+      <created>1784105617677</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1784105617677</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Changes">
+      <created>1784171445354</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1784171445354</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Changes">
+      <created>1784179549888</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1784179549888</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Changes">
+      <created>1784193583081</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1784193583081</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -306,7 +339,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Changes" />

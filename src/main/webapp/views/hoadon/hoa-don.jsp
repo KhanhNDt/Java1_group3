@@ -291,7 +291,7 @@
                     <td>${loop.index + 1 + (currentPage-1)*10}</td>
                     <td><strong>${hd.maHoaDon}</strong></td>
                     <td>${hd.tenNhanVien}</td>
-                    <td>${empty hd.tenKhachHang ? 'Khách vãng lai' : hd.tenKhachHang}</td>
+                    <td>${empty hd.tenKhachHang ? 'Khách lẻ' : hd.tenKhachHang}</td>
                     <td><fmt:formatDate value="${hd.ngayTao}" pattern="dd/MM/yyyy HH:mm"/></td>
                     <td><fmt:formatNumber value="${hd.tongTienThanhToan}" type="currency" currencySymbol="₫"/></td>
                     <td>${hd.sdtKhachHang}</td>
@@ -317,16 +317,10 @@
                                 <i class="bi bi-eye"></i>
                             </a>
 
-                            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"></button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/quanlyhoadon?action=updateStatus&id=${hd.id}&status=1">Đã thanh toán</a></li>
-                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/quanlyhoadon?action=updateStatus&id=${hd.id}&status=0">Chờ xử lý</a></li>
-                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/quanlyhoadon?action=updateStatus&id=${hd.id}&status=2">Đã hủy</a></li>
-                            </ul>
+<%--                            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"></button>--%>
+<%--                            <ul class="dropdown-menu">--%>
+<%--                            </ul>--%>
 
-                            <a href="${pageContext.request.contextPath}/quanlyhoadon?action=delete&id=${hd.id}" class="btn btn-outline-danger btn-view" onclick="return confirm('Bạn có chắc muốn xóa hóa đơn này?')">
-                                <i class="bi bi-trash"></i>
-                            </a>
                         </div>
                     </td>
                 </tr>
@@ -345,7 +339,7 @@
                 <ul class="pagination justify-content-center">
                     <c:if test="${currentPage > 1}">
                         <li class="page-item">
-                            <a class="page-link" href="?page=${currentPage-1}&keyword=${keyword}&status=${empty status ? '' : status}">
+                            <a class="page-link" href="?page=${currentPage-1}&keyword=${keyword}&status=${empty status ? '' : status}&fromDate=${fromDate}&toDate=${toDate}">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
@@ -353,7 +347,7 @@
 
                     <c:forEach begin="1" end="${totalPages}" var="i">
                         <li class="page-item ${i==currentPage ? 'active' : ''}">
-                            <a class="page-link" href="?page=${i}&keyword=${keyword}&status=${empty status ? '' : status}">
+                            <a class="page-link" href="?page=${i}&keyword=${keyword}&status=${empty status ? '' : status}&fromDate=${fromDate}&toDate=${toDate}">
                                     ${i}
                             </a>
                         </li>
@@ -361,7 +355,7 @@
 
                     <c:if test="${currentPage < totalPages}">
                         <li class="page-item">
-                            <a class="page-link" href="?page=${currentPage+1}&keyword=${keyword}&status=${empty status ? '' : status}">
+                            <a class="page-link" href="?page=${currentPage+1}&keyword=${keyword}&status=${empty status ? '' : status}&fromDate=${fromDate}&toDate=${toDate}">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>
@@ -385,10 +379,13 @@
     function triggerExportExcel() {
         const form = document.getElementById('filterForm');
         const keyword = form.querySelector('input[name="keyword"]').value;
+        const fromDate = form.querySelector('input[name="fromDate"]').value;
+        const toDate = form.querySelector('input[name="toDate"]').value;
         const status = document.getElementById('formStatus').value;
 
         window.location.href = `${pageContext.request.contextPath}/quanlyhoadon?action=export&keyword=`
-            + encodeURIComponent(keyword) + `&status=` + status;
+            + encodeURIComponent(keyword) + `&status=` + encodeURIComponent(status)
+            + `&fromDate=` + encodeURIComponent(fromDate) + `&toDate=` + encodeURIComponent(toDate);
     }
 </script>
 </body>

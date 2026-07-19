@@ -34,12 +34,9 @@ public class HoaDonServlet extends HttpServlet {
             case "detail":
                 showDetail(req, resp);
                 break;
-            case "updateStatus":
-                updateStatus(req, resp);
-                break;
-            case "delete":
-                deleteInvoice(req, resp);
-                break;
+//            case "delete":
+//                deleteInvoice(req, resp);
+//                break;
             case "export":
                 exportExcel(req, resp);
                 break;
@@ -54,33 +51,13 @@ public class HoaDonServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
 
         String action = req.getParameter("action");
-        if ("updateNote".equals(action)) {
-            try {
-                String idParam = req.getParameter("id");
-                if (idParam == null || idParam.isEmpty()) {
-                    req.getSession().setAttribute("error", "Thiếu mã hóa đơn!");
-                    resp.sendRedirect(req.getContextPath() + "/quanlyhoadon");
-                    return;
-                }
-                int id = Integer.parseInt(idParam);
-                String note = req.getParameter("note");
-
-                boolean success = hoaDonRepo.updateGhiChu(id, note);
-                if (success) {
-                    req.getSession().setAttribute("message", "Cập nhật ghi chú thành công!");
-                } else {
-                    req.getSession().setAttribute("error", "Cập nhật ghi chú thất bại!");
-                }
-                resp.sendRedirect(req.getContextPath() + "/quanlyhoadon?action=detail&id=" + id);
-            } catch (NumberFormatException e) {
-                req.getSession().setAttribute("error", "Mã hóa đơn không hợp lệ!");
-                resp.sendRedirect(req.getContextPath() + "/quanlyhoadon");
-            }
-        }
+        resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Màn hình hóa đơn chỉ cho phép xem dữ liệu");
     }
 
     private void listInvoices(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String keyword = req.getParameter("keyword");
+        String fromDate = req.getParameter("fromDate");
+        String toDate = req.getParameter("toDate");
         String statusParam = req.getParameter("status");
         Integer status = null;
 
@@ -100,8 +77,8 @@ public class HoaDonServlet extends HttpServlet {
         int offset = (page - 1) * limit;
 
         try {
-            List<HoaDon> list = hoaDonRepo.getFullInvoiceListPage(keyword, status, offset, limit);
-            int totalRecords = hoaDonRepo.countFullInvoiceList(keyword, status);
+            List<HoaDon> list = hoaDonRepo.getFullInvoiceListPage(keyword, status, fromDate, toDate, offset, limit);
+            int totalRecords = hoaDonRepo.countFullInvoiceList(keyword, status, fromDate, toDate);
             int totalPages = (int) Math.ceil((double) totalRecords / limit);
 
             req.setAttribute("invoiceList", list);
@@ -109,6 +86,8 @@ public class HoaDonServlet extends HttpServlet {
             req.setAttribute("currentPage", page);
             req.setAttribute("keyword", keyword);
             req.setAttribute("status", status);
+            req.setAttribute("fromDate", fromDate);
+            req.setAttribute("toDate", toDate);
 
             // Các chỉ số thống kê nhanh
             req.setAttribute("totalOrdersToday", hoaDonRepo.getTotalOrdersToday());
@@ -121,7 +100,7 @@ public class HoaDonServlet extends HttpServlet {
             e.printStackTrace();
             req.setAttribute("error", "Lỗi hệ thống khi tải dữ liệu: " + e.getMessage());
         }
-        req.setAttribute("menu", "quanlyshoado");
+        req.setAttribute("menu", "/quanlyhoadon");
         req.getRequestDispatcher("/views/hoadon/hoa-don.jsp").forward(req, resp);
     }
 
@@ -144,6 +123,8 @@ public class HoaDonServlet extends HttpServlet {
             req.setAttribute("invoice", hd);
             req.setAttribute("menu", "quanlyhoadon");
             req.setAttribute("details", details);
+            req.setAttribute("histories", hoaDonRepo.getLichSuByHoaDonId(id));
+            req.setAttribute("payments", hoaDonRepo.getThanhToanByHoaDonId(id));
             req.getRequestDispatcher("/views/hoadon/hoa-don-detail.jsp").forward(req, resp);
         } catch (NumberFormatException e) {
             req.setAttribute("error", "Mã hóa đơn yêu cầu định dạng số bất hợp lệ!");
@@ -151,48 +132,28 @@ public class HoaDonServlet extends HttpServlet {
         }
     }
 
-    private void updateStatus(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        try {
-            String idStr = req.getParameter("id");
-            String statusStr = req.getParameter("status");
-            if (idStr != null && statusStr != null) {
-                int id = Integer.parseInt(idStr);
-                int status = Integer.parseInt(statusStr);
-                boolean success = hoaDonRepo.updateTrangThai(id, status);
-                if (success) {
-                    req.getSession().setAttribute("message", "Thay đổi trạng thái hóa đơn thành công!");
-                } else {
-                    req.getSession().setAttribute("error", "Thay đổi trạng thái thất bại từ hệ thống!");
-                }
-            } else {
-                req.getSession().setAttribute("error", "Yêu cầu thiếu tham số hợp lệ!");
-            }
-        } catch (NumberFormatException e) {
-            req.getSession().setAttribute("error", "Dữ liệu trạng thái hoặc ID không đúng định dạng số!");
-        }
-        resp.sendRedirect(req.getContextPath() + "/quanlyhoadon");
-    }
-
-    private void deleteInvoice(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        try {
-            String idStr = req.getParameter("id");
-            if (idStr != null) {
-                int id = Integer.parseInt(idStr);
-                boolean success = hoaDonRepo.softDeleteInvoice(id);
-                if (success) {
-                    req.getSession().setAttribute("message", "Hóa đơn đã được chuyển vào trạng thái Xóa mềm!");
-                } else {
-                    req.getSession().setAttribute("error", "Thực hiện xóa hóa đơn không thành công!");
-                }
-            }
-        } catch (NumberFormatException e) {
-            req.getSession().setAttribute("error", "Mã ID hóa đơn không hợp lệ!");
-        }
-        resp.sendRedirect(req.getContextPath() + "/quanlyhoadon");
-    }
+//    private void deleteInvoice(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+//        try {
+//            String idStr = req.getParameter("id");
+//            if (idStr != null) {
+//                int id = Integer.parseInt(idStr);
+//                boolean success = hoaDonRepo.softDeleteInvoice(id);
+//                if (success) {
+//                    req.getSession().setAttribute("message", "Hóa đơn đã được chuyển vào trạng thái Xóa mềm!");
+//                } else {
+//                    req.getSession().setAttribute("error", "Thực hiện xóa hóa đơn không thành công!");
+//                }
+//            }
+//        } catch (NumberFormatException e) {
+//            req.getSession().setAttribute("error", "Mã ID hóa đơn không hợp lệ!");
+//        }
+//        resp.sendRedirect(req.getContextPath() + "/quanlyhoadon");
+//    }
 
     private void exportExcel(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String keyword = req.getParameter("keyword");
+        String fromDate = req.getParameter("fromDate");
+        String toDate = req.getParameter("toDate");
         String statusParam = req.getParameter("status");
         Integer status = null;
         if (statusParam != null && !statusParam.isEmpty()) {
@@ -201,7 +162,7 @@ public class HoaDonServlet extends HttpServlet {
             } catch (NumberFormatException ignored) {}
         }
 
-        List<HoaDon> list = hoaDonRepo.getAllInvoicesForExport(keyword, status);
+        List<HoaDon> list = hoaDonRepo.getAllInvoicesForExport(keyword, status, fromDate, toDate);
 
         // Sử dụng Try-with-resources để tự động giải phóng tài nguyên Workbook tránh rò rỉ bộ nhớ
         try (Workbook workbook = new XSSFWorkbook()) {

@@ -71,13 +71,11 @@
                                 <i class="bi bi-arrow-repeat"></i> Đặt lại
                             </a>
 
-                            <button type="button"
-                                    class="btn btn-success"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalThem">
-                                <i class="bi bi-plus-lg"></i> Thêm mới
-                            </button>
-
+                            <a href="${pageContext.request.contextPath}/khachhang/view-add"
+                               class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i>
+                                Thêm mới
+                            </a>
                         </div>
 
                     </div>

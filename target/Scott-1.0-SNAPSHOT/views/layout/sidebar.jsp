@@ -4,7 +4,6 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
 <style>
-
     * {
         margin: 0;
         padding: 0;
@@ -17,199 +16,191 @@
     }
 
     .sidebar {
-
         position: fixed;
-
         left: 0;
-
         top: 0;
-
         width: 260px;
-
         height: 100vh;
-
         background: #5E35B1;
-
         color: white;
-
         overflow: auto;
-
     }
 
     .logo {
-
         text-align: center;
-
         padding: 30px 20px;
-
     }
 
     .logo h2 {
-
         font-weight: bold;
-
         letter-spacing: 2px;
-
     }
 
     .logo span {
-
         color: #FFD54F;
-
     }
 
     .menu {
-
         padding: 10px;
-
     }
 
     .menu a {
-
         display: flex;
-
         align-items: center;
-
         text-decoration: none;
-
         color: white;
-
         padding: 14px 18px;
-
         margin-bottom: 8px;
-
         border-radius: 12px;
-
         transition: .3s;
-
+        cursor: pointer;
     }
 
     .menu a i {
-
         font-size: 20px;
-
         margin-right: 15px;
-
     }
 
     .menu a:hover {
-
         background: white;
-
         color: #5E35B1;
-
     }
 
     .menu .active {
-
         background: white;
-
         color: #5E35B1;
+    }
 
+    /* Đổi màu chữ menu cha khi có mục con đang active để người dùng dễ nhận biết */
+    .menu-parent-active {
+        background: rgba(255, 255, 255, 0.15);
+        font-weight: bold;
+    }
+
+    /* CSS Tùy chỉnh riêng cho Menu con (Submenu) */
+    .submenu-item {
+        font-size: 15px;
+        padding: 10px 15px !important;
+        background: rgba(255, 255, 255, 0.08);
+        margin-left: 15px;
+    }
+
+    .submenu-item:hover {
+        background: white !important;
+        color: #5E35B1 !important;
+    }
+
+    /* Xoay mũi tên mượt mà bằng thuộc tính của Bootstrap collapse */
+    a[aria-expanded="true"] .arrow-icon {
+        transform: rotate(180deg);
+        transition: transform 0.3s;
+    }
+
+    a.collapsed .arrow-icon {
+        transform: rotate(0deg);
+        transition: transform 0.3s;
+    }
+
+    .arrow-icon {
+        transition: transform 0.3s;
     }
 
     .bottom {
-
         position: absolute;
-
         bottom: 20px;
-
         width: 100%;
-
         padding: 0 10px;
-
     }
 
     .bottom a {
-
         display: flex;
-
         align-items: center;
-
         color: white;
-
         text-decoration: none;
-
         padding: 14px 18px;
-
         border-radius: 12px;
-
     }
 
     .bottom a:hover {
-
         background: #7E57C2;
-
     }
-
 </style>
 
 <div class="sidebar">
 
     <div class="logo">
-
         <h2>Scott<span>.</span></h2>
-
     </div>
 
     <div class="menu">
 
-        <!-- Dashboard -->
         <a href="${pageContext.request.contextPath}/dashboard"
            class="${menu == 'dashboard' ? 'active' : ''}">
             <i class="bi bi-grid-fill"></i>
             Dashboard
         </a>
 
-        <!-- Sản phẩm -->
         <a href="${pageContext.request.contextPath}/san-pham"
            class="${menu == 'sanpham' ? 'active' : ''}">
             <i class="bi bi-bag-fill"></i>
             Sản phẩm
         </a>
 
-        <!-- Quản lý hóa đơn -->
         <a href="${pageContext.request.contextPath}/quanlyhoadon"
            class="${menu == 'quanlyhoadon' ? 'active' : ''}">
             <i class="bi bi-cart-fill"></i>
-             Hóa đơn
+            Hóa đơn
         </a>
 
-
-        <!-- Báo cáo -->
         <a href="#">
             <i class="bi bi-graph-up-arrow"></i>
             Báo cáo
         </a>
 
-        <!-- Phiếu giảm giá -->
         <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi"
            class="${menu == 'phieugiamgia' ? 'active' : ''}">
             <i class="bi bi-ticket-perforated-fill"></i>
             Phiếu Giảm Giá
         </a>
 
-        <!-- Nhân Viên -->
-        <a href="${pageContext.request.contextPath}/nhan-vien/hien-thi"
-           class="${menu == 'nhanvien' ? 'active' : ''}">
-            <i class="bi bi-person-badge-fill"></i>
-            Nhân Viên
-        </a>
-        <!-- Khách hàng -->
-        <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
-           class="${menu == 'khachhang' ? 'active' : ''}">
-            <i class="bi bi-people-fill"></i>
-            Khách hàng
+        <a href="#taiKhoanSubmenu"
+           data-bs-toggle="collapse"
+           role="button"
+           aria-expanded="${menu == 'nhanvien' || menu == 'khachhang' ? 'true' : 'false'}"
+           class="d-flex justify-content-between align-items-center ${menu == 'nhanvien' || menu == 'khachhang' ? 'menu-parent-active' : ''} ${menu == 'nhanvien' || menu == 'khachhang' ? '' : 'collapsed'}">
+            <span class="d-flex align-items-center">
+                <i class="bi bi-person-bounding-box"></i>
+                Quản lý tài khoản
+            </span>
+            <i class="bi bi-chevron-down arrow-icon" style="font-size: 14px; margin-right: 0;"></i>
         </a>
 
-        <!-- Cài đặt -->
+        <div class="collapse ${menu == 'nhanvien' || menu == 'khachhang' ? 'show' : ''}" id="taiKhoanSubmenu">
+            <a href="${pageContext.request.contextPath}/nhan-vien/hien-thi"
+               class="${menu == 'nhanvien' ? 'active' : ''} submenu-item">
+                <i class="bi bi-person-badge-fill"></i>
+                Nhân viên
+            </a>
+            <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
+               class="${menu == 'khachhang' ? 'active' : ''} submenu-item">
+                <i class="bi bi-people-fill"></i>
+                Khách hàng
+            </a>
+        </div>
+
         <a href="#">
             <i class="bi bi-gear-fill"></i>
             Cài đặt
         </a>
 
     </div>
-    <div class="bottom"><a href="/logout">
-        <i class="bi bi-box-arrow-right"></i> Đăng xuất </a></div>
+
+    <div class="bottom">
+        <a href="/logout">
+            <i class="bi bi-box-arrow-right"></i> Đăng xuất
+        </a>
+    </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
