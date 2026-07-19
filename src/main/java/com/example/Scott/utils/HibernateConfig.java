@@ -43,7 +43,7 @@ public class HibernateConfig {
         ServiceRegistry registry = new StandardServiceRegistryBuilder()
                 .applySettings(conf.getProperties()).build();
         FACTORY = conf.buildSessionFactory(registry);
-
+        properties.put(Environment.HBM2DDL_AUTO, "update"); // Thêm dòng này vào
     }
 
     public static SessionFactory getFACTORY() {

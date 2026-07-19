@@ -38,30 +38,17 @@ public class NhanVienRepository {
 
 
     public boolean add(NhanVien nv) {
-
         Transaction transaction = null;
-
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
-
             transaction = session.beginTransaction();
-
-            session.save(nv);
-
+            session.save(nv); // Lưu ý: Nếu có lỗi SQL nó sẽ ném ra tại đây
             transaction.commit();
-
             return true;
-
         } catch (Exception e) {
-
-            if (transaction != null) {
-                transaction.rollback();
-            }
-
-            e.printStackTrace();
-            return false;
+            if (transaction != null) transaction.rollback();
+            throw e; // NÉM LỖI RA ĐỂ XEM NÓ BÁO LỖI GÌ TRONG CONSOLE
         }
     }
-
 
     public boolean update(NhanVien nv) {
 
