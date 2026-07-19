@@ -14,7 +14,10 @@
     body {
         background: #f4f7fe;
     }
-
+    .main-content{
+        margin-left:260px !important;
+        padding:25px !important;
+    }
     .sidebar {
         position: fixed;
         left: 0;

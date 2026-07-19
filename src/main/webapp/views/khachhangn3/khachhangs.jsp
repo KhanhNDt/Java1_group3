@@ -14,7 +14,7 @@
 <body>
 
 <%@ include file="/views/layout/sidebar.jsp"%>
-<%@ include file="/views/layout/header.jsp"%>
+<div class="main-content">
 
 <div class="container-fluid mt-4">
 
@@ -172,7 +172,7 @@
     </div>
 
 </div>
-
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

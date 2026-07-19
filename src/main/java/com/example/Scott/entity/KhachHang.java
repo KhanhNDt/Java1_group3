@@ -33,8 +33,8 @@ public class KhachHang {
     @Column(name = "dia_chi")
     private String diaChi;
 
-//    @Column(name ="gioi_tinh")
-//    private String gioiTinh;
+  @Column(name ="gioi_tinh")
+  private String gioiTinh;
 
     @Column(name = "trang_thai")
 private Integer trangThai;

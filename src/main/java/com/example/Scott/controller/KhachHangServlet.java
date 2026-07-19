@@ -51,11 +51,11 @@ public class KhachHangServlet extends HttpServlet {
             this.detailKhachHang(request, response);
         }  else {
             this.viewAdd(request, response);
-        } 
+        }
     }
 
     private void viewAdd(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-       request.setAttribute("listTinh", DiaChiData.getAllTinh());
+        request.setAttribute("listTinh", DiaChiData.getAllTinh());
         request.setAttribute("listPhuong", DiaChiData.getAllPhuong());
         request.getRequestDispatcher("/views/khachhangn3/viewAddKH.jsp").forward(request, response);
     }
