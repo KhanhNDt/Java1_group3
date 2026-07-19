@@ -1,0 +1,14 @@
+<changelist name="Uncommitted_changes_before_Update_at_19_07_2026_1_01_CH_[Changes]" date="1784440882035" recycled="false" toDelete="true">
+  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_19_07_2026_1_01_CH_[Changes]/shelved.patch" />
+  <option name="DESCRIPTION" value="Uncommitted changes before Update at 19/07/2026 1:01 CH [Changes]" />
+  <binary>
+    <option name="BEFORE_PATH" value="target/classes/com/example/Scott/utils/HibernateConfig.class" />
+    <option name="AFTER_PATH" value="target/classes/com/example/Scott/utils/HibernateConfig.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_19_07_2026_1_01_CH_[Changes]/HibernateConfig.class" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/utils/HibernateConfig.class" />
+    <option name="AFTER_PATH" value="target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/utils/HibernateConfig.class" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_19_07_2026_1_01_CH_[Changes]/HibernateConfig1.class" />
+  </binary>
+</changelist>
