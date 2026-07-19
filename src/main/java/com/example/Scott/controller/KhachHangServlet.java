@@ -111,7 +111,7 @@ public class KhachHangServlet extends HttpServlet {
         String diaChi = request.getParameter("diaChi");
         String gioiTinh = request.getParameter("gioiTinh");
         Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
-        KhachHang KH = new KhachHang(id, ma, hoTen, sdt, email, diaChi, gioiTinh, trangThai);
+        KhachHang KH = new KhachHang(id, ma, hoTen, sdt, email, diaChi, trangThai);
         khachHangResponsitory.UpdateKhachHang(KH);
         response.sendRedirect("/khachhang/hien-thi");
     }
@@ -122,9 +122,9 @@ public class KhachHangServlet extends HttpServlet {
         String sdt = request.getParameter("sdt");
         String email = request.getParameter("email");
         String diaChi = request.getParameter("diaChi");
-        String gioiTinh = request.getParameter("gioiTinh");
+//        String gioiTinh = request.getParameter("gioiTinh");
         Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
-        KhachHang KH = new KhachHang(null, ma, hoTen, sdt, email, diaChi, gioiTinh, trangThai);
+        KhachHang KH = new KhachHang(null, ma, hoTen, sdt, email, diaChi, trangThai);
         khachHangResponsitory.addKhachHang(KH);
         response.sendRedirect("/khachhang/hien-thi");
 

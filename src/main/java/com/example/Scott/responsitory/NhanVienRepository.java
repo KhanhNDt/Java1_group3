@@ -162,7 +162,14 @@ public class NhanVienRepository {
             return null;
         }
     }
-
+    public List<NhanVien> getPage(int page, int size) {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery("from NhanVien", NhanVien.class)
+                    .setFirstResult((page - 1) * size)
+                    .setMaxResults(size)
+                    .list();
+        }
+    }
     public static void main(String[] args) {
         System.out.println(new NhanVienRepository().getAll());
     }

@@ -19,27 +19,24 @@ import java.util.Date;
 
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "id")
-        private Integer id;
+        private int id;
 
-        @Column(name = "ma_nhan_vien", nullable = false, unique = true)
+        @Column(name = "ma_nhan_vien")
         private String maNhanVien;
 
-        @Column(name = "ho_ten", nullable = false)
+        @Column(name = "ho_ten")
         private String hoTen;
 
-        @Column(name = "email")
         private String email;
 
         @Column(name = "so_dien_thoai")
         private String soDienThoai;
 
-        @Temporal(TemporalType.DATE)
         @Column(name = "ngay_sinh")
         private Date ngaySinh;
 
         @Column(name = "gioi_tinh")
-        private Boolean gioiTinh;
+        private boolean gioiTinh;
 
         @Column(name = "dia_chi")
         private String diaChi;
@@ -51,7 +48,7 @@ import java.util.Date;
         private String anhDaiDien;
 
         @Column(name = "trang_thai")
-        private Integer trangThai;
+        private int trangThai;
 
     }
 
