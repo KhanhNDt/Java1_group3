@@ -10,16 +10,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="Changes">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/HoaDonServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/HoaDonServlet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/HoaDon.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/HoaDon.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/HoaDonChiTiet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/HoaDonChiTiet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/HoaDonRepo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/HoaDonRepo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/HibernateConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/HibernateConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/hoadon/hoa-don-detail.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/hoadon/hoa-don-detail.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/hoadon/hoa-don.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/hoadon/hoa-don.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/data/DiaChiData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/data/DiaChiData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/Scott/model/TaiKhoan.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/HelloServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/KhachHangServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/NhanVienServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/PhieuGiamGiaServlet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/Servlet1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/controller/Servlet2.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/DiaChiKhachHang$DiaChiKhachHangBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/DiaChiKhachHang.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/KhachHang$KhachHangBuilder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/KhachHang.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/NhanVien.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/entity/PhieuGiamGia.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/responsitory/DiaChiKhachHangResponsitory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/responsitory/KhachHangResponsitory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/responsitory/NhanVienRepository.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/responsitory/PhieuGiamGiaResponsitory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/com/example/Scott/utils/HibernateConfig.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,6 +58,9 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" root0="FORCE_HIGHLIGHTING" root1="FORCE_HIGHLIGHTING" root2="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="JpbToolWindowState">
     <option name="isToolWindowVisible" value="false" />
   </component>
@@ -55,31 +71,13 @@
     <option name="FILTER_DEBUG" value="true" />
     <option name="CUSTOM_FILTER" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 5
-}]]></component>
   <component name="ProjectId" id="3GNwz9hcVJVVjCKVHlvjtPDghc9" />
+  <component name="ProjectLevelVcsManager">
+    <OptionsSetting value="false" id="Update" />
+  </component>
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.git.unshallow": "true",
-    "Tomcat Server.Tomcat 10.1.50.executor": "Run",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "E:/Java1_group3",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
-  }
-}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Java3\Project\Java1_group3_new1\src\main\resources\data" />
@@ -89,20 +87,7 @@
       <recent name="C:\Java3\Project\Java1_group3_new1\src\main\resources\data" />
     </key>
   </component>
-  <component name="RunManager" selected="Tomcat Server.Tomcat 10.1.50">
-    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
-      <option name="arquillianRunConfiguration">
-        <value>
-          <option name="containerStateName" value="" />
-        </value>
-      </option>
-      <option name="TEST_OBJECT" value="CLASS" />
-      <properties />
-      <listeners />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
+  <component name="RunManager" selected="Application.NhanVienRepository">
     <configuration name="DiaChiData" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="com.example.Scott.data.DiaChiData" />
       <module name="Scott" />
@@ -125,6 +110,17 @@
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
+      <option name="arquillianRunConfiguration">
+        <value>
+          <option name="containerStateName" value="" />
+        </value>
+      </option>
+      <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -229,9 +225,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.NhanVienRepository" />
         <item itemvalue="Application.DiaChiData" />
         <item itemvalue="JavaScript Debug.viewAddKH.jsp" />
-        <item itemvalue="Application.NhanVienRepository" />
       </list>
     </recent_temporary>
   </component>
@@ -339,6 +335,7 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Changes" />
