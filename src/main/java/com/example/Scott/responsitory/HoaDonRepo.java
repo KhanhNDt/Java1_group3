@@ -2,12 +2,16 @@ package com.example.Scott.responsitory;
 
 import com.example.Scott.entity.HoaDon;
 import com.example.Scott.entity.HoaDonChiTiet;
+import com.example.Scott.entity.LichSuHoaDon;
+import com.example.Scott.entity.ThanhToanHoaDon;
 import com.example.Scott.utils.HibernateConfig;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.NativeQuery;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -37,7 +41,7 @@ public class HoaDonRepo {
     }
 
     // Lấy danh sách có phân trang
-    public List<HoaDon> getFullInvoiceListPage(String keyword, Integer status, int offset, int limit) {
+    public List<HoaDon> getFullInvoiceListPage(String keyword, Integer status, String fromDate, String toDate, int offset, int limit) {
         List<HoaDon> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT hd.*, " +
@@ -55,6 +59,8 @@ public class HoaDonRepo {
         if (status != null) {
             sql.append("AND hd.trang_thai = :status ");
         }
+        if (fromDate != null && !fromDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) >= CAST(:fromDate AS DATE) ");
+        if (toDate != null && !toDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) <= CAST(:toDate AS DATE) ");
 
         sql.append("ORDER BY hd.ngay_tao DESC OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY");
 
@@ -66,6 +72,8 @@ public class HoaDonRepo {
             if (status != null) {
                 query.setParameter("status", status);
             }
+            if (fromDate != null && !fromDate.trim().isEmpty()) query.setParameter("fromDate", fromDate);
+            if (toDate != null && !toDate.trim().isEmpty()) query.setParameter("toDate", toDate);
             query.setParameter("offset", offset);
             query.setParameter("limit", limit);
 
@@ -101,7 +109,7 @@ public class HoaDonRepo {
     }
 
     // Đếm tổng bản ghi
-    public int countFullInvoiceList(String keyword, Integer status) {
+    public int countFullInvoiceList(String keyword, Integer status, String fromDate, String toDate) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM hoa_don hd " +
                         "LEFT JOIN khach_hang kh ON hd.id_khach_hang = kh.id " +
@@ -114,6 +122,8 @@ public class HoaDonRepo {
         if (status != null) {
             sql.append("AND hd.trang_thai = :status ");
         }
+        if (fromDate != null && !fromDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) >= CAST(:fromDate AS DATE) ");
+        if (toDate != null && !toDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) <= CAST(:toDate AS DATE) ");
 
         try (Session session = getSession()) {
             NativeQuery<?> query = session.createNativeQuery(sql.toString());
@@ -123,6 +133,8 @@ public class HoaDonRepo {
             if (status != null) {
                 query.setParameter("status", status);
             }
+            if (fromDate != null && !fromDate.trim().isEmpty()) query.setParameter("fromDate", fromDate);
+            if (toDate != null && !toDate.trim().isEmpty()) query.setParameter("toDate", toDate);
             return toInteger(query.getSingleResult());
         } catch (Exception e) {
             e.printStackTrace();
@@ -134,9 +146,15 @@ public class HoaDonRepo {
     public HoaDon getById(Integer id) {
         String sql = "SELECT hd.id, hd.ma_hoa_don, hd.ngay_tao, hd.ngay_thanh_toan, hd.tong_tien_thanh_toan, " +
                 "hd.trang_thai, hd.ghi_chu, hd.id_khach_hang, hd.id_nhan_vien, hd.id_phieu_giam_gia, " +
-                "kh.ho_ten AS ten_khach_hang, nv.ho_ten AS ten_nhan_vien, pgg.ma_voucher " +
+                "kh.ho_ten AS ten_khach_hang, kh.sdt, kh.dia_chi, " +
+                "dc.ten_nguoi_nhan, dc.sdt_nguoi_nhan, " +
+                "CONCAT(dc.dia_chi_cu_the, ', ', dc.phuong_xa, ', ', dc.quan_huyen, ', ', dc.tinh_thanh) AS dia_chi_giao_hang, " +
+                "nv.ho_ten AS ten_nhan_vien, nv.ma_nhan_vien, " +
+                "pgg.ma_voucher, pgg.ten_voucher, pgg.loai_giam_gia, pgg.gia_tri_giam, " +
+                "pgg.giam_toi_da, pgg.don_toi_thieu " +
                 "FROM hoa_don hd " +
                 "LEFT JOIN khach_hang kh ON hd.id_khach_hang = kh.id " +
+                "LEFT JOIN dia_chi_khach_hang dc ON dc.id_khach_hang = kh.id AND dc.is_mac_dinh = 1 " +
                 "LEFT JOIN nhan_vien nv ON hd.id_nhan_vien = nv.id " +
                 "LEFT JOIN phieu_giam_gia pgg ON hd.id_phieu_giam_gia = pgg.id " +
                 "WHERE hd.id = :id";
@@ -158,8 +176,19 @@ public class HoaDonRepo {
                 hd.setIdNhanVien(toInteger(row[8]));
                 hd.setIdPhieuGiamGia(toInteger(row[9]));
                 hd.setTenKhachHang((String) row[10]);
-                hd.setTenNhanVien((String) row[11]);
-                hd.setMaVoucher((String) row[12]);
+                hd.setSdtKhachHang((String) row[11]);
+                hd.setDiaChiKhachHang((String) row[12]);
+                hd.setTenNguoiNhan((String) row[13]);
+                hd.setSdtNguoiNhan((String) row[14]);
+                hd.setDiaChiGiaoHang((String) row[15]);
+                hd.setTenNhanVien((String) row[16]);
+                hd.setMaNhanVien((String) row[17]);
+                hd.setMaVoucher((String) row[18]);
+                hd.setTenVoucher((String) row[19]);
+                hd.setLoaiGiamGia((String) row[20]);
+                hd.setGiaTriGiam(toDouble(row[21]));
+                hd.setGiamToiDa(toDouble(row[22]));
+                hd.setDonToiThieu(toDouble(row[23]));
                 return hd;
             }
         } catch (Exception e) {
@@ -171,29 +200,79 @@ public class HoaDonRepo {
     // Lấy chi tiết sản phẩm của hóa đơn
     public List<HoaDonChiTiet> getChiTietByHoaDonId(Integer hoaDonId) {
         String sql = "SELECT cthd.id, cthd.id_hoa_don, cthd.id_san_pham_chi_tiet, cthd.so_luong, " +
-                "cthd.don_gia, cthd.gia_ban_ra, cthd.tong_tien, cthd.trang_thai, sp.ten_san_pham " +
+                "cthd.don_gia, cthd.gia_ban_ra, cthd.tong_tien, cthd.trang_thai, " +
+                "sp.ten_san_pham, sp.ma_san_pham, ctsp.ma, ms.ten, sz.ten " +
                 "FROM chi_tiet_hoa_don cthd " +
                 "JOIN chi_tiet_san_pham ctsp ON cthd.id_san_pham_chi_tiet = ctsp.id " +
                 "JOIN san_pham sp ON ctsp.id_san_pham = sp.id " +
+                "LEFT JOIN mau_sac ms ON ctsp.id_mau_sac = ms.id " +
+                "LEFT JOIN size sz ON ctsp.id_size = sz.id " +
                 "WHERE cthd.id_hoa_don = :idHoaDon";
 
         List<HoaDonChiTiet> list = new ArrayList<>();
         try (Session session = getSession()) {
+            session.doWork(connection -> {
+                String jdbcSql = sql.replace(":idHoaDon", "?");
+                try (PreparedStatement statement = connection.prepareStatement(jdbcSql)) {
+                    statement.setInt(1, hoaDonId);
+                    try (ResultSet row = statement.executeQuery()) {
+                        while (row.next()) {
+                            HoaDonChiTiet hdct = new HoaDonChiTiet();
+                            hdct.setId(row.getInt(1));
+                            hdct.setIdHoaDon(row.getInt(2));
+                            hdct.setIdSanPhamChiTiet(row.getInt(3));
+                            hdct.setSoLuong(row.getInt(4));
+                            hdct.setDonGia(row.getDouble(5));
+                            hdct.setGiaBanRa(row.getDouble(6));
+                            hdct.setTongTien(row.getDouble(7));
+                            hdct.setTrangThai(row.getInt(8));
+                            hdct.setTenSanPham(row.getString(9));
+                            hdct.setMaSanPham(row.getString(10));
+                            hdct.setMaBienThe(row.getString(11));
+                            hdct.setMauSac(row.getString(12));
+                            hdct.setKichThuoc(row.getString(13));
+                            list.add(hdct);
+                        }
+                    }
+                }
+            });
+        } catch (Exception e) {
+            throw new IllegalStateException("Không thể tải sản phẩm của hóa đơn " + hoaDonId, e);
+        }
+        return list;
+    }
+
+
+    public List<LichSuHoaDon> getLichSuByHoaDonId(Integer hoaDonId) {
+        String sql = "SELECT id, ma, thoi_gian, ghi_chu, trang_thai " +
+                "FROM lich_su_hoa_don WHERE id_hoa_don = :id ORDER BY thoi_gian DESC, id DESC";
+        List<LichSuHoaDon> list = new ArrayList<>();
+        try (Session session = getSession()) {
             NativeQuery<Object[]> query = session.createNativeQuery(sql);
-            query.setParameter("idHoaDon", hoaDonId);
-            List<Object[]> rows = query.getResultList();
-            for (Object[] row : rows) {
-                HoaDonChiTiet hdct = new HoaDonChiTiet();
-                hdct.setId(toInteger(row[0]));
-                hdct.setIdHoaDon(toInteger(row[1]));
-                hdct.setIdSanPhamChiTiet(toInteger(row[2]));
-                hdct.setSoLuong(toInteger(row[3]));
-                hdct.setDonGia(toDouble(row[4]));
-                hdct.setGiaBanRa(toDouble(row[5]));
-                hdct.setTongTien(toDouble(row[6]));
-                hdct.setTrangThai(toInteger(row[7]));
-                hdct.setTenSanPham((String) row[8]);
-                list.add(hdct);
+            query.setParameter("id", hoaDonId);
+            for (Object[] row : query.getResultList()) {
+                list.add(new LichSuHoaDon(toInteger(row[0]), (String) row[1], toDate(row[2]),
+                        (String) row[3], toInteger(row[4])));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<ThanhToanHoaDon> getThanhToanByHoaDonId(Integer hoaDonId) {
+        String sql = "SELECT tthd.id, tthd.ma_giao_dich, pttt.ten_pttt, tthd.so_tien, " +
+                "tthd.thoi_gian, tthd.trang_thai, tthd.gho_chu " +
+                "FROM thanh_toan_hoa_don tthd " +
+                "LEFT JOIN phuong_thuc_thanh_toan pttt ON tthd.id_pttt = pttt.id " +
+                "WHERE tthd.id_hoa_don = :id ORDER BY tthd.thoi_gian DESC, tthd.id DESC";
+        List<ThanhToanHoaDon> list = new ArrayList<>();
+        try (Session session = getSession()) {
+            NativeQuery<Object[]> query = session.createNativeQuery(sql);
+            query.setParameter("id", hoaDonId);
+            for (Object[] row : query.getResultList()) {
+                list.add(new ThanhToanHoaDon(toInteger(row[0]), (String) row[1], (String) row[2],
+                        toDouble(row[3]), toDate(row[4]), toInteger(row[5]), (String) row[6]));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -211,12 +290,33 @@ public class HoaDonRepo {
                     .setParameter("status", status)
                     .setParameter("id", id)
                     .executeUpdate();
+            if (result > 0) {
+                String historySql = "INSERT INTO lich_su_hoa_don (id_hoa_don, ma, thoi_gian, ghi_chu, trang_thai) " +
+                        "VALUES (:id, :ma, GETDATE(), :ghiChu, :status)";
+                session.createNativeQuery(historySql)
+                        .setParameter("id", id)
+                        .setParameter("ma", "LS-" + id + "-" + System.currentTimeMillis())
+                        .setParameter("ghiChu", "Cập nhật trạng thái hóa đơn: " + getTrangThaiLabel(status))
+                        .setParameter("status", status)
+                        .executeUpdate();
+            }
             tx.commit();
             return result > 0;
         } catch (Exception e) {
             if (tx != null) tx.rollback();
             e.printStackTrace();
             return false;
+        }
+    }
+
+    private String getTrangThaiLabel(Integer status) {
+        if (status == null) return "Không xác định";
+        switch (status) {
+            case 0: return "Chờ xử lý";
+            case 1: return "Đã thanh toán";
+            case 2: return "Đã hủy";
+            case 3: return "Đã xóa";
+            default: return "Không xác định";
         }
     }
 
@@ -245,7 +345,7 @@ public class HoaDonRepo {
     }
 
     // Xuất Excel
-    public List<HoaDon> getAllInvoicesForExport(String keyword, Integer status) {
+    public List<HoaDon> getAllInvoicesForExport(String keyword, Integer status, String fromDate, String toDate) {
         StringBuilder sql = new StringBuilder(
                 "SELECT hd.id, hd.ma_hoa_don, hd.ngay_tao, hd.ngay_thanh_toan, hd.tong_tien_thanh_toan, " +
                         "hd.trang_thai, hd.ghi_chu, hd.id_khach_hang, hd.id_nhan_vien, hd.id_phieu_giam_gia, " +
@@ -262,6 +362,8 @@ public class HoaDonRepo {
         if (status != null) {
             sql.append("AND hd.trang_thai = :status ");
         }
+        if (fromDate != null && !fromDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) >= CAST(:fromDate AS DATE) ");
+        if (toDate != null && !toDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) <= CAST(:toDate AS DATE) ");
         sql.append("ORDER BY hd.ngay_tao DESC");
 
         List<HoaDon> list = new ArrayList<>();
@@ -273,6 +375,8 @@ public class HoaDonRepo {
             if (status != null) {
                 query.setParameter("status", status);
             }
+            if (fromDate != null && !fromDate.trim().isEmpty()) query.setParameter("fromDate", fromDate);
+            if (toDate != null && !toDate.trim().isEmpty()) query.setParameter("toDate", toDate);
             List<Object[]> rows = query.getResultList();
             for (Object[] row : rows) {
                 HoaDon hd = new HoaDon();

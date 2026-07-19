@@ -58,6 +58,15 @@ public class HoaDon {
     private String diaChiKhachHang;
 
     @Transient
+    private String tenNguoiNhan;
+
+    @Transient
+    private String sdtNguoiNhan;
+
+    @Transient
+    private String diaChiGiaoHang;
+
+    @Transient
     private String tenNhanVien;
 
     @Transient
@@ -65,6 +74,21 @@ public class HoaDon {
 
     @Transient
     private String maVoucher;
+
+    @Transient
+    private String tenVoucher;
+
+    @Transient
+    private String loaiGiamGia;
+
+    @Transient
+    private Double giaTriGiam;
+
+    @Transient
+    private Double giamToiDa;
+
+    @Transient
+    private Double donToiThieu;
 
     @Transient
     private String tenPhuongThucThanhToan;
