@@ -10,17 +10,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="Changes">
+      <change afterPath="$PROJECT_DIR$/src/main/webapp/logo2.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/detailKhachHang.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/detailKhachHang.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/updateKH.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/updateKH.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/viewAddKH.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/KhachHangServlet.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/KhachHangServlet.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/data/phuong_xa.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/detailKhachHang.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/detailKhachHang.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/updateKH.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/updateKH.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/viewAddKH.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/viewAddKH.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/sidebar.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/sidebar.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/data/phuong_xa.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,6 +70,8 @@
       <recent name="C:\Java3\Project\Java1_group3_new1\src\main\java\com\example\Scott\data" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Java3\Project\Java1_group3new2\src\main\webapp" />
+      <recent name="C:\Java3\Project\Java1_group3new2\src\main\webapp\WEB-INF" />
       <recent name="C:\Java3\Project\Java1_group3_new1\src\main\resources\data" />
     </key>
   </component>
@@ -108,13 +102,15 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
+    <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
           <option name="containerStateName" value="" />
         </value>
       </option>
-      <option name="TEST_OBJECT" value="class" />
+      <option name="TEST_OBJECT" value="CLASS" />
+      <properties />
+      <listeners />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -259,7 +255,8 @@
       <workItem from="1784443462906" duration="4825000" />
       <workItem from="1784539792152" duration="5663000" />
       <workItem from="1784554481504" duration="139000" />
-      <workItem from="1784554745730" duration="4867000" />
+      <workItem from="1784554745730" duration="5028000" />
+      <workItem from="1784559908055" duration="1389000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1783837991503</created>
@@ -338,7 +335,14 @@
       <option name="project" value="LOCAL" />
       <updated>1784558935230</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Changes">
+      <created>1784559743408</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1784559743408</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

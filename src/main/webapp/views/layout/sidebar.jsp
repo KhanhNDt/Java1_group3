@@ -29,19 +29,13 @@
         overflow: auto;
     }
 
-    .logo {
-        text-align: center;
-        padding: 30px 20px;
-    }
+
 
     .logo h2 {
         font-weight: bold;
         letter-spacing: 2px;
     }
 
-    .logo span {
-        color: red;
-    }
 
     .menu {
         padding: 10px;
@@ -127,11 +121,37 @@
     .bottom a:hover {
         background: white;
     }
+    .logo2{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:4px;
+        padding:25px 20px;
+    }
+
+    .logo2 img{
+        width:38px;
+        height:38px;
+        object-fit:contain;
+    }
+
+    .logo2 h2{
+        margin:0;
+        color:#fff;
+        font-size:40px;
+        font-weight:bold;
+        letter-spacing:2px;
+    }
+
+    .logo2 h2 span{
+        color:red;
+    }
 </style>
 
 <div class="sidebar">
 
-    <div class="logo">
+    <div class="logo2">
+        <img src="${pageContext.request.contextPath}/logo2.png" alt="Logo">
         <h2>Scott<span>.</span></h2>
     </div>
 
