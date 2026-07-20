@@ -20,7 +20,8 @@
     </style>
 </head>
 <body>
-
+<%@ include file="/views/layout/sidebar.jsp"%>
+<div class="main-content">
 <div class="container mt-5 mb-5">
     <div class="main-card">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -274,10 +275,6 @@
         document.getElementById("hiddenMMacDinh").value = item.isMacDinh;
     }
 
-    // ==============================
-    // Xóa địa chỉ
-    // ==============================
-
     window.xoaDiaChi = function () {
 
         if (!confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
@@ -301,9 +298,6 @@
 
     };
 
-    // ==============================
-    // Reset modal sau khi đóng
-    // ==============================
 
     document.getElementById("modalDiaChi")
         .addEventListener("hidden.bs.modal", function () {
@@ -341,5 +335,6 @@
 
         });
 </script>
+    </div>
 </body>
 </html>

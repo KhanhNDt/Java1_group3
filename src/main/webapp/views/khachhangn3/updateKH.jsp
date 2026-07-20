@@ -80,6 +80,8 @@
     </style>
 </head>
 <body>
+<%@ include file="/views/layout/sidebar.jsp"%>
+<div class="main-content">
 <div class="container mt-5 mb-5">
     <div class="main-card">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -626,7 +628,7 @@
     syncHidden();
 
 </script>
-
+</div>
 </body>
 
 </html>

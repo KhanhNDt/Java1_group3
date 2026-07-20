@@ -7,7 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-
+<%@ include file="/views/layout/sidebar.jsp"%>
+<div class="main-content">
 <div class="container mt-5">
 
     <h3>Chi tiết khách hàng</h3>
@@ -19,7 +20,7 @@
         <tr><th>Email</th><td>${khachHangS.email}</td></tr>
         <tr><th>Địa chỉ</th><td>${khachHangS.diaChi}</td></tr>
         <tr><th>Giới tính</th><td>${khachHangS.gioiTinh}</td></tr>
-        <tr><th>Trạng thái</th><td>${khachHangS.trangThai}</td></tr>
+
     </table>
 
     <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
@@ -27,7 +28,12 @@
         Quay lại
     </a>
 
+    <a href="${pageContext.request.contextPath}/khachhang/delete?id=${khachHangS.id}"
+       class="btn btn-danger"
+       onclick="return confirm('Bạn có chắc muốn xóa khách hàng này?')">
+        Xóa khách hàng
+    </a>
 </div>
-
+</div>
 </body>
 </html>

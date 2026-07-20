@@ -7,7 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-
+<%@ include file="/views/layout/sidebar.jsp"%>
+<div class="main-content">
 <div class="container mt-5">
 
     <h3>Chi tiết khách hàng</h3>
@@ -33,6 +34,6 @@
         Xóa khách hàng
     </a>
 </div>
-
+</div>
 </body>
 </html>

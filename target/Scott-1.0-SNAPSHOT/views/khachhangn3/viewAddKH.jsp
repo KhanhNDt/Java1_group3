@@ -20,7 +20,8 @@
     </style>
 </head>
 <body>
-
+<%@ include file="/views/layout/sidebar.jsp"%>
+<div class="main-content">
 <div class="container mt-5 mb-5">
     <div class="main-card">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -58,11 +59,7 @@
                     <input type="radio" name="gioiTinh" value="Nam" checked> Nam &nbsp;&nbsp;
                     <input type="radio" name="gioiTinh" value="Nữ"> Nữ
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label required">Trạng thái</label><br>
-                    <input type="radio" name="trangThai" value="1" checked> Hoạt động &nbsp;&nbsp;
-                    <input type="radio" name="trangThai" value="0"> Ngừng hoạt động
-                </div>
+
             </div>
 
             <div class="mt-3">
@@ -278,10 +275,6 @@
         document.getElementById("hiddenMMacDinh").value = item.isMacDinh;
     }
 
-    // ==============================
-    // Xóa địa chỉ
-    // ==============================
-
     window.xoaDiaChi = function () {
 
         if (!confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
@@ -305,9 +298,6 @@
 
     };
 
-    // ==============================
-    // Reset modal sau khi đóng
-    // ==============================
 
     document.getElementById("modalDiaChi")
         .addEventListener("hidden.bs.modal", function () {
@@ -327,16 +317,24 @@
     document.getElementById("formAddKhachHang")
         .addEventListener("submit", function (e) {
 
+            // Kiểm tra đã thêm địa chỉ chưa
             if (listDiaChiTam.length === 0) {
 
                 e.preventDefault();
-
                 alert("Vui lòng thêm địa chỉ nhận hàng.");
-
                 return;
+            }
+
+            // Xác nhận thêm khách hàng
+            if (!confirm("Bạn có chắc muốn thêm khách hàng này không?")) {
+
+                e.preventDefault();
+                return;
+
             }
 
         });
 </script>
+    </div>
 </body>
 </html>

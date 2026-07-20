@@ -169,8 +169,8 @@
         <a href="#taiKhoanSubmenu"
            data-bs-toggle="collapse"
            role="button"
-           aria-expanded="${menu == 'nhanvien' || menu == 'khachhang' ? 'true' : 'false'}"
-           class="d-flex justify-content-between align-items-center ${menu == 'nhanvien' || menu == 'khachhang' ? 'menu-parent-active' : ''} ${menu == 'nhanvien' || menu == 'khachhang' ? '' : 'collapsed'}">
+           aria-expanded="false"
+           class="d-flex justify-content-between align-items-center ${menu == 'nhanvien' || menu == 'khachhang' ? 'menu-parent-active' : ''}">
             <span class="d-flex align-items-center">
                 <i class="bi bi-person-bounding-box"></i>
                 Quản lý tài khoản
