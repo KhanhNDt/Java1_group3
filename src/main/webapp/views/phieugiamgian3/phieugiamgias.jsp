@@ -22,9 +22,8 @@
 <body>
 
 <%@ include file="/views/layout/sidebar.jsp"%>
-<%@ include file="/views/layout/header.jsp"%>
-
-<div style="margin-left:10px;padding:30px;">
+<div class="main-content2 ">
+<div style="margin-left:260px;padding:30px;">
 
     <h2 class="fw-bold mb-4">
         Quản lý giảm giá / Phiếu giảm giá
@@ -232,7 +231,7 @@
         </div>
 
     </div>
-
+</div>
 </div>
 
 </body>

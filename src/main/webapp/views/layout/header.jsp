@@ -66,7 +66,7 @@
 
     .icon-box:hover{
 
-        background:#5E35B1;
+        background: #323131;
         color:white;
 
     }

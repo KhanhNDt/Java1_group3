@@ -9,19 +9,36 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+
+        .form-check.form-switch{
+            display: inline-flex;
+            align-items: center;
+            margin: 0 6px;
+        }
+
+        .form-check-input{
+            margin-top: 0;
+            cursor: pointer;
+        }
+        .form-check-input:checked {
+            background-color: green !important;;
+            border-color: green !important;;
+        }
+    </style>
 </head>
 
 <body>
 
 <%@ include file="/views/layout/sidebar.jsp"%>
-<%@ include file="/views/layout/header.jsp"%>
+<div class="main-content">
 
 <div class="container-fluid mt-4">
 
     <div class="card shadow">
 
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Quản lý khách hàng</h4>
+        <div class="card-header bg-light text-dark">
+            <h4 class="mb-0 fw-bold" >Quản lý khách hàng</h4>
         </div>
 
         <div class="card shadow-sm mb-4">
@@ -62,20 +79,22 @@
                         <!-- Nút -->
                         <div class="col-md-5 text-end">
 
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-search"></i> Tìm kiếm
+                            <button type="submit" class="btn btn-light text-dark fw-bold">
+                                <i class="bi bi-search "></i> Tìm kiếm
                             </button>
 
-                            <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
-                               class="btn btn-dark">
-                                <i class="bi bi-arrow-repeat"></i> Đặt lại
-                            </a>
-
                             <a href="${pageContext.request.contextPath}/khachhang/view-add"
-                               class="btn btn-success">
+                               class="btn btn-light text-dark fw-bold">
                                 <i class="bi bi-plus-circle"></i>
                                 Thêm mới
                             </a>
+
+                            <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
+                               class="btn btn-light text-dark fw-bold">
+                                <i class="bi bi-arrow-repeat"></i> Đặt lại
+                            </a>
+
+
                         </div>
 
                     </div>
@@ -90,15 +109,15 @@
 
     <div class="card shadow mt-4">
 
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Danh sách khách hàng</h5>
+        <div class="card-header bg-light text-dark">
+            <h5 class="mb-0 fw-bold">Danh sách khách hàng</h5>
         </div>
 
         <div class="card-body">
 
             <table class="table table-bordered table-hover text-center align-middle">
 
-                <thead class="table-primary">
+                <thead class="table-light">
 
                 <tr>
                     <th>STT</th>
@@ -134,28 +153,30 @@
                                     <span class="badge bg-success">Hoạt động</span>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="badge bg-danger">Ngừng hoạt động</span>
+                                    <span class="badge bg-secondary">Ngừng hoạt động</span>
                                 </c:otherwise>
                             </c:choose>
-                        </td>
-
                         <td>
 
                             <a href="${pageContext.request.contextPath}/khachhang/view-update?id=${KH.id}"
-                               class="btn btn-warning btn-sm">
+                               class="btn btn-light btn-sm">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
 
                             <a href="${pageContext.request.contextPath}/khachhang/detail?id=${KH.id}"
-                               class="btn btn-info btn-sm">
+                               class="btn btn-light btn-sm">
                                 <i class="bi bi-eye"></i>
                             </a>
 
-                            <a href="${pageContext.request.contextPath}/khachhang/delete?id=${KH.id}"
-                               class="btn btn-danger btn-sm"
-                               onclick="return confirm('Bạn có chắc muốn xóa khách hàng này?')">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            <div class="form-check form-switch d-inline-block mx-2">
+
+                                <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        <c:if test="${KH.trangThai == 1}">checked</c:if>
+                                        onchange="doiTrangThai(${KH.id}, this.checked)">
+
+                            </div>
 
                         </td>
 
@@ -172,7 +193,7 @@
     </div>
 
 </div>
-
+</div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

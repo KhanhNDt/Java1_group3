@@ -66,7 +66,7 @@
 
     .icon-box:hover{
 
-        background:#5E35B1;
+        background: #323131;
         color:white;
 
     }
@@ -111,46 +111,3 @@
 
 <div class="main-content">
 
-    <div class="header">
-
-        <div class="search-box">
-
-            <i class="bi bi-search"></i>
-
-            <input type="text"
-                   placeholder="Tìm kiếm sản phẩm...">
-
-        </div>
-
-        <div class="header-right">
-
-            <div class="icon-box">
-
-                <i class="bi bi-bell"></i>
-
-            </div>
-
-            <div class="icon-box">
-
-                <i class="bi bi-envelope"></i>
-
-            </div>
-
-            <div class="user">
-
-                <img src="https://i.pravatar.cc/100"
-                     alt="avatar">
-
-                <div class="user-info">
-
-                    <h6>Admin</h6>
-
-                    <small>Quản trị viên</small>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>

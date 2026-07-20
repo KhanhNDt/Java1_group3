@@ -14,14 +14,17 @@
     body {
         background: #f4f7fe;
     }
-
+    .main-content{
+        margin-left:260px !important;
+        padding:25px !important;
+    }
     .sidebar {
         position: fixed;
         left: 0;
         top: 0;
         width: 260px;
         height: 100vh;
-        background: #5E35B1;
+        background: #131334;
         color: white;
         overflow: auto;
     }
@@ -37,7 +40,7 @@
     }
 
     .logo span {
-        color: #FFD54F;
+        color: red;
     }
 
     .menu {
@@ -62,13 +65,13 @@
     }
 
     .menu a:hover {
-        background: white;
-        color: #5E35B1;
+        background: rgba(239,68,68,0.15);
+        color: red;
     }
 
     .menu .active {
-        background: white;
-        color: #5E35B1;
+        background: rgba(239,68,68,0.15);
+        color: red;
     }
 
     /* Đổi màu chữ menu cha khi có mục con đang active để người dùng dễ nhận biết */
@@ -86,8 +89,8 @@
     }
 
     .submenu-item:hover {
-        background: white !important;
-        color: #5E35B1 !important;
+        background: rgba(239,68,68,0.15) !important;
+        color: red !important;
     }
 
     /* Xoay mũi tên mượt mà bằng thuộc tính của Bootstrap collapse */
@@ -122,7 +125,7 @@
     }
 
     .bottom a:hover {
-        background: #7E57C2;
+        background: white;
     }
 </style>
 

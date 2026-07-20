@@ -10,15 +10,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="Changes">
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_19_07_2026_1_01_CH__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/webContexts.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/webContexts.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/KhachHangServlet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/data/DiaChiData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/data/DiaChiData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/KhachHang.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/entity/KhachHang.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/khachhangs.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/khachhangn3/khachhangs.jsp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/webapp/views/layout/header.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/layout/header.jsp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/META-INF/MANIFEST.MF" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/META-INF/MANIFEST.MF" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/phieugiamgian3/phieugiamgias.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/phieugiamgian3/phieugiamgias.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/NhanVienServlet.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/NhanVienServlet.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/KhachHang$KhachHangBuilder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/KhachHang$KhachHangBuilder.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/KhachHang.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/KhachHang.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/NhanVien.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/entity/NhanVien.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/responsitory/NhanVienRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/responsitory/NhanVienRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/utils/HibernateConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/utils/HibernateConfig.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/khachhangs.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/khachhangn3/khachhangs.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/header.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/header.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/sidebar.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/layout/sidebar.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/phieugiamgian3/phieugiamgias.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/phieugiamgian3/phieugiamgias.jsp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -241,7 +248,8 @@
       <workItem from="1784295936609" duration="2072000" />
       <workItem from="1784365560313" duration="7381000" />
       <workItem from="1784426365363" duration="378000" />
-      <workItem from="1784443462906" duration="700000" />
+      <workItem from="1784443462906" duration="4825000" />
+      <workItem from="1784539792152" duration="4898000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1783837991503</created>
@@ -299,7 +307,14 @@
       <option name="project" value="LOCAL" />
       <updated>1784193583081</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Changes">
+      <created>1784444183272</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1784444183272</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
