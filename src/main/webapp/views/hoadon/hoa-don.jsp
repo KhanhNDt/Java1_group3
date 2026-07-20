@@ -90,17 +90,20 @@
             background:#374151;
             color:white;
         }
+        .btn.btn-excel{
+            height: 50px;
+            padding: 0 24px;
+            border-radius: 12px;
 
-        .btn-excel{
-            height:50px;
-            border-radius:12px;
-            padding:0 24px;
-            background:white;
-            border:1px solid #ddd;
+            background: #90EE90 !important;
+            border: 1px solid #90EE90 !important;
+            color: #155724 !important;
         }
 
-        .btn-excel:hover{
-            background:#f8f9fa;
+        .btn.btn-excel:hover{
+            background: #7CCD7C !important;
+            border-color: #7CCD7C !important;
+            color: #fff !important;
         }
 
         .table-card{
@@ -268,7 +271,6 @@
             <button type="button" onclick="filterByStatus('0')" class="btn status-btn ${status=='0' ? 'status-active' : ''}">Chờ xử lý</button>
             <button type="button" onclick="filterByStatus('1')" class="btn status-btn ${status=='1' ? 'status-active' : ''}">Đã thanh toán</button>
             <button type="button" onclick="filterByStatus('2')" class="btn status-btn ${status=='2' ? 'status-active' : ''}">Đã hủy</button>
-            <button type="button" onclick="filterByStatus('3')" class="btn status-btn ${status=='3' ? 'status-active' : ''}">Đã xóa</button>
         </div>
 
         <table class="table table-hover align-middle">

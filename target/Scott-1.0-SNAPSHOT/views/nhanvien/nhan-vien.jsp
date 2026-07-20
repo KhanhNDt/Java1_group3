@@ -8,7 +8,6 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <meta charset="UTF-8">
     <title>Quản lý nhân viên</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -65,38 +64,6 @@
         /* ---- Form thêm/sửa ---- */
         .gender-radio-group { display: flex; gap: 24px; height: 46px; align-items: center; }
         .gender-radio-group .form-check { display: flex; align-items: center; gap: 6px; }
-
-        /* ---- Khung chọn ảnh đại diện tròn ---- */
-        .avatar-upload-box {
-            width: 100px;
-            height: 100px;
-            border: 2px dashed #cbd5e1;
-            border-radius: 50%;
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            overflow: hidden;
-            position: relative;
-            background-color: #f8fafc;
-            transition: all 0.2s ease;
-        }
-        .avatar-upload-box:hover {
-            border-color: #3b82f6;
-            background-color: #f1f5f9;
-        }
-        .avatar-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #64748b;
-        }
-        #avatar-preview-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
     </style>
 </head>
 <body>
@@ -391,25 +358,10 @@
                 </div>
             </div>
 
-            <%-- Thêm enctype="multipart/form-data" để form hỗ trợ gửi file ảnh lên server --%>
             <form action="${pageContext.request.contextPath}/nhan-vien/${nv.id == 0 ? 'add' : 'update'}"
-                  method="post" enctype="multipart/form-data" class="card p-4"
+                  method="post" class="card p-4"
                   onsubmit="return confirm('Bạn có chắc chắn thông tin đã nhập là chính xác?\n${nv.id == 0 ? 'Xác nhận THÊM MỚI nhân viên này?' : 'Xác nhận CẬP NHẬT thông tin nhân viên này?'}')">
                 <input type="hidden" name="id" value="${nv.id}">
-
-                    <%-- Khu vực chọn ảnh đại diện dạng tròn --%>
-                <div class="text-center mb-4">
-                    <label for="avatar-input" class="avatar-upload-box" title="Bấm vào để chọn ảnh đại diện">
-                        <img id="avatar-preview-img" src="${not empty nv.anhDaiDien ? nv.anhDaiDien : ''}" alt="Avatar Preview" style="${not empty nv.anhDaiDien ? 'display: block;' : 'display: none;'}">
-                        <div id="avatar-placeholder-content" class="avatar-placeholder" style="${not empty nv.anhDaiDien ? 'display: none;' : 'display: flex;'}">
-                            <i class="bi bi-camera fs-3 mb-1"></i>
-                            <span style="font-size: 12px;">Chọn ảnh</span>
-                        </div>
-                    </label>
-                    <input type="file" id="avatar-input" name="anhDaiDienFile" accept="image/png, image/jpeg, image/jpg" class="d-none">
-                    <div class="form-text text-muted mt-1" style="font-size: 12px;">PNG, JPG, JPEG - Tối đa 5MB</div>
-                </div>
-
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label>Mã nhân viên</label>
@@ -463,6 +415,10 @@
                             </div>
                         </div>
                     </div>
+
+                        <%-- Ghi chú: Trạng thái (Đang làm / Đã nghỉ) KHÔNG hiển thị ở đây theo yêu cầu.
+                             Nhân viên mới luôn mặc định "Đang làm"; việc đổi trạng thái chỉ thực hiện
+                             bằng công tắc gạt ngoài bảng danh sách. --%>
 
                     <div class="col-12"><hr class="my-2"></div>
                     <div class="col-12 mb-2"><label class="mb-0">Địa chỉ</label></div>
@@ -543,87 +499,6 @@
     </c:choose>
 </div>
 
-<!-- Script xử lý xem trước ảnh đại diện tải lên -->
-<script>
-    const avatarInput = document.getElementById('avatar-input');
-    const avatarPreviewImg = document.getElementById('avatar-preview-img');
-    const avatarPlaceholderContent = document.getElementById('avatar-placeholder-content');
-
-    if (avatarInput) {
-        avatarInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('Dung lượng ảnh vượt quá giới hạn tối đa 5MB!');
-                    avatarInput.value = '';
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    avatarPreviewImg.src = e.target.result;
-                    avatarPreviewImg.style.display = 'block';
-                    if (avatarPlaceholderContent) {
-                        avatarPlaceholderContent.style.display = 'none';
-                    }
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-</script>
-
-<!-- Đoạn script tích hợp quét mã QR CCCD/VNeID -->
-<script>
-    let html5QrcodeScanner = null;
-
-    // Khi Modal được mở lên thì khởi động Camera
-    const qrModal = document.getElementById('qrModal');
-    if (qrModal) {
-        qrModal.addEventListener('shown.bs.modal', function () {
-            if (!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5QrcodeScanner(
-                    "qrReader", { fps: 10, qrbox: { width: 250, height: 250 } }, false
-                );
-
-                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-            }
-        });
-
-        // Khi tắt Modal thì dừng hẳn Camera để tiết kiệm tài nguyên
-        qrModal.addEventListener('hidden.bs.modal', function () {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear().catch(error => {
-                    console.error("Không thể tắt camera.", error);
-                });
-                html5QrcodeScanner = null;
-            }
-        });
-    }
-
-    // Khi quét thành công mã QR CCCD/VNeID
-    function onScanSuccess(decodedText, decodedResult) {
-        // Dừng camera ngay lập tức
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.clear();
-        }
-
-        // Hiển thị thông báo thành công ngắn gọn
-        const msgDiv = document.getElementById('qrResultMsg');
-        if(msgDiv) {
-            msgDiv.innerHTML = `<div class="alert alert-success">Quét thành công! Đang chuyển hướng...</div>`;
-        }
-
-        // Gửi chuỗi dữ liệu thô vừa quét về Servlet để xử lý và chuyển sang trang thông tin
-        setTimeout(() => {
-            window.location.href = '${pageContext.request.contextPath}/nhan-vien/XuLyQr?qrData=' + encodeURIComponent(decodedText);
-        }, 1000);
-    }
-
-    function onScanFailure(error) {
-        // Lỗi khung hình quét (bỏ qua vì camera quét liên tục mỗi frame)
-    }
-</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     function toggleFilter() {
