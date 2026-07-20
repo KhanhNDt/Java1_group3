@@ -47,9 +47,9 @@
         .avatar-circle { width: 42px; height: 42px; border-radius: 50%; background: #e8ecfb; color: #3949ab; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; margin: 0 auto; overflow: hidden; }
         .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
 
-        .badge-role { border: 1px solid #d1d5db; border-radius: 30px; padding: 5px 14px; font-size: 13px; color: #374151; background: #fff; }
-        .badge-active { background: #dcfce7; color: #15803d; border-radius: 30px; padding: 6px 16px; font-weight: 600; font-size: 13px; }
-        .badge-inactive { background: #f3f4f6; color: #6b7280; border-radius: 30px; padding: 6px 16px; font-weight: 600; font-size: 13px; }
+        .badge-role { display: inline-block; white-space: nowrap; border: 1px solid #d1d5db; border-radius: 30px; padding: 5px 14px; font-size: 13px; color: #374151; background: #fff; }
+        .badge-active { display: inline-block; white-space: nowrap; background: #dcfce7; color: #15803d; border-radius: 30px; padding: 6px 16px; font-weight: 600; font-size: 13px; }
+        .badge-inactive { display: inline-block; white-space: nowrap; background: #f3f4f6; color: #6b7280; border-radius: 30px; padding: 6px 16px; font-weight: 600; font-size: 13px; }
 
         .btn-icon { width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
 
@@ -249,10 +249,7 @@
                                            class="btn btn-outline-primary btn-icon" title="Xem chi tiết">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="${pageContext.request.contextPath}/nhan-vien/detail?id=${nv.id}"
-                                           class="btn btn-outline-warning btn-icon" title="Sửa">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
+
                                         <c:url var="deleteUrl" value="/nhan-vien/delete">
                                             <c:param name="id" value="${nv.id}"/>
                                             <c:param name="keyword" value="${keyword}"/>
@@ -261,11 +258,7 @@
                                             <c:param name="page" value="${currentPage}"/>
                                             <c:param name="size" value="${size}"/>
                                         </c:url>
-                                        <a href="${deleteUrl}"
-                                           class="btn btn-outline-danger btn-icon" title="Xóa"
-                                           onclick="return confirm('Bạn có chắc muốn xóa nhân viên \'${nv.hoTen}\' không? Hành động này không thể hoàn tác.')">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+
                                         <form action="${pageContext.request.contextPath}/nhan-vien/toggle" method="get" class="d-inline">
                                             <input type="hidden" name="id" value="${nv.id}">
                                             <input type="hidden" name="keyword" value="${keyword}">
@@ -339,7 +332,32 @@
 
         <%-- =================== THÊM / SỬA =================== --%>
         <c:when test="${viewType == 'form'}">
-            <h3 class="mb-4">${nv.id == 0 ? 'Thêm mới' : 'Cập nhật'} nhân viên</h3>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">${nv.id == 0 ? 'Thêm mới' : 'Cập nhật'} nhân viên</h3>
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#qrModal">
+                    <i class="bi bi-qr-code-scan"></i> Quét mã QR CCCD/VNeID
+                </button>
+            </div>
+
+            <%-- Modal quét mã QR CCCD/VNeID bằng camera --%>
+            <div class="modal fade" id="qrModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="bi bi-qr-code-scan"></i> Quét mã QR CCCD/VNeID</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted small mb-2">
+                                Đưa mặt sau CCCD gắn chip (hoặc mã QR trong app VNeID) vào khung camera bên dưới.
+                            </p>
+                            <div id="qrReader" style="width:100%;"></div>
+                            <div id="qrResultMsg" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <form action="${pageContext.request.contextPath}/nhan-vien/${nv.id == 0 ? 'add' : 'update'}"
                   method="post" class="card p-4"
                   onsubmit="return confirm('Bạn có chắc chắn thông tin đã nhập là chính xác?\n${nv.id == 0 ? 'Xác nhận THÊM MỚI nhân viên này?' : 'Xác nhận CẬP NHẬT thông tin nhân viên này?'}')">
@@ -347,7 +365,16 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label>Mã nhân viên</label>
-                        <input type="text" name="maNhanVien" class="form-control" value="${nv.maNhanVien}" required>
+                        <c:choose>
+                            <c:when test="${nv.id == 0}">
+                                <input type="text" class="form-control" value="Sẽ được cấp tự động khi lưu (VD: NV008)" disabled>
+                                <div class="form-text">Mã nhân viên do hệ thống tự sinh, không cần nhập.</div>
+                            </c:when>
+                            <c:otherwise>
+                                <input type="text" class="form-control" value="${nv.maNhanVien}" disabled>
+                                <div class="form-text">Mã nhân viên là định danh cố định, không thể chỉnh sửa.</div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Họ tên</label>

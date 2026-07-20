@@ -95,6 +95,35 @@ public class NhanVienRepository {
         }
     }
 
+    /**
+     * Tự sinh mã nhân viên tiếp theo dạng NV001, NV002, ... dựa trên số lớn nhất hiện có.
+     */
+    public String generateNextMa() {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            List<String> allMa = session.createQuery(
+                    "select nv.maNhanVien from NhanVien nv where nv.maNhanVien like 'NV%'", String.class)
+                    .list();
+
+            int maxSo = 0;
+            for (String ma : allMa) {
+                if (ma == null) continue;
+                String soPhan = ma.replaceAll("[^0-9]", "");
+                if (!soPhan.isEmpty()) {
+                    try {
+                        int so = Integer.parseInt(soPhan);
+                        if (so > maxSo) maxSo = so;
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+            return String.format("NV%03d", maxSo + 1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Fallback cực hiếm khi xảy ra, vẫn đảm bảo có tiền tố NV và không trùng
+            return "NV" + System.currentTimeMillis() % 100000;
+        }
+    }
+
     public NhanVien findByMa(String ma) {
         if (ma == null || ma.trim().isEmpty()) {
             return null;

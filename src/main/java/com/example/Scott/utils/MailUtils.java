@@ -18,8 +18,8 @@ import java.util.Properties;
  */
 public class MailUtils {
 
-    private static final String MAIL_FROM = "your-email@gmail.com";
-    private static final String MAIL_PASSWORD = "your-app-password";
+    private static final String MAIL_FROM = "phutuananh4827@gmail.com";
+    private static final String MAIL_PASSWORD = "loxb oxvj nhhq ntxc";
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final String SMTP_PORT = "587";
 

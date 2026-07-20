@@ -9,10 +9,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="Changes">
-      <change afterPath="$PROJECT_DIR$/src/main/webapp/logo2.png" afterDir="false" />
+    <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="machay">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/layout/sidebar.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/MailUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/MailUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,6 +56,7 @@
   <component name="ProjectId" id="3GNwz9hcVJVVjCKVHlvjtPDghc9" />
   <component name="ProjectLevelVcsManager">
     <OptionsSetting value="false" id="Update" />
+    <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
@@ -255,6 +258,7 @@
       <workItem from="1784554481504" duration="139000" />
       <workItem from="1784554745730" duration="5028000" />
       <workItem from="1784559908055" duration="1389000" />
+      <workItem from="1784562135360" duration="3460000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1783837991503</created>
@@ -340,7 +344,14 @@
       <option name="project" value="LOCAL" />
       <updated>1784559743408</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="machay">
+      <created>1784562447248</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1784562447248</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -360,6 +371,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changes" />
+    <MESSAGE value="machay" />
+    <option name="LAST_COMMIT_MESSAGE" value="machay" />
   </component>
 </project>

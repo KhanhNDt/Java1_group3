@@ -321,11 +321,10 @@ public class NhanVienServlet extends HttpServlet {
         try {
             NhanVien nv = new NhanVien();
 
-            String maNV = request.getParameter("maNhanVien");
             String hoTen = request.getParameter("hoTen");
             String ngaySinhStr = request.getParameter("ngaySinh");
 
-            nv.setMaNhanVien(maNV);
+            // Mã nhân viên KHÔNG lấy từ form nữa (ô này chỉ hiển thị, không cho sửa) -> xử lý riêng bên dưới
             nv.setHoTen(hoTen);
             nv.setEmail(request.getParameter("email"));
             nv.setSoDienThoai(request.getParameter("soDienThoai"));
@@ -342,6 +341,8 @@ public class NhanVienServlet extends HttpServlet {
 
             boolean success;
             if (isAdd) {
+                // Mã nhân viên tự sinh phía server (NV001, NV002, ...), không tin dữ liệu gửi từ client
+                nv.setMaNhanVien(repo.generateNextMa());
                 // Trạng thái KHÔNG cho chọn khi thêm mới -> luôn mặc định "Đang làm"
                 nv.setTrangThai(TRANG_THAI_MAC_DINH_KHI_THEM);
                 success = repo.add(nv);
@@ -352,8 +353,10 @@ public class NhanVienServlet extends HttpServlet {
                 }
             } else {
                 int id = Integer.parseInt(request.getParameter("id"));
-                // Trạng thái không nằm trong form sửa -> giữ nguyên trạng thái hiện có trong DB
                 NhanVien existing = repo.getOne(id);
+                // Mã nhân viên là định danh cố định -> luôn giữ nguyên giá trị cũ trong DB, không cho đổi
+                nv.setMaNhanVien(existing != null ? existing.getMaNhanVien() : request.getParameter("maNhanVien"));
+                // Trạng thái không nằm trong form sửa -> giữ nguyên trạng thái hiện có trong DB
                 nv.setTrangThai(existing != null ? existing.getTrangThai() : TRANG_THAI_MAC_DINH_KHI_THEM);
                 nv.setId(id);
                 success = repo.update(nv);
