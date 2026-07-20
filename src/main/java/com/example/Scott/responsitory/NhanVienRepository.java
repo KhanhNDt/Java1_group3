@@ -140,6 +140,26 @@ public class NhanVienRepository {
     }
 
     /**
+     * Giống filter() nhưng lấy TOÀN BỘ bản ghi khớp bộ lọc, không phân trang.
+     * Dùng khi xuất Excel để xuất đúng danh sách đang được lọc trên giao diện.
+     */
+    public List<NhanVien> filterAll(String keyword, String chucVu, Integer trangThai) {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            StringBuilder hql = new StringBuilder("select nv from NhanVien nv where 1=1");
+            appendConditions(hql, keyword, chucVu, trangThai);
+            hql.append(" order by nv.id desc");
+
+            Query<NhanVien> query = session.createQuery(hql.toString(), NhanVien.class);
+            bindParameters(query, keyword, chucVu, trangThai);
+
+            return query.list();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    /**
      * Đếm tổng số bản ghi khớp với bộ lọc (dùng để tính tổng số trang).
      */
     public long countFilter(String keyword, String chucVu, Integer trangThai) {
@@ -181,9 +201,5 @@ public class NhanVienRepository {
         if (trangThai != null) {
             query.setParameter("trangThai", trangThai);
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println(new NhanVienRepository().getAll());
     }
 }

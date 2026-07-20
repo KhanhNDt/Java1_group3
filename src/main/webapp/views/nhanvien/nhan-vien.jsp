@@ -20,8 +20,8 @@
         h3 { font-weight: 700; }
 
         /* ---- Bộ lọc ---- */
-        .filter-card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 15px rgba(0,0,0,.06); margin-bottom: 25px; }
-        .filter-header { background: #4A2A8F; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+        .filter-card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 15px rgba(0,0,0,.06); margin-bottom: 18px; }
+        .filter-header { background: #131334; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
         .filter-header .title { font-weight: 700; }
         .filter-header .hint { font-size: 13px; opacity: .85; }
         .filter-body { padding: 24px; }
@@ -31,9 +31,16 @@
         .btn-reset:hover { background: #f3f4f6; color: #111827; }
         .btn-search { border-radius: 10px; height: 44px; padding: 0 24px; }
 
+        /* ---- Thanh hành động (giữa bộ lọc và bảng) ---- */
+        .toolbar-row { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 18px; }
+        .btn-excel { background: #1d7044; color: #fff; border-radius: 10px; padding: 0 20px; height: 44px; display: inline-flex; align-items: center; gap: 8px; border: none; font-weight: 600; }
+        .btn-excel:hover { background: #17603a; color: #fff; }
+        .btn-add { background: #2563eb; color: #fff; border-radius: 10px; padding: 0 20px; height: 44px; display: inline-flex; align-items: center; gap: 8px; border: none; font-weight: 600; }
+        .btn-add:hover { background: #1d4ed8; color: #fff; }
+
         /* ---- Bảng ---- */
         .table-card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 2px 15px rgba(0,0,0,.06); }
-        .table thead th { background: #4A2A8F; color: #fff; white-space: nowrap; font-weight: 600; border: none; vertical-align: middle; }
+        .table thead th { background: #131334; color: #fff; white-space: nowrap; font-weight: 600; border: none; vertical-align: middle; }
         .table td { vertical-align: middle; }
         .table tbody tr:hover { background: #f8fafc; }
 
@@ -48,11 +55,15 @@
 
         .form-switch .form-check-input { width: 42px; height: 22px; cursor: pointer; }
 
-        .pagination .page-link { color: #1e2a4a; }
-        .pagination .page-item.active .page-link { background: #1e2a4a; border-color: #1e2a4a; }
+        .pagination .page-link { color: #131334; }
+        .pagination .page-item.active .page-link { background: #131334; border-color: #131334; }
 
         .view-item { display: flex; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         .view-item .label { width: 180px; font-weight: 600; color: #555; }
+
+        /* ---- Form thêm/sửa ---- */
+        .gender-radio-group { display: flex; gap: 24px; height: 46px; align-items: center; }
+        .gender-radio-group .form-check { display: flex; align-items: center; gap: 6px; }
     </style>
 </head>
 <body>
@@ -62,9 +73,29 @@
 
     <c:if test="${not empty error}">
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                ${error}
+            <i class="bi bi-x-circle-fill me-2"></i>${error}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    </c:if>
+
+    <%-- Banner thông báo thành công/thất bại sau khi thêm/sửa/xóa/đổi trạng thái --%>
+    <c:if test="${not empty status}">
+        <c:set var="actionLabel"
+               value="${action == 'add' ? 'Thêm nhân viên' : action == 'update' ? 'Cập nhật nhân viên' : action == 'delete' ? 'Xóa nhân viên' : action == 'toggle' ? 'Đổi trạng thái' : 'Thao tác'}"/>
+        <c:choose>
+            <c:when test="${status == 'success'}">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>${actionLabel} thành công!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-x-circle-fill me-2"></i>${actionLabel} thất bại. Vui lòng thử lại!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </c:otherwise>
+        </c:choose>
     </c:if>
 
     <c:choose>
@@ -72,11 +103,8 @@
         <%-- =================== DANH SÁCH =================== --%>
         <c:when test="${viewType == 'list'}">
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="mb-3">
                 <h3 class="mb-0">Nhân viên</h3>
-                <a href="${pageContext.request.contextPath}/nhan-vien/detail?id=0" class="btn btn-success">
-                    <i class="bi bi-plus-lg"></i> Thêm mới
-                </a>
             </div>
 
             <%-- Bộ lọc tìm kiếm --%>
@@ -134,6 +162,21 @@
                         </div>
                     </form>
                 </div>
+            </div>
+
+            <%-- Thanh hành động: Xuất Excel + Thêm nhân viên, nằm giữa bộ lọc và bảng, căn phải --%>
+            <div class="toolbar-row">
+                <c:url var="exportUrl" value="/nhan-vien/export-excel">
+                    <c:param name="keyword" value="${keyword}"/>
+                    <c:param name="chucVu" value="${chucVu}"/>
+                    <c:param name="trangThai" value="${trangThai}"/>
+                </c:url>
+                <a href="${exportUrl}" class="btn-excel">
+                    <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+                </a>
+                <a href="${pageContext.request.contextPath}/nhan-vien/detail?id=0" class="btn-add">
+                    <i class="bi bi-plus-lg"></i> Thêm nhân viên
+                </a>
             </div>
 
             <%-- Bảng dữ liệu --%>
@@ -210,6 +253,19 @@
                                            class="btn btn-outline-warning btn-icon" title="Sửa">
                                             <i class="bi bi-pencil"></i>
                                         </a>
+                                        <c:url var="deleteUrl" value="/nhan-vien/delete">
+                                            <c:param name="id" value="${nv.id}"/>
+                                            <c:param name="keyword" value="${keyword}"/>
+                                            <c:param name="chucVu" value="${chucVu}"/>
+                                            <c:param name="trangThai" value="${trangThai}"/>
+                                            <c:param name="page" value="${currentPage}"/>
+                                            <c:param name="size" value="${size}"/>
+                                        </c:url>
+                                        <a href="${deleteUrl}"
+                                           class="btn btn-outline-danger btn-icon" title="Xóa"
+                                           onclick="return confirm('Bạn có chắc muốn xóa nhân viên \'${nv.hoTen}\' không? Hành động này không thể hoàn tác.')">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
                                         <form action="${pageContext.request.contextPath}/nhan-vien/toggle" method="get" class="d-inline">
                                             <input type="hidden" name="id" value="${nv.id}">
                                             <input type="hidden" name="keyword" value="${keyword}">
@@ -284,7 +340,9 @@
         <%-- =================== THÊM / SỬA =================== --%>
         <c:when test="${viewType == 'form'}">
             <h3 class="mb-4">${nv.id == 0 ? 'Thêm mới' : 'Cập nhật'} nhân viên</h3>
-            <form action="${pageContext.request.contextPath}/nhan-vien/${nv.id == 0 ? 'add' : 'update'}" method="post" class="card p-4">
+            <form action="${pageContext.request.contextPath}/nhan-vien/${nv.id == 0 ? 'add' : 'update'}"
+                  method="post" class="card p-4"
+                  onsubmit="return confirm('Bạn có chắc chắn thông tin đã nhập là chính xác?\n${nv.id == 0 ? 'Xác nhận THÊM MỚI nhân viên này?' : 'Xác nhận CẬP NHẬT thông tin nhân viên này?'}')">
                 <input type="hidden" name="id" value="${nv.id}">
                 <div class="row">
                     <div class="col-md-6 mb-3">
@@ -297,7 +355,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Email</label>
-                        <input type="email" name="email" class="form-control" value="${nv.email}">
+                        <input type="email" name="email" class="form-control" value="${nv.email}" required>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Số điện thoại</label>
@@ -315,23 +373,57 @@
                             <option value="Nhân viên" ${nv.chucVu == 'Nhân viên' ? 'selected' : ''}>Nhân viên</option>
                         </select>
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-12 mb-3">
                         <label>Giới tính</label>
-                        <select name="gioiTinh" class="form-select">
-                            <option value="true" ${nv.gioiTinh ? 'selected' : ''}>Nam</option>
-                            <option value="false" ${!nv.gioiTinh ? 'selected' : ''}>Nữ</option>
+                        <div class="gender-radio-group">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gioiTinh" id="gt-nam" value="true"
+                                    ${nv.gioiTinh ? 'checked' : (nv.id == 0 ? 'checked' : '')}>
+                                <label class="form-check-label" for="gt-nam">Nam</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="gioiTinh" id="gt-nu" value="false"
+                                    ${(!nv.gioiTinh and nv.id != 0) ? 'checked' : ''}>
+                                <label class="form-check-label" for="gt-nu">Nữ</label>
+                            </div>
+                        </div>
+                    </div>
+
+                        <%-- Ghi chú: Trạng thái (Đang làm / Đã nghỉ) KHÔNG hiển thị ở đây theo yêu cầu.
+                             Nhân viên mới luôn mặc định "Đang làm"; việc đổi trạng thái chỉ thực hiện
+                             bằng công tắc gạt ngoài bảng danh sách. --%>
+
+                    <div class="col-12"><hr class="my-2"></div>
+                    <div class="col-12 mb-2"><label class="mb-0">Địa chỉ</label></div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-normal">Tỉnh/Thành phố</label>
+                        <select class="form-select" id="tinhThanh" name="tinhThanh">
+                            <option value="">-- Chọn Tỉnh/Thành phố --</option>
                         </select>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label>Trạng thái</label>
-                        <select name="trangThai" class="form-select">
-                            <option value="1" ${nv.trangThai == 1 ? 'selected' : ''}>Đang làm</option>
-                            <option value="0" ${nv.trangThai == 0 ? 'selected' : ''}>Đã nghỉ</option>
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-normal">Quận/Huyện</label>
+                        <select class="form-select" id="quanHuyen" name="quanHuyen" disabled>
+                            <option value="">-- Chọn Quận/Huyện --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-normal">Xã/Phường</label>
+                        <select class="form-select" id="xaPhuong" name="xaPhuong" disabled>
+                            <option value="">-- Chọn Xã/Phường --</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label>Địa chỉ</label>
-                        <textarea name="diaChi" class="form-control">${nv.diaChi}</textarea>
+                        <label class="fw-normal">Địa chỉ cụ thể (số nhà, tên đường...)</label>
+                        <input type="text" name="diaChiCuThe" id="diaChiCuThe" class="form-control"
+                               value="${nv.diaChi}" placeholder="Ví dụ: Số 12, ngõ 34, đường Láng">
+                        <c:if test="${nv.id != 0}">
+                            <div class="form-text">
+                                Đang hiển thị địa chỉ cũ. Nếu chọn lại Tỉnh/Huyện/Xã ở trên, địa chỉ mới sẽ được nối
+                                thêm phía trước trường này khi lưu.
+                            </div>
+                        </c:if>
                     </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -368,6 +460,10 @@
                     <a href="${pageContext.request.contextPath}/nhan-vien/detail?id=${nv.id}" class="btn btn-warning">
                         <i class="bi bi-pencil"></i> Sửa
                     </a>
+                    <a href="${pageContext.request.contextPath}/nhan-vien/delete?id=${nv.id}" class="btn btn-danger"
+                       onclick="return confirm('Bạn có chắc muốn xóa nhân viên \'${nv.hoTen}\' không? Hành động này không thể hoàn tác.')">
+                        <i class="bi bi-trash"></i> Xóa
+                    </a>
                     <a href="${pageContext.request.contextPath}/nhan-vien/hien-thi" class="btn btn-secondary">Quay lại</a>
                 </div>
             </div>
@@ -389,6 +485,74 @@
         url.searchParams.set('page', 1);
         window.location.href = url.toString();
     }
+
+    // ---- Cascading Tỉnh/Thành - Quận/Huyện - Xã/Phường (dữ liệu hành chính VN, API công khai) ----
+    (function () {
+        const tinhSelect = document.getElementById('tinhThanh');
+        const huyenSelect = document.getElementById('quanHuyen');
+        const xaSelect = document.getElementById('xaPhuong');
+        if (!tinhSelect) return; // không ở trang form thì bỏ qua
+
+        fetch('https://provinces.open-api.vn/api/p/')
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(tinh => {
+                    const opt = document.createElement('option');
+                    opt.value = tinh.name;
+                    opt.dataset.code = tinh.code;
+                    opt.textContent = tinh.name;
+                    tinhSelect.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                tinhSelect.innerHTML = '<option value="">Không tải được danh sách (kiểm tra kết nối mạng)</option>';
+            });
+
+        tinhSelect.addEventListener('change', function () {
+            huyenSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            xaSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
+            huyenSelect.disabled = true;
+            xaSelect.disabled = true;
+
+            const selectedOption = tinhSelect.options[tinhSelect.selectedIndex];
+            const code = selectedOption ? selectedOption.dataset.code : null;
+            if (!code) return;
+
+            fetch('https://provinces.open-api.vn/api/p/' + code + '?depth=2')
+                .then(res => res.json())
+                .then(data => {
+                    (data.districts || []).forEach(huyen => {
+                        const opt = document.createElement('option');
+                        opt.value = huyen.name;
+                        opt.dataset.code = huyen.code;
+                        opt.textContent = huyen.name;
+                        huyenSelect.appendChild(opt);
+                    });
+                    huyenSelect.disabled = false;
+                });
+        });
+
+        huyenSelect.addEventListener('change', function () {
+            xaSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
+            xaSelect.disabled = true;
+
+            const selectedOption = huyenSelect.options[huyenSelect.selectedIndex];
+            const code = selectedOption ? selectedOption.dataset.code : null;
+            if (!code) return;
+
+            fetch('https://provinces.open-api.vn/api/d/' + code + '?depth=2')
+                .then(res => res.json())
+                .then(data => {
+                    (data.wards || []).forEach(xa => {
+                        const opt = document.createElement('option');
+                        opt.value = xa.name;
+                        opt.textContent = xa.name;
+                        xaSelect.appendChild(opt);
+                    });
+                    xaSelect.disabled = false;
+                });
+        });
+    })();
 </script>
 </body>
 </html>
