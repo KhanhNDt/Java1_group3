@@ -1,5 +1,6 @@
 package com.example.Scott.controller;
 
+import com.example.Scott.dto.CccdDTO;
 import com.example.Scott.entity.NhanVien;
 import com.example.Scott.responsitory.NhanVienRepository;
 import com.example.Scott.utils.MailUtils;
@@ -23,7 +24,8 @@ import java.util.List;
         "/nhan-vien/delete",
         "/nhan-vien/toggle",
         "/nhan-vien/search",
-        "/nhan-vien/export-excel"
+        "/nhan-vien/export-excel",
+        "/nhan-vien/XuLyQr"
 })
 public class NhanVienServlet extends HttpServlet {
 
@@ -41,6 +43,8 @@ public class NhanVienServlet extends HttpServlet {
 
         if (uri.contains("/nhan-vien/delete")) {
             this.delete(request, response);
+        } else if (uri.contains("/nhan-vien/XuLyQr")) {
+            this.xuLyQr(request, response);
         } else if (uri.contains("/nhan-vien/toggle")) {
             this.toggle(request, response);
         } else if (uri.contains("/nhan-vien/view")) {
@@ -53,6 +57,38 @@ public class NhanVienServlet extends HttpServlet {
             // /nhan-vien/hien-thi hoặc /nhan-vien/search đều đổ về danh sách có bộ lọc
             this.hienThi(request, response);
         }
+    }
+
+    private void xuLyQr(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String qrData = request.getParameter("qrData");
+
+        if (qrData != null && !qrData.trim().isEmpty()) {
+            // Cấu trúc mã QR CCCD gắn chip: SốCCCD|SốCMNDCu|HọTên|NgàySinh(DDMMYYYY)|GiớiTính|ĐịaChi|NgàyCấp
+            String[] parts = qrData.split("\\|");
+
+            if (parts.length >= 6) {
+                // Đóng gói thông tin để truyền sang trang JSP hiển thị
+                request.setAttribute("cccdInfo", new CccdDTO(
+                        parts[0], // Số CCCD
+                        parts[2], // Họ tên
+                        formatNgaySinh(parts[3]), // Ngày sinh chuẩn yyyy-MM-dd hoặc dd/MM/yyyy
+                        parts[4], // Giới tính
+                        parts[5]  // Địa chỉ
+                ));
+                request.getRequestDispatcher("/views/nhanvien/ket-qua-quet-qr.jsp").forward(request, response);
+                return;
+            }
+        }
+
+        // Nếu quét sai định dạng hoặc không đọc được
+        response.sendRedirect(request.getContextPath() + "/nhan-vien/detail?id=0&status=error&action=qr");
+    }
+
+    private String formatNgaySinh(String rawDate) {
+        if (rawDate != null && rawDate.length() == 8) {
+            return rawDate.substring(0, 2) + "/" + rawDate.substring(2, 4) + "/" + rawDate.substring(4, 8);
+        }
+        return rawDate;
     }
 
     /**

@@ -9,12 +9,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="machay">
+    <list default="true" id="31eb641a-814d-4ddf-9ee1-4a49d0fb772b" name="Changes" comment="masong">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/dto/CccdDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/ket-qua-quet-qr.jsp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/controller/NhanVienServlet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/responsitory/NhanVienRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/MailUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/Scott/utils/MailUtils.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/nhan-vien.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/them-nhan-vien.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/webapp/views/nhanvien/them-nhan-vien.jsp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/NhanVienServlet.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/controller/NhanVienServlet.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/responsitory/NhanVienRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/WEB-INF/classes/com/example/Scott/responsitory/NhanVienRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/nhanvien/nhan-vien.jsp" beforeDir="false" afterPath="$PROJECT_DIR$/target/Scott-1.0-SNAPSHOT/views/nhanvien/nhan-vien.jsp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,8 +28,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Jsp File" />
         <option value="Class" />
+        <option value="Jsp File" />
       </list>
     </option>
   </component>
@@ -258,7 +262,7 @@
       <workItem from="1784554481504" duration="139000" />
       <workItem from="1784554745730" duration="5028000" />
       <workItem from="1784559908055" duration="1389000" />
-      <workItem from="1784562135360" duration="3460000" />
+      <workItem from="1784562135360" duration="6944000" />
     </task>
     <task id="LOCAL-00001" summary="Changes">
       <created>1783837991503</created>
@@ -351,7 +355,14 @@
       <option name="project" value="LOCAL" />
       <updated>1784562447248</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="masong">
+      <created>1784567225338</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1784567225338</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -372,6 +383,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Changes" />
     <MESSAGE value="machay" />
-    <option name="LAST_COMMIT_MESSAGE" value="machay" />
+    <MESSAGE value="masong" />
+    <option name="LAST_COMMIT_MESSAGE" value="masong" />
   </component>
 </project>
