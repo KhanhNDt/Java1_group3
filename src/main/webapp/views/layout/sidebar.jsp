@@ -171,7 +171,7 @@
 
         <a href="${pageContext.request.contextPath}/quanlyhoadon"
            class="${menu == 'quanlyhoadon' ? 'active' : ''}">
-            <i class="bi bi-cart-fill"></i>
+            <i class="bi bi-file-earmark-text"></i>
             Hóa đơn
         </a>
 
