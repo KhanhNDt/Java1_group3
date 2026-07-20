@@ -19,7 +19,7 @@
         <tr><th>Email</th><td>${khachHangS.email}</td></tr>
         <tr><th>Địa chỉ</th><td>${khachHangS.diaChi}</td></tr>
         <tr><th>Giới tính</th><td>${khachHangS.gioiTinh}</td></tr>
-        <tr><th>Trạng thái</th><td>${khachHangS.trangThai}</td></tr>
+
     </table>
 
     <a href="${pageContext.request.contextPath}/khachhang/hien-thi"
@@ -27,6 +27,11 @@
         Quay lại
     </a>
 
+    <a href="${pageContext.request.contextPath}/khachhang/delete?id=${khachHangS.id}"
+       class="btn btn-danger"
+       onclick="return confirm('Bạn có chắc muốn xóa khách hàng này?')">
+        Xóa khách hàng
+    </a>
 </div>
 
 </body>

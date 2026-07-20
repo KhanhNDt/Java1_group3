@@ -170,33 +170,6 @@
 
                 </div>
 
-                <div class="col-md-3">
-
-                    <label class="form-label required">
-
-                        Trạng thái
-
-                    </label>
-
-                    <br>
-
-                    <input type="radio"
-                           name="trangThai"
-                           value="1"
-                           <c:if test="${khachHangS.trangThai==1}">checked</c:if>>
-
-                    Hoạt động
-
-                    &nbsp;&nbsp;
-
-                    <input type="radio"
-                           name="trangThai"
-                           value="0"
-                           <c:if test="${khachHangS.trangThai==0}">checked</c:if>>
-
-                    Ngừng hoạt động
-
-                </div>
 
             </div>
 
@@ -635,10 +608,17 @@
 
                 alert("Vui lòng cập nhật địa chỉ.");
 
+                return;
+            }
+
+            if (!confirm("Bạn có chắc muốn cập nhật khách hàng này không?")) {
+
+                e.preventDefault();
+
+                return;
             }
 
         });
-
     // ==========================================
     // Khởi tạo hidden input lần đầu
     // ==========================================

@@ -174,7 +174,7 @@
                                         class="form-check-input"
                                         type="checkbox"
                                         <c:if test="${KH.trangThai == 1}">checked</c:if>
-                                        onchange="doiTrangThai(${KH.id}, this.checked)">
+                                        onchange="doiTrangThai(${KH.id})">
 
                             </div>
 
@@ -196,5 +196,21 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+
+    function doiTrangThai(id){
+
+        if(confirm("Bạn có muốn đổi trạng thái khách hàng không?")){
+
+            window.location =
+                "${pageContext.request.contextPath}/khachhang/doi-trang-thai?id=" + id;
+
+        }else{
+            location.reload();
+        }
+
+    }
+
+</script>
 </body>
 </html>

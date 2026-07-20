@@ -26,7 +26,8 @@ import java.util.List;
         "/khachhang/search",
         "/khachhang/detail",
         "/khachhang/view-add",
-        "/khachhang/api-phuong-xa"
+        "/khachhang/api-phuong-xa",
+        "/khachhang/doi-trang-thai"
 })
 public class KhachHangServlet extends HttpServlet {
 
@@ -49,9 +50,33 @@ public class KhachHangServlet extends HttpServlet {
             this.searchKhachHang(request, response);
         } else if (uri.contains("detail")) {
             this.detailKhachHang(request, response);
+        }else if (uri.contains("doi-trang-thai")){
+            this.doiTrangThai(request,response);
         }  else {
             this.viewAdd(request, response);
         }
+    }
+
+    private void doiTrangThai(HttpServletRequest request,
+                              HttpServletResponse response)
+            throws IOException {
+
+        Integer id = Integer.valueOf(request.getParameter("id"));
+
+        KhachHang kh = khachHangResponsitory.getOne(id);
+
+        if (kh != null) {
+
+            if (kh.getTrangThai() == 1) {
+                kh.setTrangThai(0);
+            } else {
+                kh.setTrangThai(1);
+            }
+
+            khachHangResponsitory.UpdateKhachHang(kh);
+        }
+
+        response.sendRedirect(request.getContextPath() + "/khachhang/hien-thi");
     }
 
     private void viewAdd(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -134,7 +159,7 @@ public class KhachHangServlet extends HttpServlet {
         String email = request.getParameter("email");
         String diaChi = request.getParameter("diaChi");
         String gioiTinh = request.getParameter("gioiTinh");
-        Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
+        Integer trangThai = 1;
 
         // ==========================
         // Update khách hàng
@@ -220,7 +245,7 @@ public class KhachHangServlet extends HttpServlet {
         String email = request.getParameter("email");
         String diaChiGoc = request.getParameter("diaChi");
         String gioiTinh = request.getParameter("gioiTinh");
-        Integer trangThai = Integer.valueOf(request.getParameter("trangThai"));
+        Integer trangThai = 1;
 
         // ==========================
         // Thêm khách hàng
@@ -239,9 +264,6 @@ public class KhachHangServlet extends HttpServlet {
 
         khachHangResponsitory.addKhachHang(kh);
 
-        // ==========================
-        // Lấy khách hàng vừa thêm
-        // ==========================
 
         KhachHang khachVuaThem =
                 khachHangResponsitory.findByMa(ma);
