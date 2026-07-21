@@ -23,44 +23,42 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     private final PhieuGiamGiaResponsitory repo = new PhieuGiamGiaResponsitory();
 
     @Override
-    protected void doGet(HttpServletRequest request,
-                         HttpServletResponse response)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String uri = request.getRequestURI();
 
-        if (uri.contains("hien-thi")) {
-            hienThi(request, response);
-        } else if (uri.contains("view-add")) {
+        // Ưu tiên kiểm tra view-add trước
+        if (uri.endsWith("/view-add")) {
             viewAdd(request, response);
-        } else if (uri.contains("view-update")) {
+        } else if (uri.endsWith("/view-update")) {
             viewUpdate(request, response);
-        } else if (uri.contains("delete")) {
+        } else if (uri.endsWith("/delete")) {
             delete(request, response);
-        } else if (uri.contains("search")) {
+        } else if (uri.endsWith("/search")) {
             search(request, response);
+        } else {
+            // Mặc định hoặc /hien-thi
+            hienThi(request, response);
         }
     }
 
     @Override
-    protected void doPost(HttpServletRequest request,
-                          HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         request.setCharacterEncoding("UTF-8");
-
         String uri = request.getRequestURI();
 
-        if (uri.contains("add")) {
+        if (uri.endsWith("/add")) {
             addPhieuGiamGia(request, response);
-        } else if (uri.contains("update")) {
+        } else if (uri.endsWith("/update")) {
             updatePhieuGiamGia(request, response);
         }
     }
 
     // ================= HIỂN THỊ DANH SÁCH =================
-    private void hienThi(HttpServletRequest request,
-                         HttpServletResponse response)
+    private void hienThi(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         request.setAttribute("menu", "phieugiamgia");
@@ -73,8 +71,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     }
 
     // ================= HIỂN THỊ FORM THÊM MỚI =================
-    private void viewAdd(HttpServletRequest request,
-                         HttpServletResponse response)
+    private void viewAdd(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         request.getRequestDispatcher("/views/phieugiamgian3/viewadd.jsp")
@@ -82,8 +79,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     }
 
     // ================= HIỂN THỊ FORM CẬP NHẬT =================
-    private void viewUpdate(HttpServletRequest request,
-                            HttpServletResponse response)
+    private void viewUpdate(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         try {
@@ -100,12 +96,10 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     }
 
     // ================= TÌM KIẾM =================
-    private void search(HttpServletRequest request,
-                        HttpServletResponse response)
+    private void search(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String keyword = request.getParameter("keyword");
-
         if (keyword == null) {
             keyword = "";
         }
@@ -118,8 +112,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     }
 
     // ================= XỬ LÝ THÊM MỚI (POST) =================
-    private void addPhieuGiamGia(HttpServletRequest request,
-                                 HttpServletResponse response)
+    private void addPhieuGiamGia(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         try {
@@ -162,8 +155,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     }
 
     // ================= XỬ LÝ CẬP NHẬT (POST) =================
-    private void updatePhieuGiamGia(HttpServletRequest request,
-                                    HttpServletResponse response)
+    private void updatePhieuGiamGia(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         try {
@@ -201,8 +193,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     }
 
     // ================= XỬ LÝ XÓA =================
-    private void delete(HttpServletRequest request,
-                        HttpServletResponse response)
+    private void delete(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
         try {

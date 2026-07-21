@@ -43,7 +43,6 @@
             padding: 12px 20px;
         }
 
-        /* Styling cho Table */
         .table thead th {
             background-color: #1a1a24 !important;
             color: #ffffff !important;
@@ -62,7 +61,6 @@
             color: #0d6efd;
         }
 
-        /* Styling Badge */
         .badge-status-active {
             background-color: #e6f7ff;
             color: #1890ff;
@@ -94,7 +92,7 @@
             <button class="btn btn-outline-success me-2">
                 <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
             </button>
-            <a href="#formThem" class="btn btn-dark">
+            <a href="${pageContext.request.contextPath}/phieugiamgia/view-add" class="btn btn-dark">
                 <i class="bi bi-plus-circle me-1"></i> Thêm mới
             </a>
         </div>
