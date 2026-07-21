@@ -8,6 +8,7 @@ import jakarta.servlet.http.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 @WebServlet(name = "PhieuGiamGiaServlet", value = {
         "/phieugiamgia/hien-thi",
@@ -55,12 +56,30 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         }
     }
 
+    // ================= HELPER TỰ ĐỘNG BẬT/TẮT TRẠNG THÁI THEO HẠN =================
+    private void autoUpdateStatus(PhieuGiamGia pgg) {
+        if (pgg != null && pgg.getNgayKetThuc() != null) {
+            java.util.Date today = new java.util.Date();
+            // Nếu ngày kết thúc nhỏ hơn ngày hiện tại -> Tắt (0), Ngược lại -> Bật (1)
+            if (pgg.getNgayKetThuc().before(today)) {
+                pgg.setTrangThai(0); // Ngừng hoạt động
+            } else {
+                pgg.setTrangThai(1); // Đang hoạt động
+            }
+        }
+    }
+
     // ================= HIỂN THỊ DANH SÁCH =================
     private void hienThi(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        List<PhieuGiamGia> list = repo.getAll();
+        for (PhieuGiamGia pgg : list) {
+            autoUpdateStatus(pgg);
+        }
+
         request.setAttribute("menu", "phieugiamgia");
-        request.setAttribute("listPhieuGiamGia", repo.getAll());
+        request.setAttribute("listPhieuGiamGia", list);
 
         moveFlash(request);
 
@@ -83,6 +102,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         try {
             Integer id = Integer.valueOf(request.getParameter("id"));
             PhieuGiamGia pgg = repo.getOne(id);
+            autoUpdateStatus(pgg);
 
             request.setAttribute("phieugiamgiaS", pgg);
             request.getRequestDispatcher("/views/phieugiamgian3/updatePGG.jsp")
@@ -116,8 +136,13 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         java.sql.Date from = parseDate(fromStr);
         java.sql.Date to = parseDate(toStr);
 
+        List<PhieuGiamGia> list = repo.searchFull(keyword, loaiGiamGia, trangThai, from, to);
+        for (PhieuGiamGia pgg : list) {
+            autoUpdateStatus(pgg);
+        }
+
         request.setAttribute("menu", "phieugiamgia");
-        request.setAttribute("listPhieuGiamGia", repo.searchFull(keyword, loaiGiamGia, trangThai, from, to));
+        request.setAttribute("listPhieuGiamGia", list);
 
         request.getRequestDispatcher("/views/phieugiamgian3/phieugiamgias.jsp")
                 .forward(request, response);
@@ -152,7 +177,14 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             pgg.setNgayBatDau(ngayBatDau);
             pgg.setNgayKetThuc(ngayKetThuc);
             pgg.setNgayTao(new java.util.Date());
-            pgg.setTrangThai(1);
+
+            // Tự động gán trạng thái lúc tạo mới
+            java.util.Date today = new java.util.Date();
+            if (ngayKetThuc != null && ngayKetThuc.before(today)) {
+                pgg.setTrangThai(0); // Hết hạn -> Ngừng hoạt động
+            } else {
+                pgg.setTrangThai(1); // Còn hạn -> Đang hoạt động
+            }
 
             repo.addPhieuGiamGia(pgg);
 
