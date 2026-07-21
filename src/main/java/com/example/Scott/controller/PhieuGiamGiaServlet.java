@@ -1,6 +1,5 @@
 package com.example.Scott.controller;
 
-import com.example.Scott.entity.KhachHang;
 import com.example.Scott.entity.PhieuGiamGia;
 import com.example.Scott.responsitory.PhieuGiamGiaResponsitory;
 import jakarta.servlet.*;
@@ -9,7 +8,6 @@ import jakarta.servlet.annotation.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Date;
 
 @WebServlet(name = "PhieuGiamGiaServlet", value ={
         "/phieugiamgia/hien-thi",
@@ -17,8 +15,7 @@ import java.util.Date;
         "/phieugiamgia/delete",
         "/phieugiamgia/update",
         "/phieugiamgia/view-update",
-        "/phieugiamgia/search",
-        "/phieugiamgia/detail"
+        "/phieugiamgia/search"
 })
 
 public class PhieuGiamGiaServlet extends HttpServlet {
@@ -33,23 +30,9 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             this.deletePhieuGiamGia(request, response);
         } else if(uri.contains("view-update")){
             this.viewUpdatePhieuGiamGia(request,response);
-        } else if(uri.contains("search")){
+        } else{
             this.searchPhieuGiamGia(request,response);
-        }else {
-            this.detailPGG(request,response);
         }
-    }
-
-    private void detailPGG(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        Integer id = Integer.valueOf(request.getParameter("id"));
-
-        PhieuGiamGia kh = phieuGiamGiaResponsitory.getOne(id);
-
-        request.setAttribute("phieugiamgiaS", kh);
-        request.setAttribute("listPhieuGiamGia", phieuGiamGiaResponsitory.getAll());
-
-        request.getRequestDispatcher("/views/phieugiamgian3/detailPGG.jsp")
-                .forward(request, response);
     }
 
     private void searchPhieuGiamGia(HttpServletRequest request, HttpServletResponse response) {
@@ -57,9 +40,14 @@ public class PhieuGiamGiaServlet extends HttpServlet {
 
     private void deletePhieuGiamGia(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Integer id = Integer.valueOf(request.getParameter("id"));
-        PhieuGiamGia PGG = phieuGiamGiaResponsitory.getOne(id);
-        phieuGiamGiaResponsitory.DeletePhieuGiamGia(PGG);
-        response.sendRedirect("/phieugiamgia/hien-thi");
+        try {
+            PhieuGiamGia PGG = phieuGiamGiaResponsitory.getOne(id);
+            phieuGiamGiaResponsitory.DeletePhieuGiamGia(PGG);
+            request.getSession().setAttribute("success", "Xóa phiếu giảm giá thành công.");
+        } catch (Exception e) {
+            request.getSession().setAttribute("error", "Xóa phiếu giảm giá thất bại: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/phieugiamgia/hien-thi");
     }
 
     private void viewUpdatePhieuGiamGia(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -73,6 +61,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     private void hienThiPhieuGiamGia(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("menu", "phieugiamgia");
         request.setAttribute("listPhieuGiamGia", phieuGiamGiaResponsitory.getAll());
+        moveFlash(request);
         request.getRequestDispatcher("/views/phieugiamgian3/phieugiamgias.jsp").forward(request,response);
     }
 
@@ -90,31 +79,44 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         Integer id = Integer.valueOf(request.getParameter("id"));
         String maVoucher = request.getParameter("maVoucher");
         String tenVoucher = request.getParameter("tenVoucher");
-        String loaiGiamGia = request.getParameter("loaiGiamGia");
-        Integer soLuong= Integer.valueOf(request.getParameter("soLuong"));
+        BigDecimal giaTriGiamGia = new BigDecimal(request.getParameter("giaTriGiamGia"));
+        BigDecimal giamToiDa = new BigDecimal(request.getParameter("giamToiDa"));
+        BigDecimal donToiThieu = new BigDecimal(request.getParameter("donToiThieu"));
         java.sql.Date ngayBatDau = java.sql.Date.valueOf(request.getParameter("ngayBatDau"));
         java.sql.Date ngayKetThuc = java.sql.Date.valueOf(request.getParameter("ngayKetThuc"));
-        Integer trangThai= Integer.valueOf(request.getParameter("trangThai"));
-        PhieuGiamGia PGG = new PhieuGiamGia(id,maVoucher,tenVoucher,loaiGiamGia,soLuong,ngayBatDau,ngayKetThuc,trangThai);
-        phieuGiamGiaResponsitory.updatePhieuGiamGia(PGG);
-        response.sendRedirect("/phieugiamgia/hien-thi");
-
+        PhieuGiamGia PGG = new PhieuGiamGia(id,maVoucher,tenVoucher,giaTriGiamGia,giamToiDa,donToiThieu,ngayBatDau,ngayKetThuc);
+        try {
+            phieuGiamGiaResponsitory.updatePhieuGiamGia(PGG);
+            request.getSession().setAttribute("success", "Cập nhật phiếu giảm giá thành công.");
+        } catch (Exception e) {
+            request.getSession().setAttribute("error", "Cập nhật phiếu giảm giá thất bại: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/phieugiamgia/hien-thi");
     }
 
     private void addPhieuGiamGia(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         String maVoucher = request.getParameter("maVoucher");
         String tenVoucher = request.getParameter("tenVoucher");
-        String loaiGiamGia = request.getParameter("loaiGiamGia");
-        Integer soLuong= Integer.valueOf(request.getParameter("soLuong"));
+        BigDecimal giaTriGiamGia = new BigDecimal(request.getParameter("giaTriGiamGia"));
+        BigDecimal giamToiDa = new BigDecimal(request.getParameter("giamToiDa"));
+        BigDecimal donToiThieu = new BigDecimal(request.getParameter("donToiThieu"));
         java.sql.Date ngayBatDau = java.sql.Date.valueOf(request.getParameter("ngayBatDau"));
         java.sql.Date ngayKetThuc = java.sql.Date.valueOf(request.getParameter("ngayKetThuc"));
-        Integer trangThai= Integer.valueOf(request.getParameter("trangThai"));
-        PhieuGiamGia PGG = new PhieuGiamGia(null,maVoucher,tenVoucher,loaiGiamGia,soLuong,ngayBatDau,ngayKetThuc,trangThai);
-        phieuGiamGiaResponsitory.addPhieuGiamGia(PGG);
-        response.sendRedirect("/phieugiamgia/hien-thi");
-
+        PhieuGiamGia PGG = new PhieuGiamGia(null,maVoucher,tenVoucher,giaTriGiamGia,giamToiDa,donToiThieu,ngayBatDau,ngayKetThuc);
+        try {
+            phieuGiamGiaResponsitory.addPhieuGiamGia(PGG);
+            request.getSession().setAttribute("success", "Thêm phiếu giảm giá thành công.");
+        } catch (Exception e) {
+            request.getSession().setAttribute("error", "Thêm phiếu giảm giá thất bại: " + e.getMessage());
+        }
+        response.sendRedirect(request.getContextPath() + "/phieugiamgia/hien-thi");
     }
 
+    private void moveFlash(HttpServletRequest request) {
+        Object success = request.getSession().getAttribute("success");
+        Object error = request.getSession().getAttribute("error");
+        if (success != null) { request.setAttribute("success", success); request.getSession().removeAttribute("success"); }
+        if (error != null) { request.setAttribute("error", error); request.getSession().removeAttribute("error"); }
     }
-
+}

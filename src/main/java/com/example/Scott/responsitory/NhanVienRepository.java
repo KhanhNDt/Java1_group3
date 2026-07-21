@@ -11,6 +11,21 @@ import java.util.List;
 
 public class NhanVienRepository {
 
+    private String lastError;
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    private void clearError() {
+        lastError = null;
+    }
+
+    private void rememberError(Exception e) {
+        lastError = e.getClass().getSimpleName() + ": " + (e.getMessage() == null ? "Lỗi truy vấn nhân viên" : e.getMessage());
+        e.printStackTrace();
+    }
+
     public List<NhanVien> getAll() {
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
             return session.createQuery("select nv from NhanVien nv order by nv.id desc", NhanVien.class).list();
@@ -151,6 +166,7 @@ public class NhanVienRepository {
      * @param limit     số bản ghi mỗi trang
      */
     public List<NhanVien> filter(String keyword, String chucVu, Integer trangThai, int offset, int limit) {
+        clearError();
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
             StringBuilder hql = new StringBuilder("select nv from NhanVien nv where 1=1");
             appendConditions(hql, keyword, chucVu, trangThai);
@@ -163,7 +179,7 @@ public class NhanVienRepository {
 
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
+            rememberError(e);
             return new ArrayList<>();
         }
     }
@@ -173,6 +189,7 @@ public class NhanVienRepository {
      * Dùng khi xuất Excel để xuất đúng danh sách đang được lọc trên giao diện.
      */
     public List<NhanVien> filterAll(String keyword, String chucVu, Integer trangThai) {
+        clearError();
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
             StringBuilder hql = new StringBuilder("select nv from NhanVien nv where 1=1");
             appendConditions(hql, keyword, chucVu, trangThai);
@@ -183,7 +200,7 @@ public class NhanVienRepository {
 
             return query.list();
         } catch (Exception e) {
-            e.printStackTrace();
+            rememberError(e);
             return new ArrayList<>();
         }
     }
@@ -192,6 +209,7 @@ public class NhanVienRepository {
      * Đếm tổng số bản ghi khớp với bộ lọc (dùng để tính tổng số trang).
      */
     public long countFilter(String keyword, String chucVu, Integer trangThai) {
+        clearError();
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
             StringBuilder hql = new StringBuilder("select count(nv.id) from NhanVien nv where 1=1");
             appendConditions(hql, keyword, chucVu, trangThai);
@@ -202,7 +220,7 @@ public class NhanVienRepository {
             Long total = query.uniqueResult();
             return total == null ? 0L : total;
         } catch (Exception e) {
-            e.printStackTrace();
+            rememberError(e);
             return 0L;
         }
     }

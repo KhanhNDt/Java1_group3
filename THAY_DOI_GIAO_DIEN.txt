@@ -1,0 +1,14 @@
+CÁC THAY ĐỔI ĐÃ THỰC HIỆN
+- Chuyển giao diện quản trị sang bảng màu trắng - đen - xám.
+- Thay sidebar tím bằng sidebar đen tối giản.
+- Thay logo chữ cũ bằng logo Scott được cung cấp.
+- Làm lại trang Quản lý sản phẩm theo bố cục Project1.
+- Nút "Thêm sản phẩm" mở hộp thoại nhập liệu thay vì hiển thị form thường trực.
+- Khi bấm Sửa, hộp thoại cập nhật tự mở và nạp dữ liệu hiện có.
+- Giữ nguyên CRUD, tìm kiếm, bộ lọc, phân trang, bật/tắt trạng thái và quản lý biến thể.
+- Chuẩn hóa màu nút, thẻ, cảnh báo và form về hệ màu đơn sắc.
+
+CHẠY DỰ ÁN
+- Mở thư mục Java1_group3_new bằng IntelliJ.
+- Maven Reload, cấu hình Tomcat và deploy artifact Scott:war exploded.
+- Truy cập /san-pham/hien-thi.

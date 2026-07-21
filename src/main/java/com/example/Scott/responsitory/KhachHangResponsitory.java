@@ -54,10 +54,10 @@ public class KhachHangResponsitory {
             StringBuilder hql = new StringBuilder("from KhachHang kh where 1=1");
             if (!kw.isEmpty()) {
                 hql.append(" and (lower(coalesce(kh.ma,'')) like :kw")
-                        .append(" or lower(coalesce(kh.hoTen,'')) like :kw")
-                        .append(" or lower(coalesce(kh.sdt,'')) like :kw")
-                        .append(" or lower(coalesce(kh.email,'')) like :kw")
-                        .append(" or lower(coalesce(kh.diaChi,'')) like :kw)");
+                   .append(" or lower(coalesce(kh.hoTen,'')) like :kw")
+                   .append(" or lower(coalesce(kh.sdt,'')) like :kw")
+                   .append(" or lower(coalesce(kh.email,'')) like :kw")
+                   .append(" or lower(coalesce(kh.diaChi,'')) like :kw)");
             }
             if (gioiTinh != null && !gioiTinh.trim().isEmpty()) hql.append(" and kh.gioiTinh = :gioiTinh");
             if (trangThai != null) hql.append(" and kh.trangThai = :trangThai");

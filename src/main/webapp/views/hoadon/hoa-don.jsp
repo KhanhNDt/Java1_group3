@@ -90,20 +90,17 @@
             background:#374151;
             color:white;
         }
-        .btn.btn-excel{
-            height: 50px;
-            padding: 0 24px;
-            border-radius: 12px;
 
-            background: #90EE90 !important;
-            border: 1px solid #90EE90 !important;
-            color: #155724 !important;
+        .btn-excel{
+            height:50px;
+            border-radius:12px;
+            padding:0 24px;
+            background:white;
+            border:1px solid #ddd;
         }
 
-        .btn.btn-excel:hover{
-            background: #7CCD7C !important;
-            border-color: #7CCD7C !important;
-            color: #fff !important;
+        .btn-excel:hover{
+            background:#f8f9fa;
         }
 
         .table-card{
@@ -196,6 +193,20 @@
             color:#dc2626;
         }
     </style>
+
+<style>
+:root{--mono:#111;--line:#dedede;--soft:#f5f5f5}
+body{background:#f4f4f4!important;color:#171717!important}
+.main-content{margin-left:242px!important;padding:28px!important}
+.card,.table-container,.filter-card,.stat-card{border-color:var(--line)!important;box-shadow:0 4px 14px rgba(0,0,0,.045)!important}
+.btn-primary,.btn-success,.btn-warning,.btn-info,.btn-danger{background:#171717!important;border-color:#171717!important;color:#fff!important}
+.btn-outline-primary,.btn-outline-success,.btn-outline-danger,.btn-outline-warning{color:#171717!important;border-color:#aaa!important}
+.btn-outline-primary:hover,.btn-outline-success:hover,.btn-outline-danger:hover,.btn-outline-warning:hover{background:#171717!important;color:#fff!important;border-color:#171717!important}
+.badge,.status-badge{filter:grayscale(1)}
+.form-control:focus,.form-select:focus{border-color:#333!important;box-shadow:0 0 0 .18rem rgba(0,0,0,.10)!important}
+.table thead th{background:#f4f4f4!important;color:#222!important}
+@media(max-width:900px){.main-content{margin-left:78px!important;padding:18px!important}}
+</style>
 </head>
 
 <body>
@@ -271,6 +282,7 @@
             <button type="button" onclick="filterByStatus('0')" class="btn status-btn ${status=='0' ? 'status-active' : ''}">Chờ xử lý</button>
             <button type="button" onclick="filterByStatus('1')" class="btn status-btn ${status=='1' ? 'status-active' : ''}">Đã thanh toán</button>
             <button type="button" onclick="filterByStatus('2')" class="btn status-btn ${status=='2' ? 'status-active' : ''}">Đã hủy</button>
+            <button type="button" onclick="filterByStatus('3')" class="btn status-btn ${status=='3' ? 'status-active' : ''}">Đã xóa</button>
         </div>
 
         <table class="table table-hover align-middle">

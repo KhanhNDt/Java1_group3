@@ -36,7 +36,7 @@ import java.util.Date;
         private Date ngaySinh;
 
         @Column(name = "gioi_tinh")
-        private boolean gioiTinh;
+        private Boolean gioiTinh;
 
         @Column(name = "dia_chi")
         private String diaChi;

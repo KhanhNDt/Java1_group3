@@ -33,7 +33,7 @@ public class KhachHang {
     @Column(name = "dia_chi")
     private String diaChi;
 
-    @Column(name = "gioi_tinh", length = 20)
+  @Column(name = "gioi_tinh", length = 20)
     private String gioiTinh;
 
     @PostLoad
@@ -53,6 +53,6 @@ public class KhachHang {
     }
 
     @Column(name = "trang_thai")
-    private Integer trangThai;
+private Integer trangThai;
 
 }

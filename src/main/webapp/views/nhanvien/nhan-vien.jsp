@@ -65,39 +65,21 @@
         /* ---- Form thêm/sửa ---- */
         .gender-radio-group { display: flex; gap: 24px; height: 46px; align-items: center; }
         .gender-radio-group .form-check { display: flex; align-items: center; gap: 6px; }
-
-        /* ---- Khung chọn ảnh đại diện tròn ---- */
-        .avatar-upload-box {
-            width: 100px;
-            height: 100px;
-            border: 2px dashed #cbd5e1;
-            border-radius: 50%;
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            overflow: hidden;
-            position: relative;
-            background-color: #f8fafc;
-            transition: all 0.2s ease;
-        }
-        .avatar-upload-box:hover {
-            border-color: #3b82f6;
-            background-color: #f1f5f9;
-        }
-        .avatar-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #64748b;
-        }
-        #avatar-preview-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
     </style>
+
+<style>
+:root{--mono:#111;--line:#dedede;--soft:#f5f5f5}
+body{background:#f4f4f4!important;color:#171717!important}
+.main-content{margin-left:242px!important;padding:28px!important}
+.card,.table-container,.filter-card,.stat-card{border-color:var(--line)!important;box-shadow:0 4px 14px rgba(0,0,0,.045)!important}
+.btn-primary,.btn-success,.btn-warning,.btn-info,.btn-danger{background:#171717!important;border-color:#171717!important;color:#fff!important}
+.btn-outline-primary,.btn-outline-success,.btn-outline-danger,.btn-outline-warning{color:#171717!important;border-color:#aaa!important}
+.btn-outline-primary:hover,.btn-outline-success:hover,.btn-outline-danger:hover,.btn-outline-warning:hover{background:#171717!important;color:#fff!important;border-color:#171717!important}
+.badge,.status-badge{filter:grayscale(1)}
+.form-control:focus,.form-select:focus{border-color:#333!important;box-shadow:0 0 0 .18rem rgba(0,0,0,.10)!important}
+.table thead th{background:#f4f4f4!important;color:#222!important}
+@media(max-width:900px){.main-content{margin-left:78px!important;padding:18px!important}}
+</style>
 </head>
 <body>
 <jsp:include page="/views/layout/sidebar.jsp"/>
@@ -391,24 +373,10 @@
                 </div>
             </div>
 
-            <%-- Thêm enctype="multipart/form-data" để form hỗ trợ gửi file ảnh lên server --%>
             <form action="${pageContext.request.contextPath}/nhan-vien/${nv.id == 0 ? 'add' : 'update'}"
-                  method="post" enctype="multipart/form-data" class="card p-4"
+                  method="post" class="card p-4"
                   onsubmit="return confirm('Bạn có chắc chắn thông tin đã nhập là chính xác?\n${nv.id == 0 ? 'Xác nhận THÊM MỚI nhân viên này?' : 'Xác nhận CẬP NHẬT thông tin nhân viên này?'}')">
                 <input type="hidden" name="id" value="${nv.id}">
-
-                    <%-- Khu vực chọn ảnh đại diện dạng tròn --%>
-                <div class="text-center mb-4">
-                    <label for="avatar-input" class="avatar-upload-box" title="Bấm vào để chọn ảnh đại diện">
-                        <img id="avatar-preview-img" src="${not empty nv.anhDaiDien ? nv.anhDaiDien : ''}" alt="Avatar Preview" style="${not empty nv.anhDaiDien ? 'display: block;' : 'display: none;'}">
-                        <div id="avatar-placeholder-content" class="avatar-placeholder" style="${not empty nv.anhDaiDien ? 'display: none;' : 'display: flex;'}">
-                            <i class="bi bi-camera fs-3 mb-1"></i>
-                            <span style="font-size: 12px;">Chọn ảnh</span>
-                        </div>
-                    </label>
-                    <input type="file" id="avatar-input" name="anhDaiDienFile" accept="image/png, image/jpeg, image/jpg" class="d-none">
-                    <div class="form-text text-muted mt-1" style="font-size: 12px;">PNG, JPG, JPEG - Tối đa 5MB</div>
-                </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
@@ -542,36 +510,6 @@
 
     </c:choose>
 </div>
-
-<!-- Script xử lý xem trước ảnh đại diện tải lên -->
-<script>
-    const avatarInput = document.getElementById('avatar-input');
-    const avatarPreviewImg = document.getElementById('avatar-preview-img');
-    const avatarPlaceholderContent = document.getElementById('avatar-placeholder-content');
-
-    if (avatarInput) {
-        avatarInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('Dung lượng ảnh vượt quá giới hạn tối đa 5MB!');
-                    avatarInput.value = '';
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    avatarPreviewImg.src = e.target.result;
-                    avatarPreviewImg.style.display = 'block';
-                    if (avatarPlaceholderContent) {
-                        avatarPlaceholderContent.style.display = 'none';
-                    }
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-</script>
 
 <!-- Đoạn script tích hợp quét mã QR CCCD/VNeID -->
 <script>

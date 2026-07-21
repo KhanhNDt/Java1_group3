@@ -56,8 +56,8 @@ public class DiaChiKhachHangResponsitory {
         if (idKhachHang == null) return null;
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
             return session.createQuery(
-                    "from DiaChiKhachHang where idKhachHang = :id order by isMacDinh desc, id desc",
-                    DiaChiKhachHang.class)
+                            "from DiaChiKhachHang where idKhachHang = :id order by isMacDinh desc, id desc",
+                            DiaChiKhachHang.class)
                     .setParameter("id", idKhachHang)
                     .setMaxResults(1)
                     .uniqueResult();

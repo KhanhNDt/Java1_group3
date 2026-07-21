@@ -40,8 +40,8 @@ public class DiaChiApiMappingRepository {
         if (idDiaChiKhachHang == null) return null;
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
             return session.createQuery(
-                    "from DiaChiApiMapping where idDiaChiKhachHang = :id",
-                    DiaChiApiMapping.class)
+                            "from DiaChiApiMapping where idDiaChiKhachHang = :id",
+                            DiaChiApiMapping.class)
                     .setParameter("id", idDiaChiKhachHang)
                     .setMaxResults(1)
                     .uniqueResult();

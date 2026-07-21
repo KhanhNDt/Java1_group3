@@ -100,7 +100,7 @@ public class HoaDonServlet extends HttpServlet {
             e.printStackTrace();
             req.setAttribute("error", "Lỗi hệ thống khi tải dữ liệu: " + e.getMessage());
         }
-        req.setAttribute("menu", "/quanlyhoadon");
+        req.setAttribute("menu", "quanlyhoadon");
         req.getRequestDispatcher("/views/hoadon/hoa-don.jsp").forward(req, resp);
     }
 

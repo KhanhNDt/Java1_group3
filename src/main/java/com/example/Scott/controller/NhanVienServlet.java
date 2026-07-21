@@ -120,7 +120,11 @@ public class NhanVienServlet extends HttpServlet {
 
         int offset = (page - 1) * size;
 
-        request.setAttribute("list", repo.filter(keyword, chucVu, trangThai, offset, size));
+        List<NhanVien> employees = repo.filter(keyword, chucVu, trangThai, offset, size);
+        request.setAttribute("list", employees);
+        if (repo.getLastError() != null) {
+            request.setAttribute("dbError", repo.getLastError());
+        }
         request.setAttribute("totalRecords", totalRecords);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("currentPage", page);
@@ -264,7 +268,7 @@ public class NhanVienServlet extends HttpServlet {
                     dateCell.setCellStyle(dateStyle);
                 }
 
-                row.createCell(5).setCellValue(nv.isGioiTinh() ? "Nam" : "Nữ");
+                row.createCell(5).setCellValue(nv.getGioiTinh() ? "Nam" : "Nữ");
                 row.createCell(6).setCellValue(nv.getDiaChi());
                 row.createCell(7).setCellValue(nv.getChucVu());
                 row.createCell(8).setCellValue(nv.getTrangThai() == 1 ? "Đang làm" : "Đã nghỉ");
@@ -358,11 +362,30 @@ public class NhanVienServlet extends HttpServlet {
             NhanVien nv = new NhanVien();
 
             String hoTen = request.getParameter("hoTen");
+            String email = request.getParameter("email");
             String ngaySinhStr = request.getParameter("ngaySinh");
+
+            // Chặn lưu bản ghi rỗng: nếu Họ tên/Email trống (do lỗi trình duyệt, form gửi thiếu dữ liệu,
+            // hay thao tác bất thường) thì báo lỗi rõ ràng thay vì lưu 1 dòng trống vào DB.
+            if (hoTen == null || hoTen.trim().isEmpty() || email == null || email.trim().isEmpty()) {
+                request.setAttribute("error", "Thiếu dữ liệu bắt buộc (Họ tên/Email trống). " +
+                        "Vui lòng nhập lại đầy đủ thông tin và thử lưu lại. " +
+                        "Nếu vẫn gặp lỗi này, hãy tải lại trang (F5) trước khi nhập.");
+                nv.setId(isAdd ? 0 : parseIntSafe(request.getParameter("id"), 0));
+                nv.setHoTen(hoTen);
+                nv.setEmail(email);
+                nv.setSoDienThoai(request.getParameter("soDienThoai"));
+                nv.setChucVu(request.getParameter("chucVu"));
+                request.setAttribute("nv", nv);
+                request.setAttribute("menu", "nhanvien");
+                request.setAttribute("viewType", "form");
+                request.getRequestDispatcher("/views/nhanvien/nhan-vien.jsp").forward(request, response);
+                return;
+            }
 
             // Mã nhân viên KHÔNG lấy từ form nữa (ô này chỉ hiển thị, không cho sửa) -> xử lý riêng bên dưới
             nv.setHoTen(hoTen);
-            nv.setEmail(request.getParameter("email"));
+            nv.setEmail(email);
             nv.setSoDienThoai(request.getParameter("soDienThoai"));
             nv.setChucVu(request.getParameter("chucVu"));
             nv.setDiaChi(buildDiaChi(request));

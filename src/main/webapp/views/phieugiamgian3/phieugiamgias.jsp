@@ -1,7 +1,12 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-
-<!DOCTYPE html>
+<%--
+  Created by IntelliJ IDEA.
+  User: Nvc36
+  Date: 7/11/2026
+  Time: 3:59 PM
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <html>
 <head>
     <title>Quản lý phiếu giảm giá</title>
@@ -9,231 +14,137 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <style>
-        body{
-            background:#f5f6fa;
-        }
-        .card{
-            border-radius:15px;
-        }
-    </style>
-
 </head>
 <body>
+<%@ include file="/views/layout/sidebar.jsp" %>
+<%--<%@ include file="/views/layout/header.jsp" %>--%>
+<div class="container mt-4">
 
-<%@ include file="/views/layout/sidebar.jsp"%>
-<div class="main-content2 ">
-<div style="margin-left:260px;padding:30px;">
+    <c:if test="${not empty success}">
+        <div class="alert alert-success alert-dismissible fade show">${success}<button class="btn-close" data-bs-dismiss="alert"></button></div>
+    </c:if>
+    <c:if test="${not empty error}">
+        <div class="alert alert-danger alert-dismissible fade show">${error}<button class="btn-close" data-bs-dismiss="alert"></button></div>
+    </c:if>
 
-    <h2 class="fw-bold mb-4">
-        Quản lý giảm giá / Phiếu giảm giá
-    </h2>
+    <h3 class="text-center text-primary mb-4">
+        QUẢN LÝ PHIẾU GIẢM GIÁ
+    </h3>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
+    <form action="${pageContext.request.contextPath}/phieugiamgia/add" method="post">
 
-            <form action="${pageContext.request.contextPath}/phieugiamgia/search" method="get">
+        <div class="row">
 
-                <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Mã voucher</label>
+                <input type="text" class="form-control" name="maVoucher">
+            </div>
 
-                    <div class="col-md-3">
-                        <label>Tìm kiếm</label>
-                        <input type="text"
-                               class="form-control"
-                               name="keyword"
-                               placeholder="Tìm theo tên hoặc mã">
-                    </div>
+            <div class="col-md-6 mb-3">
+                <label>Tên voucher</label>
+                <input type="text" class="form-control" name="tenVoucher">
+            </div>
 
-                    <div class="col-md-3">
-                        <label>Ngày bắt đầu</label>
-                        <input type="date"
-                               class="form-control"
-                               name="ngayBatDau">
-                    </div>
+            <div class="col-md-4 mb-3">
+                <label>Giá trị giảm</label>
+                <input type="number"
+                       class="form-control"
+                       name="giaTriGiamGia"
+                       step="0.01">
+            </div>
 
-                    <div class="col-md-3">
-                        <label>Ngày kết thúc</label>
-                        <input type="date"
-                               class="form-control"
-                               name="ngayKetThuc">
-                    </div>
+            <div class="col-md-4 mb-3">
+                <label>Giảm tối đa</label>
+                <input type="number"
+                       class="form-control"
+                       name="giamToiDa"
+                       step="0.01">
 
-                    <div class="col-md-3">
-                        <label>Trạng thái</label>
+            </div>
 
-                        <select class="form-select" name="trangThai">
-                            <option value="">Tất cả</option>
-                            <option value="1">Đang hoạt động</option>
-                            <option value="0">Ngừng hoạt động</option>
-                        </select>
-                    </div>
+            <div class="col-md-4 mb-3">
+                <label>Đơn tối thiểu</label>
+                <input type="number"
+                       class="form-control"
+                       name="donToiThieu"
+                       step="0.01">
+            </div>
 
-                </div>
+            <div class="col-md-6 mb-3">
+                <label>Ngày bắt đầu</label>
+                <input type="date" class="form-control" name="ngayBatDau">
+            </div>
 
-                <div class="text-end mt-3">
-
-                    <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi"
-                       class="btn btn-secondary">
-                        <i class="bi bi-arrow-clockwise"></i>
-                        Đặt lại
-                    </a>
-
-                    <button type="button"
-                            class="btn btn-outline-dark">
-                        <i class="bi bi-file-earmark-excel"></i>
-                        Xuất Excel
-                    </button>
-
-                    <a href="#formThem"
-                       class="btn btn-danger">
-                        <i class="bi bi-plus-lg"></i>
-                        Thêm phiếu giảm giá
-                    </a>
-
-                    <button class="btn btn-primary">
-                        <i class="bi bi-search"></i>
-                        Tìm kiếm
-                    </button>
-
-                </div>
-
-            </form>
+            <div class="col-md-6 mb-3">
+                <label>Ngày kết thúc</label>
+                <input type="date" class="form-control" name="ngayKetThuc">
+            </div>
 
         </div>
-    </div>
 
-    <div class="card shadow-sm">
+        <button class="btn btn-success" type="submit">
+            <i class="bi bi-plus-circle"></i> Thêm
+        </button>
 
-        <div class="card-body">
+    </form>
 
-            <h5 class="mb-3">
-                Danh sách phiếu giảm giá
-            </h5>
+    <hr>
 
-            <table class="table table-hover text-center align-middle">
+    <table class="table table-bordered table-hover text-center">
 
-                <thead class="table-light">
+        <thead class="table-dark">
 
-                <tr>
+        <tr>
+            <th>ID</th>
+            <th>Mã</th>
+            <th>Tên</th>
+            <th>Giá trị giảm</th>
+            <th>Giảm tối đa</th>
+            <th>Đơn tối thiểu</th>
+            <th>Ngày bắt đầu</th>
+            <th>Ngày kết thúc</th>
+            <th>Thao tác</th>
+        </tr>
 
-                    <th>STT</th>
+        </thead>
 
-                    <th>Mã</th>
+        <tbody>
 
-                    <th>Tên</th>
+        <c:forEach items="${listPhieuGiamGia}" var="p">
 
-                    <th>Loại</th>
+        <tr>
 
-                    <th>Số lượng</th>
+            <td>${p.id}</td>
+            <td>${p.maVoucher}</td>
+            <td>${p.tenVoucher}</td>
+            <td>${p.giaTriGiamGia}</td>
+            <td>${p.giamToiDa}</td>
+            <td>${p.donToiThieu}</td>
+            <td>${p.ngayBatDau}</td>
+            <td>${p.ngayKetThuc}</td>
 
-                    <th>Ngày bắt đầu</th>
+            <td>
 
-                    <th>Ngày kết thúc</th>
+                <a href="${pageContext.request.contextPath}/phieugiamgia/view-update?id=${p.id}"
+                   class="btn btn-warning btn-sm">
+                    Sửa
+                </a>
 
-                    <th>Trạng thái</th>
+                <a href="${pageContext.request.contextPath}/phieugiamgia/delete?id=${p.id}"
+                   onclick="return confirm('Bạn có chắc muốn xóa?')"
+                   class="btn btn-danger btn-sm">
+                    Xóa
+                </a>
 
-                    <th>Hành động</th>
+            </td>
 
-                </tr>
+        </tr>
 
-                </thead>
+        </c:forEach>
+        </tbody>
 
-                <tbody>
-                <c:forEach items="${listPhieuGiamGia}" var="p" varStatus="st">
+    </table>
 
-                    <tr>
-
-                        <td>${st.count}</td>
-
-                        <td>${p.maVoucher}</td>
-
-                        <td>${p.tenVoucher}</td>
-
-                        <td>
-            <span class="badge bg-danger">
-                    ${p.loaiGiamGia}
-            </span>
-                        </td>
-
-                        <td>${p.soLuong}</td>
-
-                        <td>${p.ngayBatDau}</td>
-
-                        <td>${p.ngayKetThuc}</td>
-
-                        <td>
-
-                            <c:if test="${p.trangThai==1}">
-                <span class="badge bg-success">
-                    Đang hoạt động
-                </span>
-                            </c:if>
-
-                            <c:if test="${p.trangThai==0}">
-                <span class="badge bg-secondary">
-                    Ngừng hoạt động
-                </span>
-                            </c:if>
-
-                        </td>
-
-                        <td>
-
-                            <!-- Detail -->
-                            <a href="${pageContext.request.contextPath}/phieugiamgia/detail?id=${p.id}"
-                               class="btn btn-info btn-sm">
-                                <i class="bi bi-eye"></i>
-                            </a>
-
-                            <!-- Update -->
-                            <a href="${pageContext.request.contextPath}/phieugiamgia/view-update?id=${p.id}"
-                               class="btn btn-warning btn-sm">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-
-                            <!-- Delete -->
-                            <a href="${pageContext.request.contextPath}/phieugiamgia/delete?id=${p.id}"
-                               onclick="return confirm('Bạn có chắc muốn xóa?')"
-                               class="btn btn-danger btn-sm">
-                                <i class="bi bi-trash"></i>
-                            </a>
-
-                        </td>
-
-                    </tr>
-
-                </c:forEach>
-
-                </tbody>
-
-            </table>
-
-            <nav class="mt-4">
-
-                <ul class="pagination justify-content-center">
-
-                    <li class="page-item disabled">
-                        <a class="page-link">&lt;</a>
-                    </li>
-
-                    <li class="page-item active">
-                        <a class="page-link">1</a>
-                    </li>
-
-                    <li class="page-item disabled">
-                        <a class="page-link">&gt;</a>
-                    </li>
-
-                </ul>
-
-            </nav>
-
-        </div>
-
-    </div>
 </div>
-</div>
-
 </body>
-
 </html>

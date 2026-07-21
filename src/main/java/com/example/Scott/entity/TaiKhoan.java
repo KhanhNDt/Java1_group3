@@ -1,5 +1,6 @@
 
-package com.Scott.model;
+package com.example.Scott.entity;
+
 
 import com.example.Scott.entity.NhanVien;
 import lombok.Data;
