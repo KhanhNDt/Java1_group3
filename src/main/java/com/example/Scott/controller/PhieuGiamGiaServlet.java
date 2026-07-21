@@ -28,7 +28,6 @@ public class PhieuGiamGiaServlet extends HttpServlet {
 
         String uri = request.getRequestURI();
 
-        // Ưu tiên kiểm tra view-add trước
         if (uri.endsWith("/view-add")) {
             viewAdd(request, response);
         } else if (uri.endsWith("/view-update")) {
@@ -38,7 +37,6 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         } else if (uri.endsWith("/search")) {
             search(request, response);
         } else {
-            // Mặc định hoặc /hien-thi
             hienThi(request, response);
         }
     }
@@ -95,17 +93,31 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         }
     }
 
-    // ================= TÌM KIẾM =================
+    // ================= TÌM KIẾM & LỌC THEO NGÀY =================
     private void search(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String keyword = request.getParameter("keyword");
-        if (keyword == null) {
-            keyword = "";
+        String loaiGiamGia = request.getParameter("loaiGiamGia");
+        String trangThaiStr = request.getParameter("trangThai");
+        String fromStr = request.getParameter("from");
+        String toStr = request.getParameter("to");
+
+        if (keyword == null) keyword = "";
+        if (loaiGiamGia == null) loaiGiamGia = "";
+
+        Integer trangThai = null;
+        if (trangThaiStr != null && !trangThaiStr.trim().isEmpty()) {
+            try {
+                trangThai = Integer.valueOf(trangThaiStr.trim());
+            } catch (NumberFormatException ignored) {}
         }
 
+        java.sql.Date from = parseDate(fromStr);
+        java.sql.Date to = parseDate(toStr);
+
         request.setAttribute("menu", "phieugiamgia");
-        request.setAttribute("listPhieuGiamGia", repo.search(keyword));
+        request.setAttribute("listPhieuGiamGia", repo.searchFull(keyword, loaiGiamGia, trangThai, from, to));
 
         request.getRequestDispatcher("/views/phieugiamgian3/phieugiamgias.jsp")
                 .forward(request, response);
@@ -234,16 +246,28 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     // ================= HELPER PARSE AN TOÀN =================
     private BigDecimal parseBigDecimal(String value) {
         if (value == null || value.trim().isEmpty()) return BigDecimal.ZERO;
-        return new BigDecimal(value.trim());
+        try {
+            return new BigDecimal(value.trim());
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
     }
 
     private Integer parseInteger(String value) {
         if (value == null || value.trim().isEmpty()) return 0;
-        return Integer.valueOf(value.trim());
+        try {
+            return Integer.valueOf(value.trim());
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private java.sql.Date parseDate(String value) {
         if (value == null || value.trim().isEmpty()) return null;
-        return java.sql.Date.valueOf(value.trim());
+        try {
+            return java.sql.Date.valueOf(value.trim());
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
