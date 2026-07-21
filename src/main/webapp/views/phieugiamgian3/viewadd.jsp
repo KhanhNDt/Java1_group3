@@ -1,18 +1,17 @@
 <%--
   Created by IntelliJ IDEA.
   User: Nvc36
-  Date: 7/11/2026
-  Time: 4:23 PM
+  Date: 7/21/2026
+  Time: 8:01 PM
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Cập nhật phiếu giảm giá - Scott Admin</title>
+    <title>Thêm mới phiếu giảm giá - Scott Admin</title>
 
     <!-- Bootstrap 5 CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -62,7 +61,7 @@
     <!-- Title & Navigation Button -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold text-dark">
-            <i class="bi bi-pencil-square text-primary me-2"></i>Cập nhật phiếu giảm giá
+            <i class="bi bi-plus-circle text-primary me-2"></i>Thêm mới phiếu giảm giá
         </h3>
         <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
@@ -72,87 +71,68 @@
     <!-- Card Form -->
     <div class="card">
         <div class="card-header">
-            <i class="bi bi-info-circle me-2"></i>Thông tin phiếu giảm giá
+            <i class="bi bi-info-circle me-2"></i>Thông tin phiếu giảm giá mới
         </div>
 
         <div class="card-body p-4">
-            <form action="${pageContext.request.contextPath}/phieugiamgia/update" method="post">
+            <form action="${pageContext.request.contextPath}/phieugiamgia/add" method="post">
 
                 <div class="row g-3">
-                    <!-- ID (Readonly) -->
-                    <div class="col-md-6">
-                        <label class="form-label">ID Phiếu</label>
-                        <input type="text" class="form-control bg-light" name="id" value="${phieugiamgiaS.id}" readonly>
-                    </div>
-
                     <!-- Mã Voucher -->
                     <div class="col-md-6">
                         <label class="form-label">Mã Voucher <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="maVoucher" value="${phieugiamgiaS.maVoucher}" required>
+                        <input type="text" class="form-control" name="maVoucher" placeholder="Ví dụ: VOUCHER2026" required>
                     </div>
 
                     <!-- Tên Voucher -->
                     <div class="col-md-6">
                         <label class="form-label">Tên Voucher <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="tenVoucher" value="${phieugiamgiaS.tenVoucher}" required>
+                        <input type="text" class="form-control" name="tenVoucher" placeholder="Ví dụ: Giảm giá hè 2026" required>
                     </div>
 
                     <!-- Loại Giảm Giá -->
                     <div class="col-md-6">
                         <label class="form-label">Loại giảm giá</label>
                         <select class="form-select" name="loaiGiamGia">
-                            <option value="%" ${phieugiamgiaS.loaiGiamGia == '%' ? 'selected' : ''}>Phần trăm (%)</option>
-                            <option value="Tiền" ${phieugiamgiaS.loaiGiamGia == 'Tiền' ? 'selected' : ''}>Tiền mặt (VNĐ)</option>
+                            <option value="%">Phần trăm (%)</option>
+                            <option value="Tiền">Tiền mặt (VNĐ)</option>
                         </select>
                     </div>
 
                     <!-- Giá trị giảm -->
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">Giá trị giảm</label>
-                        <input type="number" step="any" class="form-control" name="giaTriGiamGia" value="${phieugiamgiaS.giaTriGiamGia}">
+                        <input type="number" step="any" class="form-control" name="giaTriGiamGia" placeholder="Nhập số % hoặc số tiền">
                     </div>
 
                     <!-- Giảm tối đa -->
                     <div class="col-md-4">
                         <label class="form-label">Giảm tối đa (VNĐ)</label>
-                        <input type="number" step="any" class="form-control" name="giamToiDa" value="${phieugiamgiaS.giamToiDa}">
+                        <input type="number" step="any" class="form-control" name="giamToiDa" placeholder="0">
                     </div>
 
                     <!-- Đơn tối thiểu -->
                     <div class="col-md-4">
                         <label class="form-label">Đơn tối thiểu (VNĐ)</label>
-                        <input type="number" step="any" class="form-control" name="donToiThieu" value="${phieugiamgiaS.donToiThieu}">
+                        <input type="number" step="any" class="form-control" name="donToiThieu" placeholder="0">
                     </div>
 
                     <!-- Số lượng -->
                     <div class="col-md-4">
                         <label class="form-label">Số lượng</label>
-                        <input type="number" class="form-control" name="soLuong" value="${phieugiamgiaS.soLuong}">
+                        <input type="number" class="form-control" name="soLuong" placeholder="100">
                     </div>
 
-                    <!-- Format ngày bắt đầu & kết thúc sang yyyy-MM-dd -->
-                    <fmt:formatDate value="${phieugiamgiaS.ngayBatDau}" pattern="yyyy-MM-dd" var="fmtNgayBatDau" />
-                    <fmt:formatDate value="${phieugiamgiaS.ngayKetThuc}" pattern="yyyy-MM-dd" var="fmtNgayKetThuc" />
-
                     <!-- Ngày bắt đầu -->
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">Ngày bắt đầu</label>
-                        <input type="date" class="form-control" name="ngayBatDau" value="${fmtNgayBatDau}">
+                        <input type="date" class="form-control" name="ngayBatDau">
                     </div>
 
                     <!-- Ngày kết thúc -->
-                    <div class="col-md-4">
-                        <label class="form-label">Ngày kết thúc</label>
-                        <input type="date" class="form-control" name="ngayKetThuc" value="${fmtNgayKetThuc}">
-                    </div>
-
-                    <!-- Trạng thái -->
                     <div class="col-md-6">
-                        <label class="form-label">Trạng thái</label>
-                        <select class="form-select" name="trangThai">
-                            <option value="1" ${phieugiamgiaS.trangThai == 1 ? 'selected' : ''}>Đang hoạt động</option>
-                            <option value="0" ${phieugiamgiaS.trangThai == 0 ? 'selected' : ''}>Ngừng hoạt động</option>
-                        </select>
+                        <label class="form-label">Ngày kết thúc</label>
+                        <input type="date" class="form-control" name="ngayKetThuc">
                     </div>
                 </div>
 
@@ -160,7 +140,7 @@
                 <div class="mt-4 text-end">
                     <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi" class="btn btn-light border me-2">Hủy bỏ</a>
                     <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-save me-1"></i> Cập nhật
+                        <i class="bi bi-save me-1"></i> Lưu phiếu
                     </button>
                 </div>
 

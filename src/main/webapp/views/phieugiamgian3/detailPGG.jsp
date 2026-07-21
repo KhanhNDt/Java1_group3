@@ -1,6 +1,8 @@
 <%--
   Created by IntelliJ IDEA.
   User: Nvc36
+  Date: 7/21/2026
+  Time: 7:40 PM
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -128,7 +130,7 @@
                         <input type="text" class="form-control" name="keyword" value="${param.keyword}" placeholder="Nhập mã hoặc tên phiếu giảm giá...">
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label fw-semibold">Loại giảm</label>
                         <select class="form-select" name="loaiGiamGia">
                             <option value="">Tất cả</option>
@@ -137,7 +139,16 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Loại phiếu</label>
+                        <select class="form-select" name="loaiPhieu">
+                            <option value="">Tất cả</option>
+                            <option value="Công khai" ${param.loaiPhieu == 'Công khai' ? 'selected' : ''}>Công khai</option>
+                            <option value="Cá nhân" ${param.loaiPhieu == 'Cá nhân' ? 'selected' : ''}>Cá nhân</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
                         <label class="form-label fw-semibold">Trạng thái</label>
                         <select class="form-select" name="trangThai">
                             <option value="">Tất cả</option>

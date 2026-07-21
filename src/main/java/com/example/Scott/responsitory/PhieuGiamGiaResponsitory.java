@@ -3,62 +3,80 @@ package com.example.Scott.responsitory;
 import com.example.Scott.entity.PhieuGiamGia;
 import com.example.Scott.utils.HibernateConfig;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 import java.util.List;
 
 public class PhieuGiamGiaResponsitory {
 
-    public List<PhieuGiamGia> getAll(){
+    // Hiển thị tất cả
+    public List<PhieuGiamGia> getAll() {
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            return s.createQuery(" from PhieuGiamGia ", PhieuGiamGia.class).list();
+            return s.createQuery(
+                    "FROM PhieuGiamGia ORDER BY id DESC",
+                    PhieuGiamGia.class
+            ).getResultList();
         }
     }
 
-    public PhieuGiamGia getOne(Integer id5){
+    // Lấy theo ID
+    public PhieuGiamGia getOne(Integer id) {
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            return s.find(PhieuGiamGia.class, id5);
+            return s.find(PhieuGiamGia.class, id);
         }
     }
 
-    public void addPhieuGiamGia(PhieuGiamGia PGG){
+    // Thêm
+    public void addPhieuGiamGia(PhieuGiamGia pgg) {
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            try {
-                s.getTransaction().begin();
-                s.persist(PGG);
-                s.getTransaction().commit();
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (s.getTransaction().isActive()) s.getTransaction().rollback();
-                throw new RuntimeException("Loi khi them phieu giam gia: " + e.getMessage(), e);
-            }
+            s.beginTransaction();
+            s.persist(pgg);
+            s.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi thêm phiếu giảm giá");
         }
     }
 
-    public void DeletePhieuGiamGia(PhieuGiamGia PGG){
+    // Sửa
+    public void updatePhieuGiamGia(PhieuGiamGia pgg) {
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            try {
-                s.getTransaction().begin();
-                s.delete(PGG);
-                s.getTransaction().commit();
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (s.getTransaction().isActive()) s.getTransaction().rollback();
-                throw new RuntimeException("Loi khi xoa phieu giam gia: " + e.getMessage(), e);
-            }
+            s.beginTransaction();
+            s.merge(pgg);
+            s.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi cập nhật phiếu giảm giá");
         }
     }
 
-    public void updatePhieuGiamGia(PhieuGiamGia PGG){
+    // Xóa
+    public void deletePhieuGiamGia(PhieuGiamGia pgg) {
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            try {
-                s.getTransaction().begin();
-                s.merge(PGG);
-                s.getTransaction().commit();
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (s.getTransaction().isActive()) s.getTransaction().rollback();
-                throw new RuntimeException("Loi khi cap nhat phieu giam gia: " + e.getMessage(), e);
-            }
+            s.beginTransaction();
+            s.remove(s.contains(pgg) ? pgg : s.merge(pgg));
+            s.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Lỗi xóa phiếu giảm giá");
+        }
+    }
+
+    // Tìm kiếm theo mã hoặc tên
+    public List<PhieuGiamGia> search(String keyword) {
+
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+
+            String hql = "FROM PhieuGiamGia " +
+                    "WHERE maVoucher LIKE :kw " +
+                    "OR tenVoucher LIKE :kw";
+
+            Query<PhieuGiamGia> query =
+                    s.createQuery(hql, PhieuGiamGia.class);
+
+            query.setParameter("kw", "%" + keyword + "%");
+
+            return query.getResultList();
         }
     }
 
