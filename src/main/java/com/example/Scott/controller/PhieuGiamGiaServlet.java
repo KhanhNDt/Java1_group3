@@ -240,7 +240,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         }
     }
 
-    // ================= HÀM HELPER EP KIEU AN TOAN =================
+    // ================= HELPER PARSE AN TOÀN =================
     private BigDecimal parseBigDecimal(String value) {
         if (value == null || value.trim().isEmpty()) return BigDecimal.ZERO;
         return new BigDecimal(value.trim());
