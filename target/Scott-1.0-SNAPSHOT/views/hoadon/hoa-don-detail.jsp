@@ -236,6 +236,7 @@
 					</div>
 				</div>
 			</div>
+<%--			Tong két thanh toan--%>
 			<div class="col-lg-4">
 				<div class="card h-100 shadow-sm">
 					<div class="card-header">

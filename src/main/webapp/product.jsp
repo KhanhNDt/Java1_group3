@@ -11,7 +11,7 @@
     <style>
 
         body{
-            background:#F5FAF6;
+            background:#f4f4f4;
             font-family:Segoe UI;
         }
 
@@ -25,7 +25,7 @@
         .logo{
             width:70px;
             height:70px;
-            /*background:#5B4CF8;*/
+            /*background:#171717;*/
             color:white;
             display:flex;
             align-items:center;
@@ -51,7 +51,7 @@
 
         .menu a.active{
 
-            background:#5B4CF8;
+            background:#171717;
             color:white;
             border-radius:8px;
 
@@ -77,14 +77,14 @@
 
         .badge-success{
 
-            background:#D8F5E7;
+            background:#e5e5e5;
             color:green;
 
         }
 
         .badge-danger{
 
-            background:#FDE3E3;
+            background:#ededed;
             color:red;
 
         }

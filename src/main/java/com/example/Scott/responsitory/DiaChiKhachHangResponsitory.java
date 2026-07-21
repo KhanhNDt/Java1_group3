@@ -1,87 +1,81 @@
 package com.example.Scott.responsitory;
 
 import com.example.Scott.entity.DiaChiKhachHang;
-import com.example.Scott.entity.KhachHang;
 import com.example.Scott.utils.HibernateConfig;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import java.util.List;
 
 public class DiaChiKhachHangResponsitory {
 
-    private Session s;
-
-    public DiaChiKhachHangResponsitory(){ s = HibernateConfig.getFACTORY().openSession();}
-    public List<DiaChiKhachHang> getAll(){return s.createQuery(" from DiaChiKhachHang ").list();}
-    public DiaChiKhachHang getOne(Integer idDiaChi){return s.find(DiaChiKhachHang.class,idDiaChi);}
-
-
-    public DiaChiKhachHang AddDiaChiKH(DiaChiKhachHang DCKH) {
-        try {
-            s.getTransaction().begin();
-
-            s.persist(DCKH);
-
-            s.getTransaction().commit();
-
-            return DCKH;
-
-        } catch (Exception e) {
-
-            if (s.getTransaction().isActive()) {
-                s.getTransaction().rollback();
-            }
-
-            e.printStackTrace();
-
-            return null;
+    public List<DiaChiKhachHang> getAll() {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery("from DiaChiKhachHang order by id desc", DiaChiKhachHang.class).list();
         }
     }
 
-    public void DeleteDiaChiKH(DiaChiKhachHang DCKH){
-        try{
-            s.getTransaction().begin();
-            s.delete(DCKH);
-            s.getTransaction().commit();
-        }catch(Exception e){
-            e.printStackTrace();
+    public DiaChiKhachHang getOne(Integer idDiaChi) {
+        if (idDiaChi == null) return null;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.find(DiaChiKhachHang.class, idDiaChi);
         }
     }
+
+    public DiaChiKhachHang AddDiaChiKH(DiaChiKhachHang diaChi) {
+        if (diaChi == null) return null;
+        Transaction tx = null;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            tx = session.beginTransaction();
+            session.persist(diaChi);
+            tx.commit();
+            return diaChi;
+        } catch (RuntimeException e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            throw e;
+        }
+    }
+
+    public void DeleteDiaChiKH(DiaChiKhachHang diaChi) {
+        if (diaChi == null) return;
+        execute(session -> session.remove(session.contains(diaChi) ? diaChi : session.merge(diaChi)));
+    }
+
     public void deleteByKhachHang(Integer idKhachHang) {
-        try {
-            s.getTransaction().begin();
-
-            s.createQuery(
-                    "delete from DiaChiKhachHang where idKhachHang = :id")
-                    .setParameter("id", idKhachHang)
-                    .executeUpdate();
-
-            s.getTransaction().commit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            s.getTransaction().rollback();
-        }
+        if (idKhachHang == null) return;
+        execute(session -> session.createQuery("delete from DiaChiKhachHang where idKhachHang = :id")
+                .setParameter("id", idKhachHang).executeUpdate());
     }
-    public void UpdateDiaChiKH(DiaChiKhachHang DCKH){
-        try{
-            s.getTransaction().begin();
-            s.merge(DCKH);
-            s.getTransaction().commit();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
+
+    public void UpdateDiaChiKH(DiaChiKhachHang diaChi) {
+        if (diaChi == null) return;
+        execute(session -> session.merge(diaChi));
     }
 
     public DiaChiKhachHang getByIdKhachHang(Integer idKhachHang) {
+        if (idKhachHang == null) return null;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery(
+                    "from DiaChiKhachHang where idKhachHang = :id order by isMacDinh desc, id desc",
+                    DiaChiKhachHang.class)
+                    .setParameter("id", idKhachHang)
+                    .setMaxResults(1)
+                    .uniqueResult();
+        }
+    }
 
-        return s.createQuery(
-                "from DiaChiKhachHang where idKhachHang=:id",
-                DiaChiKhachHang.class
-        )
-                .setParameter("id", idKhachHang)
-                .uniqueResult();
+    private void execute(SessionWork work) {
+        Transaction tx = null;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            tx = session.beginTransaction();
+            work.run(session);
+            tx.commit();
+        } catch (RuntimeException e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            throw e;
+        }
     }
-    public static void main(String[] args) {
-        System.out.println(new DiaChiKhachHangResponsitory().getAll());
-    }
+
+    @FunctionalInterface
+    private interface SessionWork { void run(Session session); }
 }

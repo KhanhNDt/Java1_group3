@@ -35,7 +35,7 @@
         height:48px;
         border:none;
         outline:none;
-        background:#f4f7fe;
+        background:#f4f4f4;
         border-radius:50px;
         padding-left:50px;
         font-size:15px;
@@ -52,7 +52,7 @@
         width:45px;
         height:45px;
         border-radius:50%;
-        background:#f4f7fe;
+        background:#f4f4f4;
 
         display:flex;
         justify-content:center;
@@ -66,7 +66,7 @@
 
     .icon-box:hover{
 
-        background: #323131;
+        background:#171717;
         color:white;
 
     }
@@ -111,3 +111,46 @@
 
 <div class="main-content">
 
+    <div class="header">
+
+        <div class="search-box">
+
+            <i class="bi bi-search"></i>
+
+            <input type="text"
+                   placeholder="Tìm kiếm sản phẩm...">
+
+        </div>
+
+        <div class="header-right">
+
+            <div class="icon-box">
+
+                <i class="bi bi-bell"></i>
+
+            </div>
+
+            <div class="icon-box">
+
+                <i class="bi bi-envelope"></i>
+
+            </div>
+
+            <div class="user">
+
+                <img src="https://i.pravatar.cc/100"
+                     alt="avatar">
+
+                <div class="user-info">
+
+                    <h6>Admin</h6>
+
+                    <small>Quản trị viên</small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>

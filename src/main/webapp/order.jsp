@@ -15,7 +15,7 @@
 
         body{
 
-            background:#F5FAF6;
+            background:#f4f4f4;
             font-family:Segoe UI;
 
         }
@@ -33,7 +33,7 @@
 
             width:70px;
             height:70px;
-            /*background:#5B4CF8;*/
+            /*background:#171717;*/
             color:white;
             display:flex;
             justify-content:center;
@@ -59,7 +59,7 @@
 
         .menu a.active{
 
-            background:#5B4CF8;
+            background:#171717;
             color:white;
             border-radius:8px;
 
