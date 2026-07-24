@@ -1,9 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: Nvc36
-  Date: 7/11/2026
-  Time: 4:23 PM
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -12,165 +6,102 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Cập nhật phiếu giảm giá - Scott Admin</title>
-
-    <!-- Bootstrap 5 CSS & Icons -->
+    <title>Danh sách phiếu giảm giá - Scott Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
     <style>
-        body {
-            background-color: #f4f6f9;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .content {
-            margin-left: 250px;
-            padding: 25px 30px;
-        }
-
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            background: #fff;
-        }
-
-        .card-header {
-            background-color: #1a1a24;
-            color: #ffffff;
-            font-weight: 600;
-            border-top-left-radius: 10px !important;
-            border-top-right-radius: 10px !important;
-            padding: 14px 20px;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
-        }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .content { margin-left: 250px; padding: 25px 30px; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     </style>
 </head>
-
 <body>
 
 <%@ include file="/views/layout/sidebar.jsp" %>
 
 <div class="content">
 
-    <!-- Title & Navigation Button -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-dark">
-            <i class="bi bi-pencil-square text-primary me-2"></i>Cập nhật phiếu giảm giá
-        </h3>
-        <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+        <h3 class="fw-bold text-dark"><i class="bi bi-tags-fill text-primary me-2"></i>Quản lý phiếu giảm giá</h3>
+        <a href="${pageContext.request.contextPath}/phieugiamgia/view-add" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Thêm mới
         </a>
     </div>
 
-    <!-- Card Form -->
-    <div class="card">
-        <div class="card-header">
-            <i class="bi bi-info-circle me-2"></i>Thông tin phiếu giảm giá
+    <!-- Thông báo Flash -->
+    <c:if test="${not empty success}">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                ${success}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    </c:if>
 
-        <div class="card-body p-4">
-            <form action="${pageContext.request.contextPath}/phieugiamgia/update" method="post">
-
-                <div class="row g-3">
-                    <!-- ID (Readonly) -->
-                    <div class="col-md-6">
-                        <label class="form-label">ID Phiếu</label>
-                        <input type="text" class="form-control bg-light" name="id" value="${phieugiamgiaS.id}" readonly>
-                    </div>
-
-                    <!-- Mã Voucher -->
-                    <div class="col-md-6">
-                        <label class="form-label">Mã Voucher <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="maVoucher" value="${phieugiamgiaS.maVoucher}" required>
-                    </div>
-
-                    <!-- Tên Voucher -->
-                    <div class="col-md-6">
-                        <label class="form-label">Tên Voucher <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="tenVoucher" value="${phieugiamgiaS.tenVoucher}" required>
-                    </div>
-
-                    <!-- Loại Giảm Giá -->
-                    <div class="col-md-6">
-                        <label class="form-label">Loại giảm giá</label>
-                        <select class="form-select" name="loaiGiamGia">
-                            <option value="%" ${phieugiamgiaS.loaiGiamGia == '%' ? 'selected' : ''}>Phần trăm (%)</option>
-                            <option value="Tiền" ${phieugiamgiaS.loaiGiamGia == 'Tiền' ? 'selected' : ''}>Tiền mặt (VNĐ)</option>
-                        </select>
-                    </div>
-
-                    <!-- Giá trị giảm -->
-                    <div class="col-md-4">
-                        <label class="form-label">Giá trị giảm</label>
-                        <input type="number" step="any" class="form-control" name="giaTriGiamGia" value="${phieugiamgiaS.giaTriGiamGia}">
-                    </div>
-
-                    <!-- Giảm tối đa -->
-                    <div class="col-md-4">
-                        <label class="form-label">Giảm tối đa (VNĐ)</label>
-                        <input type="number" step="any" class="form-control" name="giamToiDa" value="${phieugiamgiaS.giamToiDa}">
-                    </div>
-
-                    <!-- Đơn tối thiểu -->
-                    <div class="col-md-4">
-                        <label class="form-label">Đơn tối thiểu (VNĐ)</label>
-                        <input type="number" step="any" class="form-control" name="donToiThieu" value="${phieugiamgiaS.donToiThieu}">
-                    </div>
-
-                    <!-- Số lượng -->
-                    <div class="col-md-4">
-                        <label class="form-label">Số lượng</label>
-                        <input type="number" class="form-control" name="soLuong" value="${phieugiamgiaS.soLuong}">
-                    </div>
-
-                    <!-- Format ngày bắt đầu & kết thúc sang yyyy-MM-dd -->
-                    <fmt:formatDate value="${phieugiamgiaS.ngayBatDau}" pattern="yyyy-MM-dd" var="fmtNgayBatDau" />
-                    <fmt:formatDate value="${phieugiamgiaS.ngayKetThuc}" pattern="yyyy-MM-dd" var="fmtNgayKetThuc" />
-
-                    <!-- Ngày bắt đầu -->
-                    <div class="col-md-4">
-                        <label class="form-label">Ngày bắt đầu</label>
-                        <input type="date" class="form-control" name="ngayBatDau" value="${fmtNgayBatDau}">
-                    </div>
-
-                    <!-- Ngày kết thúc -->
-                    <div class="col-md-4">
-                        <label class="form-label">Ngày kết thúc</label>
-                        <input type="date" class="form-control" name="ngayKetThuc" value="${fmtNgayKetThuc}">
-                    </div>
-
-                    <!-- Trạng thái -->
-                    <div class="col-md-6">
-                        <label class="form-label">Trạng thái</label>
-                        <select class="form-select" name="trangThai">
-                            <option value="1" ${phieugiamgiaS.trangThai == 1 ? 'selected' : ''}>Đang hoạt động</option>
-                            <option value="0" ${phieugiamgiaS.trangThai == 0 ? 'selected' : ''}>Ngừng hoạt động</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <div class="mt-4 text-end">
-                    <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi" class="btn btn-light border me-2">Hủy bỏ</a>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-save me-1"></i> Cập nhật
-                    </button>
-                </div>
-
-            </form>
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Mã Voucher</th>
+                        <th>Tên Voucher</th>
+                        <th>Loại</th>
+                        <th>Giá trị</th>
+                        <th>Giảm tối đa</th>
+                        <th>Số lượng</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${listPhieuGiamGia}" var="pgg">
+                        <tr>
+                            <td>${pgg.id}</td>
+                            <td><strong>${pgg.maVoucher}</strong></td>
+                            <td>${pgg.tenVoucher}</td>
+                            <td>
+                                    <span class="badge ${pgg.loaiGiamGia == '%' ? 'bg-info' : 'bg-warning'} text-dark">
+                                            ${pgg.loaiGiamGia}
+                                    </span>
+                            </td>
+                            <td>
+                                <fmt:formatNumber value="${pgg.giaTriGiamGia}" type="currency" currencySymbol="" maxFractionDigits="0"/>
+                                    ${pgg.loaiGiamGia == '%' ? '%' : 'VNĐ'}
+                            </td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${not empty pgg.giamToiDa}">
+                                        <fmt:formatNumber value="${pgg.giamToiDa}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
+                                    </c:when>
+                                    <c:otherwise>-</c:otherwise>
+                                </c:choose>
+                            </td>
+                            <td>${pgg.soLuong}</td>
+                            <td>
+                                    <span class="badge ${pgg.trangThai == 1 ? 'bg-success' : 'bg-secondary'}">
+                                            ${pgg.trangThai == 1 ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                                    </span>
+                            </td>
+                            <td class="text-center">
+                                <!-- Nút Sửa gọi đường dẫn view-update kèm ID -->
+                                <a href="${pageContext.request.contextPath}/phieugiamgia/view-update?id=${pgg.id}" class="btn btn-sm btn-outline-warning me-1">
+                                    <i class="bi bi-pencil-square"></i> Sửa
+                                </a>
+                                <a href="${pageContext.request.contextPath}/phieugiamgia/delete?id=${pgg.id}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Bạn có chắc chắn muốn xóa?')">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </a>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
 </div>
 
-<!-- JS Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
