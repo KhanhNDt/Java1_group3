@@ -158,7 +158,13 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             String loaiGiamGia = request.getParameter("loaiGiamGia");
 
             BigDecimal giaTriGiamGia = parseBigDecimal(request.getParameter("giaTriGiamGia"));
-            BigDecimal giamToiDa = parseBigDecimal(request.getParameter("giamToiDa"));
+
+            // Xử lý Giảm Tối Đa: Chỉ lấy giá trị nếu là giảm Phần trăm (%), ngược lại cho null
+            BigDecimal giamToiDa = null;
+            if ("%".equals(loaiGiamGia)) {
+                giamToiDa = parseBigDecimal(request.getParameter("giamToiDa"));
+            }
+
             BigDecimal donToiThieu = parseBigDecimal(request.getParameter("donToiThieu"));
             Integer soLuong = parseInteger(request.getParameter("soLuong"));
 
@@ -207,12 +213,21 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             PhieuGiamGia pgg = repo.getOne(id);
 
             if (pgg != null) {
+                String loaiGiamGia = request.getParameter("loaiGiamGia");
+
                 pgg.setMaVoucher(request.getParameter("maVoucher"));
                 pgg.setTenVoucher(request.getParameter("tenVoucher"));
-                pgg.setLoaiGiamGia(request.getParameter("loaiGiamGia"));
+                pgg.setLoaiGiamGia(loaiGiamGia);
 
                 pgg.setGiaTriGiamGia(parseBigDecimal(request.getParameter("giaTriGiamGia")));
-                pgg.setGiamToiDa(parseBigDecimal(request.getParameter("giamToiDa")));
+
+                // Xử lý Giảm Tối Đa: Nếu đổi sang Tiền mặt thì tự xóa giamToiDa về null
+                if ("%".equals(loaiGiamGia)) {
+                    pgg.setGiamToiDa(parseBigDecimal(request.getParameter("giamToiDa")));
+                } else {
+                    pgg.setGiamToiDa(null);
+                }
+
                 pgg.setDonToiThieu(parseBigDecimal(request.getParameter("donToiThieu")));
                 pgg.setSoLuong(parseInteger(request.getParameter("soLuong")));
 
@@ -277,11 +292,11 @@ public class PhieuGiamGiaServlet extends HttpServlet {
 
     // ================= HELPER PARSE AN TOÀN =================
     private BigDecimal parseBigDecimal(String value) {
-        if (value == null || value.trim().isEmpty()) return BigDecimal.ZERO;
+        if (value == null || value.trim().isEmpty()) return null; // Đổi trả về null nếu trống
         try {
             return new BigDecimal(value.trim());
         } catch (Exception e) {
-            return BigDecimal.ZERO;
+            return null;
         }
     }
 

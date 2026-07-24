@@ -25,7 +25,7 @@ public class HibernateConfig {
                 new String[]{"SCOTT_DB_URL", "SQLSERVER_DB_URL"},
                 "jdbc:sqlserver://localhost:1433;databaseName=DuAnJAVA1_Nhom3;encrypt=true;trustServerCertificate=true;"));
         properties.put(Environment.USER, envAny(new String[]{"SCOTT_DB_USER", "SQLSERVER_DB_USER"}, "sa"));
-        properties.put(Environment.PASS, envAny(new String[]{"SCOTT_DB_PASSWORD", "SQLSERVER_DB_PASSWORD"}, "123"));
+        properties.put(Environment.PASS, envAny(new String[]{"SCOTT_DB_PASSWORD", "SQLSERVER_DB_PASSWORD"}, "123123"));
         properties.put(Environment.SHOW_SQL, env("SCOTT_SHOW_SQL", "false"));
         properties.put(Environment.FORMAT_SQL, "false");
         properties.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
