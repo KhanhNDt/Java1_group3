@@ -282,7 +282,7 @@ body{background:#f4f4f4!important;color:#171717!important}
             <button type="button" onclick="filterByStatus('0')" class="btn status-btn ${status=='0' ? 'status-active' : ''}">Chờ xử lý</button>
             <button type="button" onclick="filterByStatus('1')" class="btn status-btn ${status=='1' ? 'status-active' : ''}">Đã thanh toán</button>
             <button type="button" onclick="filterByStatus('2')" class="btn status-btn ${status=='2' ? 'status-active' : ''}">Đã hủy</button>
-            <button type="button" onclick="filterByStatus('3')" class="btn status-btn ${status=='3' ? 'status-active' : ''}">Đã xóa</button>
+<%--            <button type="button" onclick="filterByStatus('3')" class="btn status-btn ${status=='3' ? 'status-active' : ''}">Đã xóa</button>--%>
         </div>
 
         <table class="table table-hover align-middle">
@@ -320,9 +320,9 @@ body{background:#f4f4f4!important;color:#171717!important}
                             <c:when test="${hd.trangThai==2}">
                                 <span class="badge-danger">Đã hủy</span>
                             </c:when>
-                            <c:when test="${hd.trangThai==3}">
-                                <span class="badge-secondary">Đã xóa</span>
-                            </c:when>
+<%--                            <c:when test="${hd.trangThai==3}">--%>
+<%--                                <span class="badge-secondary">Đã xóa</span>--%>
+<%--                            </c:when>--%>
                         </c:choose>
                     </td>
                     <td class="text-center">
