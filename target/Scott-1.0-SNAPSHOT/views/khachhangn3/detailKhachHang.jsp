@@ -51,11 +51,7 @@ body{background:var(--sc-bg)!important;color:#111!important;}
         Quay lại
     </a>
 
-    <a href="${pageContext.request.contextPath}/khachhang/delete?id=${khachHangS.id}"
-       class="btn btn-danger"
-       onclick="return confirm('Bạn có chắc muốn xóa khách hàng này?')">
-        Xóa khách hàng
-    </a>
+
 </div>
 </div>
 </body>

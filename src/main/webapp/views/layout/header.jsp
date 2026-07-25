@@ -143,13 +143,20 @@
 
                 <div class="user-info">
 
-                    <h6>Admin</h6>
+                    <h6>${sessionScope.user.nhanVien.hoTen != null ? sessionScope.user.nhanVien.hoTen : sessionScope.user.tenDangNhap}</h6>
 
-                    <small>Quản trị viên</small>
+                    <small>${sessionScope.user.nhanVien.chucVu != null ? sessionScope.user.nhanVien.chucVu : ''}</small>
 
                 </div>
 
             </div>
+
+            <a class="icon-box" href="${pageContext.request.contextPath}/logout"
+               title="Đăng xuất" style="text-decoration:none;color:inherit;">
+
+                <i class="bi bi-box-arrow-right"></i>
+
+            </a>
 
         </div>
 

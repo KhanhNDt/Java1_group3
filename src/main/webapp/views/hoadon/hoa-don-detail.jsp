@@ -410,91 +410,91 @@
                 </div>
             </div>
         </div>
-<%--        <!-- Thanh toán + Lịch sử -->--%>
-<%--        <div class="row g-3 mb-4">--%>
-<%--            <!-- Thanh toán -->--%>
-<%--            <div class="col-lg-6">--%>
-<%--                <div class="card shadow-sm h-100">--%>
-<%--                    <div class="card-header">--%>
-<%--                        <i class="bi bi-credit-card"></i>--%>
-<%--                        Thanh toán hóa đơn--%>
-<%--                    </div>--%>
-<%--                    <div class="table-responsive">--%>
-<%--                        <table class="table table-hover align-middle mb-0">--%>
-<%--                            <thead class="table-light">--%>
-<%--                            <tr>--%>
-<%--                                <th>Mã GD</th>--%>
-<%--                                <th>Phương thức</th>--%>
-<%--                                <th>Số tiền</th>--%>
-<%--                                <th>Thời gian</th>--%>
-<%--                            </tr>--%>
-<%--                            </thead>--%>
-<%--                            <tbody>--%>
-<%--                            <c:forEach items="${payments}" var="payment">--%>
-<%--                                <tr>--%>
-<%--                                    <td>${payment.maGiaoDich}</td>--%>
-<%--                                    <td>${payment.tenPhuongThuc}</td>--%>
-<%--                                    <td class="text-success fw-bold text-end">--%>
-<%--                                        <fmt:formatNumber--%>
-<%--                                                value="${payment.soTien}"--%>
-<%--                                                type="number"--%>
-<%--                                                groupingUsed="true"/> ₫--%>
-<%--                                    </td>--%>
-<%--                                    <td>--%>
-<%--                                        <fmt:formatDate--%>
-<%--                                                value="${payment.thoiGian}"--%>
-<%--                                                pattern="HH:mm dd/MM/yyyy"/>--%>
-<%--                                    </td>--%>
-<%--                                </tr>--%>
-<%--                            </c:forEach>--%>
-<%--                            <c:if test="${empty payments}">--%>
-<%--                                <tr>--%>
-<%--                                    <td colspan="4"--%>
-<%--                                        class="text-center py-4 text-muted">--%>
-<%--                                        Chưa có giao dịch.--%>
-<%--                                    </td>--%>
-<%--                                </tr>--%>
-<%--                            </c:if>--%>
-<%--                            </tbody>--%>
-<%--                        </table>--%>
-<%--                    </div>--%>
-<%--                </div>--%>
-<%--            </div>--%>
-<%--            <!-- Lịch sử -->--%>
-<%--            <div class="col-lg-6">--%>
-<%--                <div class="card shadow-sm h-100">--%>
-<%--                    <div class="card-header">--%>
-<%--                        <i class="bi bi-clock-history"></i>--%>
-<%--                        Lịch sử hóa đơn--%>
-<%--                    </div>--%>
-<%--                    <div class="card-body"--%>
-<%--                         style="max-height:320px;overflow:auto;">--%>
-<%--                        <c:forEach items="${histories}" var="history">--%>
-<%--                            <div class="border-bottom pb-2 mb-2">--%>
-<%--                                <div class="d-flex justify-content-between">--%>
-<%--                                    <strong>--%>
-<%--                                            ${history.ghiChu}--%>
-<%--                                    </strong>--%>
-<%--                                    <small class="text-muted">--%>
-<%--                                        <fmt:formatDate--%>
-<%--                                                value="${history.thoiGian}"--%>
-<%--                                                pattern="HH:mm dd/MM/yyyy"/>--%>
-<%--                                    </small>--%>
-<%--                                </div>--%>
-<%--                                <small class="text-muted">--%>
-<%--                                        ${history.ma}--%>
-<%--                                </small>--%>
-<%--                            </div>--%>
-<%--                        </c:forEach>--%>
-<%--                        <c:if test="${empty histories}">--%>
-<%--                            <div class="text-center text-muted py-4">--%>
-<%--                                Chưa có lịch sử.--%>
-<%--                            </div>--%>
-<%--                        </c:if>--%>
-<%--                    </div>--%>
-<%--                </div>--%>
-<%--            </div>--%>
-<%--        </div>--%>
+        <%--        <!-- Thanh toán + Lịch sử -->--%>
+        <%--        <div class="row g-3 mb-4">--%>
+        <%--            <!-- Thanh toán -->--%>
+        <%--            <div class="col-lg-6">--%>
+        <%--                <div class="card shadow-sm h-100">--%>
+        <%--                    <div class="card-header">--%>
+        <%--                        <i class="bi bi-credit-card"></i>--%>
+        <%--                        Thanh toán hóa đơn--%>
+        <%--                    </div>--%>
+        <%--                    <div class="table-responsive">--%>
+        <%--                        <table class="table table-hover align-middle mb-0">--%>
+        <%--                            <thead class="table-light">--%>
+        <%--                            <tr>--%>
+        <%--                                <th>Mã GD</th>--%>
+        <%--                                <th>Phương thức</th>--%>
+        <%--                                <th>Số tiền</th>--%>
+        <%--                                <th>Thời gian</th>--%>
+        <%--                            </tr>--%>
+        <%--                            </thead>--%>
+        <%--                            <tbody>--%>
+        <%--                            <c:forEach items="${payments}" var="payment">--%>
+        <%--                                <tr>--%>
+        <%--                                    <td>${payment.maGiaoDich}</td>--%>
+        <%--                                    <td>${payment.tenPhuongThuc}</td>--%>
+        <%--                                    <td class="text-success fw-bold text-end">--%>
+        <%--                                        <fmt:formatNumber--%>
+        <%--                                                value="${payment.soTien}"--%>
+        <%--                                                type="number"--%>
+        <%--                                                groupingUsed="true"/> ₫--%>
+        <%--                                    </td>--%>
+        <%--                                    <td>--%>
+        <%--                                        <fmt:formatDate--%>
+        <%--                                                value="${payment.thoiGian}"--%>
+        <%--                                                pattern="HH:mm dd/MM/yyyy"/>--%>
+        <%--                                    </td>--%>
+        <%--                                </tr>--%>
+        <%--                            </c:forEach>--%>
+        <%--                            <c:if test="${empty payments}">--%>
+        <%--                                <tr>--%>
+        <%--                                    <td colspan="4"--%>
+        <%--                                        class="text-center py-4 text-muted">--%>
+        <%--                                        Chưa có giao dịch.--%>
+        <%--                                    </td>--%>
+        <%--                                </tr>--%>
+        <%--                            </c:if>--%>
+        <%--                            </tbody>--%>
+        <%--                        </table>--%>
+        <%--                    </div>--%>
+        <%--                </div>--%>
+        <%--            </div>--%>
+        <%--            <!-- Lịch sử -->--%>
+        <%--            <div class="col-lg-6">--%>
+        <%--                <div class="card shadow-sm h-100">--%>
+        <%--                    <div class="card-header">--%>
+        <%--                        <i class="bi bi-clock-history"></i>--%>
+        <%--                        Lịch sử hóa đơn--%>
+        <%--                    </div>--%>
+        <%--                    <div class="card-body"--%>
+        <%--                         style="max-height:320px;overflow:auto;">--%>
+        <%--                        <c:forEach items="${histories}" var="history">--%>
+        <%--                            <div class="border-bottom pb-2 mb-2">--%>
+        <%--                                <div class="d-flex justify-content-between">--%>
+        <%--                                    <strong>--%>
+        <%--                                            ${history.ghiChu}--%>
+        <%--                                    </strong>--%>
+        <%--                                    <small class="text-muted">--%>
+        <%--                                        <fmt:formatDate--%>
+        <%--                                                value="${history.thoiGian}"--%>
+        <%--                                                pattern="HH:mm dd/MM/yyyy"/>--%>
+        <%--                                    </small>--%>
+        <%--                                </div>--%>
+        <%--                                <small class="text-muted">--%>
+        <%--                                        ${history.ma}--%>
+        <%--                                </small>--%>
+        <%--                            </div>--%>
+        <%--                        </c:forEach>--%>
+        <%--                        <c:if test="${empty histories}">--%>
+        <%--                            <div class="text-center text-muted py-4">--%>
+        <%--                                Chưa có lịch sử.--%>
+        <%--                            </div>--%>
+        <%--                        </c:if>--%>
+        <%--                    </div>--%>
+        <%--                </div>--%>
+        <%--            </div>--%>
+        <%--        </div>--%>
     </div>
 </div>
 <script>

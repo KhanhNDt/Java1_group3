@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link href="${pageContext.request.contextPath}/assets/css/style.css?v=mono3" rel="stylesheet">
@@ -20,12 +21,14 @@
     <nav class="admin-sidebar__nav">
         <div class="admin-sidebar__section-label">Tổng quan</div>
 
-        <a href="${pageContext.request.contextPath}/dashboard"
-           class="admin-sidebar__item ${menu == 'dashboard' ? 'active' : ''}"
-           data-sidebar-tooltip="Thống kê">
-            <span class="admin-sidebar__icon"><i class="bi bi-grid-1x2"></i></span>
-            <span class="admin-sidebar__label">Thống kê</span>
-        </a>
+        <c:if test="${sessionScope.user.nhanVien.chucVu == 'Admin'}">
+            <a href="${pageContext.request.contextPath}/dashboard"
+               class="admin-sidebar__item ${menu == 'dashboard' ? 'active' : ''}"
+               data-sidebar-tooltip="Thống kê">
+                <span class="admin-sidebar__icon"><i class="bi bi-grid-1x2"></i></span>
+                <span class="admin-sidebar__label">Thống kê</span>
+            </a>
+        </c:if>
 
         <a href="${pageContext.request.contextPath}/quanlyhoadon"
            class="admin-sidebar__item ${menu == 'quanlyhoadon' ? 'active' : ''}"
@@ -97,10 +100,16 @@
         <div class="admin-sidebar__profile">
             <div class="admin-sidebar__avatar">A</div>
             <div class="admin-sidebar__profile-copy">
-                <strong>Quản trị viên</strong>
-                <small>Scott Fashion</small>
+                <strong>${not empty sessionScope.user.nhanVien.hoTen ? sessionScope.user.nhanVien.hoTen : sessionScope.user.tenDangNhap}</strong>
+                <small>${not empty sessionScope.user.nhanVien.chucVu ? sessionScope.user.nhanVien.chucVu : 'Scott Fashion'}</small>
             </div>
         </div>
+        <a href="${pageContext.request.contextPath}/logout"
+           class="admin-sidebar__item" data-sidebar-tooltip="Đăng xuất"
+           style="margin-top:8px;">
+            <span class="admin-sidebar__icon"><i class="bi bi-box-arrow-right"></i></span>
+            <span class="admin-sidebar__label">Đăng xuất</span>
+        </a>
     </div>
 </aside>
 

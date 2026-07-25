@@ -35,10 +35,6 @@ public class KhachHangResponsitory {
         execute(session -> session.persist(khachHang));
     }
 
-    public void DeleteKhachHang(KhachHang khachHang) {
-        if (khachHang == null) return;
-        execute(session -> session.remove(session.contains(khachHang) ? khachHang : session.merge(khachHang)));
-    }
 
     public void UpdateKhachHang(KhachHang khachHang) {
         execute(session -> session.merge(khachHang));

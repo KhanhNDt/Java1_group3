@@ -42,9 +42,7 @@ public class KhachHangServlet extends HttpServlet {
 
         if (uri.contains("hien-thi")) {
             this.hienThiKhachHang(request, response);
-        } else if (uri.contains("delete")) {
-            this.deleteKhachHang(request, response);
-        } else if (uri.contains("view-update")) {
+        }  else if (uri.contains("view-update")) {
             this.viewUpdateKhachHang(request, response);
         } else if (uri.contains("search")) {
             this.searchKhachHang(request, response);
@@ -125,21 +123,6 @@ public class KhachHangServlet extends HttpServlet {
         request.getRequestDispatcher("/views/khachhangn3/updateKH.jsp").forward(request, response);
     }
 
-    private void deleteKhachHang(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Integer id = parseInteger(request.getParameter("id"));
-
-        KhachHang kh = khachHangResponsitory.getOne(id);
-
-        if (kh != null) {
-            // Xóa địa chỉ trước
-            diaChiKhachHangResponsitory.deleteByKhachHang(id);
-
-            // Sau đó xóa khách hàng
-            khachHangResponsitory.DeleteKhachHang(kh);
-        }
-
-        response.sendRedirect(request.getContextPath() + "/khachhang/hien-thi");
-    }
 
     private void hienThiKhachHang(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("menu", "khachhang");
