@@ -6,8 +6,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 @WebServlet(name = "PhieuGiamGiaServlet", value = {
@@ -17,7 +21,8 @@ import java.util.List;
         "/phieugiamgia/update",
         "/phieugiamgia/delete",
         "/phieugiamgia/view-update",
-        "/phieugiamgia/search"
+        "/phieugiamgia/search",
+        "/phieugiamgia/export-excel"
 })
 public class PhieuGiamGiaServlet extends HttpServlet {
 
@@ -37,6 +42,8 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             delete(request, response);
         } else if (uri.endsWith("/search")) {
             search(request, response);
+        } else if (uri.endsWith("/export-excel")) {
+            exportExcel(request, response);
         } else {
             hienThi(request, response);
         }
@@ -56,20 +63,19 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         }
     }
 
-    // ================= HELPER TỰ ĐỘNG BẬT/TẮT TRẠNG THÁI THEO HẠN =================
+    // Auto update status by expiration date
     private void autoUpdateStatus(PhieuGiamGia pgg) {
         if (pgg != null && pgg.getNgayKetThuc() != null) {
             java.util.Date today = new java.util.Date();
-            // Nếu ngày kết thúc nhỏ hơn ngày hiện tại -> Tắt (0), Ngược lại -> Bật (1)
             if (pgg.getNgayKetThuc().before(today)) {
-                pgg.setTrangThai(0); // Ngừng hoạt động
+                pgg.setTrangThai(0);
             } else {
-                pgg.setTrangThai(1); // Đang hoạt động
+                pgg.setTrangThai(1);
             }
         }
     }
 
-    // ================= HIỂN THỊ DANH SÁCH =================
+    // Hiển thị danh sách
     private void hienThi(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -87,7 +93,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
                 .forward(request, response);
     }
 
-    // ================= HIỂN THỊ FORM THÊM MỚI =================
+    // Form thêm mới
     private void viewAdd(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -95,7 +101,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
                 .forward(request, response);
     }
 
-    // ================= HIỂN THỊ FORM CẬP NHẬT =================
+    // Form cập nhật
     private void viewUpdate(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -113,7 +119,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         }
     }
 
-    // ================= TÌM KIẾM & LỌC THEO NGÀY =================
+    // Tìm kiếm
     private void search(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -148,7 +154,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
                 .forward(request, response);
     }
 
-    // ================= XỬ LÝ THÊM MỚI (POST) =================
+    // Thêm mới
     private void addPhieuGiamGia(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
@@ -158,8 +164,6 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             String loaiGiamGia = request.getParameter("loaiGiamGia");
 
             BigDecimal giaTriGiamGia = parseBigDecimal(request.getParameter("giaTriGiamGia"));
-
-            // Xử lý Giảm Tối Đa: Chỉ lấy giá trị nếu là giảm Phần trăm (%), ngược lại cho null
             BigDecimal giamToiDa = null;
             if ("%".equals(loaiGiamGia)) {
                 giamToiDa = parseBigDecimal(request.getParameter("giamToiDa"));
@@ -184,16 +188,14 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             pgg.setNgayKetThuc(ngayKetThuc);
             pgg.setNgayTao(new java.util.Date());
 
-            // Tự động gán trạng thái lúc tạo mới
             java.util.Date today = new java.util.Date();
             if (ngayKetThuc != null && ngayKetThuc.before(today)) {
-                pgg.setTrangThai(0); // Hết hạn -> Ngừng hoạt động
+                pgg.setTrangThai(0);
             } else {
-                pgg.setTrangThai(1); // Còn hạn -> Đang hoạt động
+                pgg.setTrangThai(1);
             }
 
             repo.addPhieuGiamGia(pgg);
-
             request.getSession().setAttribute("success", "Thêm phiếu giảm giá thành công!");
 
         } catch (Exception e) {
@@ -204,7 +206,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/phieugiamgia/hien-thi");
     }
 
-    // ================= XỬ LÝ CẬP NHẬT (POST) =================
+    // Cập nhật
     private void updatePhieuGiamGia(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
@@ -218,10 +220,8 @@ public class PhieuGiamGiaServlet extends HttpServlet {
                 pgg.setMaVoucher(request.getParameter("maVoucher"));
                 pgg.setTenVoucher(request.getParameter("tenVoucher"));
                 pgg.setLoaiGiamGia(loaiGiamGia);
-
                 pgg.setGiaTriGiamGia(parseBigDecimal(request.getParameter("giaTriGiamGia")));
 
-                // Xử lý Giảm Tối Đa: Nếu đổi sang Tiền mặt thì tự xóa giamToiDa về null
                 if ("%".equals(loaiGiamGia)) {
                     pgg.setGiamToiDa(parseBigDecimal(request.getParameter("giamToiDa")));
                 } else {
@@ -230,14 +230,11 @@ public class PhieuGiamGiaServlet extends HttpServlet {
 
                 pgg.setDonToiThieu(parseBigDecimal(request.getParameter("donToiThieu")));
                 pgg.setSoLuong(parseInteger(request.getParameter("soLuong")));
-
                 pgg.setNgayBatDau(parseDate(request.getParameter("ngayBatDau")));
                 pgg.setNgayKetThuc(parseDate(request.getParameter("ngayKetThuc")));
-
                 pgg.setTrangThai(parseInteger(request.getParameter("trangThai")));
 
                 repo.updatePhieuGiamGia(pgg);
-
                 request.getSession().setAttribute("success", "Cập nhật phiếu giảm giá thành công!");
             } else {
                 request.getSession().setAttribute("error", "Không tìm thấy phiếu giảm giá!");
@@ -251,7 +248,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/phieugiamgia/hien-thi");
     }
 
-    // ================= XỬ LÝ XÓA =================
+    // Xóa
     private void delete(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
 
@@ -274,7 +271,58 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/phieugiamgia/hien-thi");
     }
 
-    // ================= CHUYỂN FLASH MESSAGE =================
+    // XUẤT EXCEL
+    private void exportExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        List<PhieuGiamGia> list = repo.getAll();
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Danh Sách Phiếu Giảm Giá");
+
+        // Header style
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        headerStyle.setFont(font);
+
+        Row headerRow = sheet.createRow(0);
+        String[] headers = {"STT", "Mã Voucher", "Tên Voucher", "Loại", "Giá Trị", "Giảm Tối Đa", "Đơn Tối Thiểu", "Số Lượng", "Ngày Bắt Đầu", "Ngày Kết Thúc", "Trạng Thái"};
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        int rowNum = 1;
+        for (int i = 0; i < list.size(); i++) {
+            PhieuGiamGia pgg = list.get(i);
+            Row row = sheet.createRow(rowNum++);
+
+            row.createCell(0).setCellValue(i + 1);
+            row.createCell(1).setCellValue(pgg.getMaVoucher() != null ? pgg.getMaVoucher() : "");
+            row.createCell(2).setCellValue(pgg.getTenVoucher() != null ? pgg.getTenVoucher() : "");
+            row.createCell(3).setCellValue(pgg.getLoaiGiamGia() != null ? pgg.getLoaiGiamGia() : "");
+            row.createCell(4).setCellValue(pgg.getGiaTriGiamGia() != null ? pgg.getGiaTriGiamGia().toString() : "0");
+            row.createCell(5).setCellValue(pgg.getGiamToiDa() != null ? pgg.getGiamToiDa().toString() : "-");
+            row.createCell(6).setCellValue(pgg.getDonToiThieu() != null ? pgg.getDonToiThieu().toString() : "0");
+            row.createCell(7).setCellValue(pgg.getSoLuong() != null ? pgg.getSoLuong() : 0);
+            row.createCell(8).setCellValue(pgg.getNgayBatDau() != null ? sdf.format(pgg.getNgayBatDau()) : "");
+            row.createCell(9).setCellValue(pgg.getNgayKetThuc() != null ? sdf.format(pgg.getNgayKetThuc()) : "");
+            row.createCell(10).setCellValue(pgg.getTrangThai() != null && pgg.getTrangThai() == 1 ? "Đang hoạt động" : "Ngừng hoạt động");
+        }
+
+        // Auto size columns
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=danh_sach_phieu_giam_gia.xlsx");
+
+        workbook.write(response.getOutputStream());
+        workbook.close();
+    }
+
     private void moveFlash(HttpServletRequest request) {
         Object success = request.getSession().getAttribute("success");
         Object error = request.getSession().getAttribute("error");
@@ -290,9 +338,8 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         }
     }
 
-    // ================= HELPER PARSE AN TOÀN =================
     private BigDecimal parseBigDecimal(String value) {
-        if (value == null || value.trim().isEmpty()) return null; // Đổi trả về null nếu trống
+        if (value == null || value.trim().isEmpty()) return null;
         try {
             return new BigDecimal(value.trim());
         } catch (Exception e) {
