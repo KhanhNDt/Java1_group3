@@ -83,9 +83,11 @@
 
             <div class="col-12 quick-range d-flex flex-wrap gap-2 mt-1">
                 <c:url var="qToday" value="/dashboard"><c:param name="fromDate" value="${todayLabel}"/><c:param name="toDate" value="${todayLabel}"/><c:param name="groupBy" value="day"/></c:url>
-                <c:url var="q7" value="/dashboard"><c:param name="groupBy" value="day"/></c:url>
+                <c:url var="q30Days" value="/dashboard"><c:param name="groupBy" value="day"/></c:url>
+                <c:url var="q12Months" value="/dashboard"><c:param name="groupBy" value="month"/></c:url>
                 <a class="btn btn-sm btn-outline-secondary ${customRange && fromDate == todayLabel && toDate == todayLabel ? 'active' : ''}" href="${qToday}">Hôm nay</a>
-                <a class="btn btn-sm btn-outline-secondary ${!customRange ? 'active' : ''}" href="${q7}">Mặc định (hôm nay)</a>
+                <a class="btn btn-sm btn-outline-secondary ${!customRange && groupBy == 'day' ? 'active' : ''}" href="${q30Days}">30 ngày gần nhất</a>
+                <a class="btn btn-sm btn-outline-secondary ${!customRange && groupBy == 'month' ? 'active' : ''}" href="${q12Months}">12 tháng gần nhất</a>
                 <small class="text-secondary align-self-center ms-2">
                     <i class="bi bi-info-circle"></i>
                     Đang hiển thị dữ liệu từ <strong>${fromDate}</strong> đến <strong>${toDate}</strong>
