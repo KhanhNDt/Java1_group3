@@ -1,5 +1,6 @@
 package com.example.Scott.responsitory;
 
+import com.example.Scott.dto.DoanhThuDiemDTO;
 import com.example.Scott.entity.HoaDon;
 import com.example.Scott.entity.HoaDonChiTiet;
 import com.example.Scott.entity.LichSuHoaDon;
@@ -14,7 +15,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HoaDonRepo {
 
@@ -444,5 +447,134 @@ public class HoaDonRepo {
             e.printStackTrace();
             return 0;
         }
+    }
+
+    // ================== THỐNG KÊ CHO TRANG DASHBOARD ==================
+
+    /**
+     * Đếm số đơn hàng trong khoảng [from, to] (theo ngày tạo), không tính đơn đã xóa mềm (trạng thái 3).
+     * status = null -> lấy tất cả trạng thái còn lại.
+     */
+    public int getOrderCountBetween(String from, String to, Integer status) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM hoa_don WHERE trang_thai <> 3 " +
+                        "AND CAST(ngay_tao AS DATE) BETWEEN CAST(:from AS DATE) AND CAST(:to AS DATE) ");
+        if (status != null) sql.append("AND trang_thai = :status ");
+        try (Session session = getSession()) {
+            NativeQuery<?> query = session.createNativeQuery(sql.toString());
+            query.setParameter("from", from);
+            query.setParameter("to", to);
+            if (status != null) query.setParameter("status", status);
+            return toInteger(query.getSingleResult());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /**
+     * Tổng doanh thu trong khoảng [from, to]. status = 1 -> chỉ đơn đã thanh toán (doanh thu thực tế).
+     * status = null -> tất cả đơn chưa xóa/hủy (doanh thu dự kiến).
+     */
+    public double getRevenueSum(String from, String to, Integer status) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT ISNULL(SUM(tong_tien_thanh_toan), 0) FROM hoa_don " +
+                        "WHERE trang_thai NOT IN (2, 3) " +
+                        "AND CAST(ngay_tao AS DATE) BETWEEN CAST(:from AS DATE) AND CAST(:to AS DATE) ");
+        if (status != null) sql.append("AND trang_thai = :status ");
+        try (Session session = getSession()) {
+            NativeQuery<?> query = session.createNativeQuery(sql.toString());
+            query.setParameter("from", from);
+            query.setParameter("to", to);
+            if (status != null) query.setParameter("status", status);
+            return toDouble(query.getSingleResult());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0.0;
+        }
+    }
+
+    /**
+     * Đếm số biến thể sản phẩm khác nhau đã bán (đơn đã thanh toán) trong khoảng [from, to].
+     */
+    public int getDistinctProductCountBetween(String from, String to) {
+        String sql = "SELECT COUNT(DISTINCT cthd.id_san_pham_chi_tiet) " +
+                "FROM chi_tiet_hoa_don cthd JOIN hoa_don hd ON cthd.id_hoa_don = hd.id " +
+                "WHERE hd.trang_thai = 1 " +
+                "AND CAST(hd.ngay_tao AS DATE) BETWEEN CAST(:from AS DATE) AND CAST(:to AS DATE)";
+        try (Session session = getSession()) {
+            NativeQuery<?> query = session.createNativeQuery(sql);
+            query.setParameter("from", from);
+            query.setParameter("to", to);
+            return toInteger(query.getSingleResult());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /**
+     * Doanh thu theo thời gian (biểu đồ) - chỉ tính đơn đã thanh toán (trạng thái 1).
+     * groupBy: "day" | "week" | "month".
+     */
+    public List<DoanhThuDiemDTO> getRevenueSeries(String from, String to, String groupBy) {
+        String nhanExpr;
+        String groupExpr;
+        switch (groupBy == null ? "day" : groupBy) {
+            case "month":
+                nhanExpr = "FORMAT(ngay_tao, 'yyyy-MM')";
+                groupExpr = "FORMAT(ngay_tao, 'yyyy-MM')";
+                break;
+            case "week":
+                nhanExpr = "CONCAT(DATEPART(ISO_WEEK, ngay_tao), '/', DATEPART(YEAR, ngay_tao))";
+                groupExpr = "DATEPART(YEAR, ngay_tao), DATEPART(ISO_WEEK, ngay_tao)";
+                break;
+            default:
+                nhanExpr = "CONVERT(varchar(10), ngay_tao, 120)";
+                groupExpr = "CONVERT(varchar(10), ngay_tao, 120)";
+        }
+
+        String sql = "SELECT " + nhanExpr + " AS nhan, " +
+                "SUM(tong_tien_thanh_toan) AS doanh_thu, COUNT(*) AS so_don " +
+                "FROM hoa_don " +
+                "WHERE trang_thai = 1 " +
+                "AND CAST(ngay_tao AS DATE) BETWEEN CAST(:from AS DATE) AND CAST(:to AS DATE) " +
+                "GROUP BY " + groupExpr + " " +
+                "ORDER BY MIN(ngay_tao)";
+
+        List<DoanhThuDiemDTO> list = new ArrayList<>();
+        try (Session session = getSession()) {
+            NativeQuery<Object[]> query = session.createNativeQuery(sql);
+            query.setParameter("from", from);
+            query.setParameter("to", to);
+            for (Object[] row : query.getResultList()) {
+                list.add(new DoanhThuDiemDTO((String) row[0], toDouble(row[1]), toInteger(row[2])));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Đếm số đơn hàng theo từng trạng thái trong khoảng [from, to].
+     * key: trạng thái (0=Chờ xử lý,1=Đã thanh toán,2=Đã hủy,3=Đã xóa), value: số lượng.
+     */
+    public Map<Integer, Integer> getStatusDistribution(String from, String to) {
+        String sql = "SELECT trang_thai, COUNT(*) FROM hoa_don " +
+                "WHERE CAST(ngay_tao AS DATE) BETWEEN CAST(:from AS DATE) AND CAST(:to AS DATE) " +
+                "GROUP BY trang_thai";
+        Map<Integer, Integer> map = new LinkedHashMap<>();
+        try (Session session = getSession()) {
+            NativeQuery<Object[]> query = session.createNativeQuery(sql);
+            query.setParameter("from", from);
+            query.setParameter("to", to);
+            for (Object[] row : query.getResultList()) {
+                map.put(toInteger(row[0]), toInteger(row[1]));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return map;
     }
 }

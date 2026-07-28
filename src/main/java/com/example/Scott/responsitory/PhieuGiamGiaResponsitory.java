@@ -3,66 +3,132 @@ package com.example.Scott.responsitory;
 import com.example.Scott.entity.PhieuGiamGia;
 import com.example.Scott.utils.HibernateConfig;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 
+import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PhieuGiamGiaResponsitory {
 
-    public List<PhieuGiamGia> getAll(){
-        try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            return s.createQuery(" from PhieuGiamGia ", PhieuGiamGia.class).list();
+    // Lấy toàn bộ danh sách (Clear cache để luôn lấy dữ liệu mới nhất từ DB)
+    public List<PhieuGiamGia> getAll() {
+        List<PhieuGiamGia> list = new ArrayList<>();
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            session.clear(); // Xóa sạch first-level cache cũ
+            list = session.createQuery("FROM PhieuGiamGia ORDER BY id DESC", PhieuGiamGia.class).list();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // Lấy 1 đối tượng theo ID
+    public PhieuGiamGia getOne(Integer id) {
+        PhieuGiamGia pgg = null;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            session.clear();
+            pgg = session.get(PhieuGiamGia.class, id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return pgg;
+    }
+
+    // Thêm mới
+    public void addPhieuGiamGia(PhieuGiamGia pgg) {
+        Transaction transaction = null;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            transaction = session.beginTransaction();
+            session.save(pgg);
+            session.flush(); // Ép ghi xuống DB lập tức
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
         }
     }
 
-    public PhieuGiamGia getOne(Integer id5){
-        try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            return s.find(PhieuGiamGia.class, id5);
+    // CẬP NHẬT (Sửa lại chuẩn 100%: Dùng merge + flush + commit)
+    public void updatePhieuGiamGia(PhieuGiamGia pgg) {
+        Transaction transaction = null;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            transaction = session.beginTransaction();
+
+            // Dùng merge để gắn lại Entity bị detached vào Session hiện tại
+            session.merge(pgg);
+
+            session.flush(); // Đẩy toàn bộ thay đổi xuống DB ngay lập tức
+            transaction.commit(); // Chốt Transaction
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
         }
     }
 
-    public void addPhieuGiamGia(PhieuGiamGia PGG){
-        try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            try {
-                s.getTransaction().begin();
-                s.persist(PGG);
-                s.getTransaction().commit();
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (s.getTransaction().isActive()) s.getTransaction().rollback();
-                throw new RuntimeException("Loi khi them phieu giam gia: " + e.getMessage(), e);
+    // Xóa
+    public void deletePhieuGiamGia(PhieuGiamGia pgg) {
+        Transaction transaction = null;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            transaction = session.beginTransaction();
+            // Cần merge trước khi delete phòng trường hợp entity bị detached
+            Object persistentInstance = session.merge(pgg);
+            session.delete(persistentInstance);
+            session.flush();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            e.printStackTrace();
+        }
+    }
+
+    // Tìm kiếm full điều kiện
+    public List<PhieuGiamGia> searchFull(String keyword, String loaiGiamGia, Integer trangThai, Date from, Date to) {
+        List<PhieuGiamGia> list = new ArrayList<>();
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            session.clear();
+            StringBuilder hql = new StringBuilder("FROM PhieuGiamGia p WHERE 1=1 ");
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                hql.append(" AND (p.maVoucher LIKE :kw OR p.tenVoucher LIKE :kw)");
             }
-        }
-    }
-
-    public void DeletePhieuGiamGia(PhieuGiamGia PGG){
-        try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            try {
-                s.getTransaction().begin();
-                s.delete(PGG);
-                s.getTransaction().commit();
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (s.getTransaction().isActive()) s.getTransaction().rollback();
-                throw new RuntimeException("Loi khi xoa phieu giam gia: " + e.getMessage(), e);
+            if (loaiGiamGia != null && !loaiGiamGia.trim().isEmpty()) {
+                hql.append(" AND p.loaiGiamGia = :loai");
             }
-        }
-    }
-
-    public void updatePhieuGiamGia(PhieuGiamGia PGG){
-        try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            try {
-                s.getTransaction().begin();
-                s.merge(PGG);
-                s.getTransaction().commit();
-            } catch (Exception e) {
-                e.printStackTrace();
-                if (s.getTransaction().isActive()) s.getTransaction().rollback();
-                throw new RuntimeException("Loi khi cap nhat phieu giam gia: " + e.getMessage(), e);
+            if (trangThai != null) {
+                hql.append(" AND p.trangThai = :tt");
             }
-        }
-    }
+            if (from != null) {
+                hql.append(" AND p.ngayBatDau >= :from");
+            }
+            if (to != null) {
+                hql.append(" AND p.ngayKetThuc <= :to");
+            }
+            hql.append(" ORDER BY p.id DESC");
 
-    public static void main(String[] args) {
-        System.out.println(new PhieuGiamGiaResponsitory().getAll());
+            Query<PhieuGiamGia> query = session.createQuery(hql.toString(), PhieuGiamGia.class);
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                query.setParameter("kw", "%" + keyword.trim() + "%");
+            }
+            if (loaiGiamGia != null && !loaiGiamGia.trim().isEmpty()) {
+                query.setParameter("loai", loaiGiamGia);
+            }
+            if (trangThai != null) {
+                query.setParameter("tt", trangThai);
+            }
+            if (from != null) {
+                query.setParameter("from", from);
+            }
+            if (to != null) {
+                query.setParameter("to", to);
+            }
+
+            list = query.list();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
