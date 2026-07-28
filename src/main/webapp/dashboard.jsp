@@ -6,7 +6,7 @@
 <html lang="vi">
 <head>
     <%@ include file="/views/layout/head.jsp" %>
-    <title>Thống kê doanh thu</title>
+    <title>Thống kê doanh thu.</title>
     <style>
         .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
         @media(max-width:1200px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
