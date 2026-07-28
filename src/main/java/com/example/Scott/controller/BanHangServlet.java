@@ -61,6 +61,12 @@ public class BanHangServlet extends HttpServlet {
             case "danhSachVoucher":
                 danhSachVoucher(req, resp);
                 break;
+            case "hoaDonCho":
+                danhSachHoaDonCho(req, resp);
+                break;
+            case "chiTietHoaDonCho":
+                chiTietHoaDonCho(req, resp);
+                break;
             default:
                 hienThiGiaoDien(req, resp);
         }
@@ -74,6 +80,10 @@ public class BanHangServlet extends HttpServlet {
         String action = req.getParameter("action");
         if ("thanhToan".equals(action)) {
             thanhToan(req, resp);
+        } else if ("giuDon".equals(action)) {
+            giuDon(req, resp);
+        } else if ("huyHoaDonCho".equals(action)) {
+            huyHoaDonCho(req, resp);
         } else {
             resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Hành động không được hỗ trợ");
         }
@@ -151,6 +161,158 @@ public class BanHangServlet extends HttpServlet {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("success", true);
         result.put("items", items);
+        writeJson(resp, result);
+    }
+
+    // ================= AJAX: danh sách hóa đơn CHỜ XỬ LÝ (liên kết bảng hoa_don) =================
+    private void danhSachHoaDonCho(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        List<HoaDon> list = hoaDonRepo.layDanhSachHoaDonCho();
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (HoaDon hd : list) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", hd.getId());
+            item.put("maHoaDon", hd.getMaHoaDon());
+            item.put("tenKhachHang", hd.getTenKhachHang());
+            item.put("sdtKhachHang", hd.getSdtKhachHang());
+            item.put("tongTienThanhToan", hd.getTongTienThanhToan());
+            item.put("soLuongSanPham", hd.getSoLuongSanPham());
+            items.add(item);
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("success", true);
+        result.put("items", items);
+        writeJson(resp, result);
+    }
+
+    // ================= AJAX: chi tiết 1 hóa đơn chờ để tải lại vào giỏ hàng =================
+    private void chiTietHoaDonCho(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            Integer id = Integer.parseInt(req.getParameter("id"));
+            HoaDon hd = hoaDonRepo.getById(id);
+            if (hd == null || hd.getTrangThai() == null || hd.getTrangThai() != 0) {
+                result.put("success", false);
+                result.put("message", "Hóa đơn chờ không tồn tại hoặc đã được xử lý.");
+                writeJson(resp, result);
+                return;
+            }
+            List<HoaDonChiTiet> chiTietList = hoaDonRepo.getChiTietByHoaDonId(id);
+            List<Map<String, Object>> gioHang = new ArrayList<>();
+            for (HoaDonChiTiet ct : chiTietList) {
+                ChiTietSanPham sp = chiTietSanPhamRepo.getOne(ct.getIdSanPhamChiTiet());
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("id", ct.getIdSanPhamChiTiet());
+                item.put("ma", ct.getMaBienThe());
+                item.put("tenSanPham", ct.getTenSanPham());
+                item.put("mauSac", ct.getMauSac());
+                item.put("kichThuoc", ct.getKichThuoc());
+                item.put("giaBan", ct.getGiaBanRa());
+                item.put("soLuong", ct.getSoLuong());
+                item.put("soLuongTon", sp != null ? sp.getSoLuongTon() : ct.getSoLuong());
+                gioHang.add(item);
+            }
+
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("id", hd.getId());
+            data.put("maHoaDon", hd.getMaHoaDon());
+            data.put("sdtKhachHang", hd.getSdtKhachHang());
+            data.put("tenKhachHang", hd.getTenKhachHang());
+            data.put("emailKhachHang", null);
+            data.put("diaChiKhachHang", hd.getDiaChiKhachHang());
+            data.put("idPhieuGiamGia", hd.getIdPhieuGiamGia());
+            data.put("ghiChu", hd.getGhiChu());
+            data.put("gioHang", gioHang);
+
+            result.put("success", true);
+            result.put("hoaDon", data);
+        } catch (NumberFormatException e) {
+            result.put("success", false);
+            result.put("message", "Mã hóa đơn không hợp lệ.");
+        }
+        writeJson(resp, result);
+    }
+
+    // ================= POST: giữ đơn (lưu hóa đơn chờ xử lý vào CSDL) =================
+    private void giuDon(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            HttpSession session = req.getSession(false);
+            TaiKhoan user = (session != null) ? (TaiKhoan) session.getAttribute("user") : null;
+            NhanVien nhanVien = user != null ? user.getNhanVien() : null;
+            if (nhanVien == null) {
+                result.put("success", false);
+                result.put("message", "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
+                writeJson(resp, result);
+                return;
+            }
+
+            ThanhToanRequest payload = docJsonBody(req);
+            if (payload == null || payload.gioHang == null || payload.gioHang.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "Giỏ hàng đang trống, không có gì để giữ.");
+                writeJson(resp, result);
+                return;
+            }
+
+            Integer idKhachHang = null;
+            String sdt = payload.sdtKhachHang == null ? "" : payload.sdtKhachHang.trim();
+            if (sdt.matches("\\d{9,11}")) {
+                KhachHang kh = khachHangRepo.findBySdt(sdt);
+                if (kh == null) {
+                    kh = new KhachHang();
+                    kh.setMa(khachHangRepo.generateNextMa());
+                    kh.setSdt(sdt);
+                    String ten = payload.tenKhachHang == null || payload.tenKhachHang.trim().isEmpty()
+                            ? "Khách lẻ" : payload.tenKhachHang.trim();
+                    kh.setHoTen(ten);
+                    if (payload.emailKhachHang != null && !payload.emailKhachHang.trim().isEmpty()) kh.setEmail(payload.emailKhachHang.trim());
+                    if (payload.diaChiKhachHang != null && !payload.diaChiKhachHang.trim().isEmpty()) kh.setDiaChi(payload.diaChiKhachHang.trim());
+                    kh.setTrangThai(1);
+                    khachHangRepo.addKhachHang(kh);
+                    kh = khachHangRepo.findBySdt(sdt);
+                }
+                idKhachHang = kh != null ? kh.getId() : null;
+            }
+
+            List<HoaDonChiTiet> gioHang = new ArrayList<>();
+            for (GioHangItem gh : payload.gioHang) {
+                if (gh.idSanPhamChiTiet == null || gh.soLuong == null || gh.soLuong <= 0) continue;
+                HoaDonChiTiet ct = new HoaDonChiTiet();
+                ct.setIdSanPhamChiTiet(gh.idSanPhamChiTiet);
+                ct.setSoLuong(gh.soLuong);
+                gioHang.add(ct);
+            }
+
+            HoaDon hd = hoaDonRepo.giuHoaDonCho(payload.idHoaDonCho, idKhachHang, nhanVien.getId(),
+                    payload.idPhieuGiamGia, gioHang, payload.ghiChu);
+
+            result.put("success", true);
+            result.put("message", "Đã giữ đơn hàng, xem lại ở mục Hóa đơn chờ.");
+            result.put("idHoaDonCho", hd.getId());
+            result.put("maHoaDon", hd.getMaHoaDon());
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            result.put("success", false);
+            result.put("message", e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("success", false);
+            result.put("message", "Lỗi hệ thống khi giữ đơn: " + e.getMessage());
+        }
+        writeJson(resp, result);
+    }
+
+    // ================= POST: hủy 1 hóa đơn chờ =================
+    private void huyHoaDonCho(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, Object> result = new LinkedHashMap<>();
+        try {
+            Integer id = Integer.parseInt(req.getParameter("id"));
+            boolean ok = hoaDonRepo.huyHoaDonCho(id);
+            result.put("success", ok);
+            if (!ok) result.put("message", "Không thể hủy hóa đơn này (có thể đã được xử lý).");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "Lỗi khi hủy hóa đơn chờ: " + e.getMessage());
+        }
         writeJson(resp, result);
     }
 
@@ -252,12 +414,21 @@ public class BanHangServlet extends HttpServlet {
                 gioHang.add(ct);
             }
 
+            String phuongThuc = payload.phuongThucThanhToan == null || payload.phuongThucThanhToan.trim().isEmpty()
+                    ? "TIENMAT" : payload.phuongThucThanhToan.trim().toUpperCase();
+            if (!phuongThuc.equals("TIENMAT") && !phuongThuc.equals("CHUYENKHOAN")) {
+                phuongThuc = "TIENMAT";
+            }
+
             HoaDon hoaDon = hoaDonRepo.taoHoaDonBanHang(
                     kh.getId(),
                     nhanVien.getId(),
                     payload.idPhieuGiamGia,
                     gioHang,
-                    payload.ghiChu
+                    payload.ghiChu,
+                    payload.idHoaDonCho,
+                    phuongThuc,
+                    payload.tienKhachDua
             );
 
             result.put("success", true);
@@ -266,6 +437,11 @@ public class BanHangServlet extends HttpServlet {
             result.put("idHoaDon", hoaDon.getId());
             result.put("tongTienThanhToan", hoaDon.getTongTienThanhToan());
             result.put("maKhachHang", kh.getMa());
+            result.put("phuongThucThanhToan", phuongThuc);
+            if ("TIENMAT".equals(phuongThuc) && payload.tienKhachDua != null) {
+                result.put("tienKhachDua", payload.tienKhachDua);
+                result.put("tienThua", payload.tienKhachDua - hoaDon.getTongTienThanhToan());
+            }
         } catch (IllegalStateException | IllegalArgumentException e) {
             result.put("success", false);
             result.put("message", e.getMessage());
@@ -301,6 +477,9 @@ public class BanHangServlet extends HttpServlet {
         Integer idPhieuGiamGia;
         String ghiChu;
         List<GioHangItem> gioHang;
+        Integer idHoaDonCho;
+        String phuongThucThanhToan; // "TIENMAT" hoặc "CHUYENKHOAN"
+        Double tienKhachDua;        // Chỉ áp dụng khi phuongThucThanhToan = TIENMAT
     }
 
     public static class GioHangItem {
