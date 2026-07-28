@@ -45,8 +45,27 @@ public class DashboardServlet extends HttpServlet {
         String toParam = request.getParameter("toDate");
 
         boolean customRange = notEmpty(fromParam) && notEmpty(toParam);
-        LocalDate from = customRange ? parseDate(fromParam, today) : today;
-        LocalDate to = customRange ? parseDate(toParam, today) : today;
+        LocalDate from;
+        LocalDate to;
+        if (customRange) {
+            from = parseDate(fromParam, today);
+            to = parseDate(toParam, today);
+        } else {
+            // Khi chưa chọn khoảng ngày cụ thể, mặc định 1 khoảng đủ dài để biểu đồ đường
+            // thể hiện được xu hướng theo đúng kiểu nhóm dữ liệu đang chọn (ngày/tuần/tháng),
+            // thay vì luôn chỉ có đúng 1 điểm dữ liệu của "hôm nay".
+            to = today;
+            switch (groupBy) {
+                case "month":
+                    from = today.minusMonths(11).withDayOfMonth(1); // 12 tháng gần nhất
+                    break;
+                case "week":
+                    from = today.minusWeeks(11).with(DayOfWeek.MONDAY); // 12 tuần gần nhất
+                    break;
+                default:
+                    from = today.minusDays(29); // 30 ngày gần nhất
+            }
+        }
         if (from.isAfter(to)) { // hoán đổi nếu người dùng chọn ngược
             LocalDate tmp = from; from = to; to = tmp;
         }
