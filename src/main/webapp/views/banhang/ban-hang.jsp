@@ -160,6 +160,31 @@
                     <div class="summary-row total"><span>Khách trả</span><span id="sumTong">0 đ</span></div>
                 </div>
 
+                <div class="mt-3">
+                    <label class="form-label d-block">Phương thức thanh toán</label>
+                    <div class="btn-group w-100" role="group" aria-label="Phương thức thanh toán">
+                        <input type="radio" class="btn-check" name="phuongThucThanhToan" id="pttTienMat" value="TIENMAT" checked>
+                        <label class="btn btn-outline-primary" for="pttTienMat"><i class="bi bi-cash"></i> Tiền mặt</label>
+
+                        <input type="radio" class="btn-check" name="phuongThucThanhToan" id="pttChuyenKhoan" value="CHUYENKHOAN">
+                        <label class="btn btn-outline-primary" for="pttChuyenKhoan"><i class="bi bi-qr-code"></i> Chuyển khoản (QR)</label>
+                    </div>
+
+                    <div id="tienMatWrap" class="mt-3">
+                        <label class="form-label">Tiền khách đưa</label>
+                        <input type="number" min="0" step="1000" id="tienKhachDuaInput" class="form-control" placeholder="Nhập số tiền khách đưa">
+                        <div class="summary-row total mt-2">
+                            <span>Tiền thừa trả khách</span>
+                            <span id="sumTienThua">0 đ</span>
+                        </div>
+                    </div>
+
+                    <div id="qrWrap" class="text-center mt-3" style="display:none;">
+                        <img id="qrImg" src="" alt="Mã QR thanh toán" style="width:220px;height:220px;border:1px solid #eef0f5;border-radius:12px;padding:6px;background:#fff;">
+                        <div class="small text-muted mt-2">Khách quét mã để chuyển khoản đúng số tiền, sau đó bấm Thanh toán để hoàn tất đơn.</div>
+                    </div>
+                </div>
+
                 <div class="d-flex gap-2 mt-3">
                     <button type="button" class="btn btn-outline-secondary btn-thanh-toan flex-shrink-0" id="btnGiuDon">
                         <i class="bi bi-hourglass-split"></i> Giữ đơn
@@ -178,6 +203,57 @@
     let cart = [];       // {id, ma, tenSanPham, mauSac, kichThuoc, giaBan, soLuongTon, soLuong}
     let vouchers = [];
     let productCache = {};
+
+    // ============== CẤU HÌNH QR CHUYỂN KHOẢN (VietQR) ==============
+    // TODO: đổi lại đúng thông tin tài khoản ngân hàng của cửa hàng trước khi dùng thật.
+    const BANK_CONFIG = {
+        bin: '970422',            // Mã ngân hàng (BIN) - vd 970422 = MB Bank
+        accountNo: '0000000000',  // Số tài khoản nhận tiền của cửa hàng
+        accountName: 'SCOTT FASHION' // Tên chủ tài khoản (không dấu)
+    };
+
+    function xayDungQrUrl(soTien, noiDung) {
+        const bin = encodeURIComponent(BANK_CONFIG.bin);
+        const stk = encodeURIComponent(BANK_CONFIG.accountNo);
+        return 'https://img.vietqr.io/image/' + bin + '-' + stk + '-compact2.png' +
+            '?amount=' + Math.round(soTien || 0) +
+            '&addInfo=' + encodeURIComponent(noiDung || 'Thanh toan don hang') +
+            '&accountName=' + encodeURIComponent(BANK_CONFIG.accountName);
+    }
+
+    function tinhTongThanhToan() {
+        const tienHang = tinhTienHang();
+        return tienHang - tinhTienGiam(tienHang);
+    }
+
+    function capNhatQr() {
+        const isChuyenKhoan = document.getElementById('pttChuyenKhoan').checked;
+        const qrWrap = document.getElementById('qrWrap');
+        const tienMatWrap = document.getElementById('tienMatWrap');
+        tienMatWrap.style.display = isChuyenKhoan ? 'none' : 'block';
+        if (!isChuyenKhoan) {
+            qrWrap.style.display = 'none';
+            capNhatTienThua();
+            return;
+        }
+        const tongTien = tinhTongThanhToan();
+        const sdt = document.getElementById('sdtInput').value.trim();
+        const noiDung = 'TT ' + (sdt || 'khach le');
+        document.getElementById('qrImg').src = xayDungQrUrl(tongTien, noiDung);
+        qrWrap.style.display = 'block';
+    }
+    document.getElementById('pttTienMat').addEventListener('change', capNhatQr);
+    document.getElementById('pttChuyenKhoan').addEventListener('change', capNhatQr);
+
+    function capNhatTienThua() {
+        const tongTien = tinhTongThanhToan();
+        const tienDua = parseFloat(document.getElementById('tienKhachDuaInput').value) || 0;
+        const tienThua = tienDua - tongTien;
+        const el = document.getElementById('sumTienThua');
+        el.textContent = formatTien(Math.max(tienThua, 0));
+        el.parentElement.querySelector('span:last-child').style.color = tienThua < 0 ? '#e14b4b' : '#2ecc71';
+    }
+    document.getElementById('tienKhachDuaInput').addEventListener('input', capNhatTienThua);
 
     function formatTien(n) {
         return Math.round(n || 0).toLocaleString('vi-VN') + ' đ';
@@ -306,11 +382,13 @@
                     '</tr>';
             }).join('');
         }
+        renderVoucherOptions();
         const tienHang = tinhTienHang();
         const tienGiam = tinhTienGiam(tienHang);
         document.getElementById('sumTienHang').textContent = formatTien(tienHang);
         document.getElementById('sumGiam').textContent = '- ' + formatTien(tienGiam);
         document.getElementById('sumTong').textContent = formatTien(tienHang - tienGiam);
+        capNhatQr();
     }
 
     // ============== KHÁCH HÀNG ==============
@@ -318,6 +396,7 @@
     document.getElementById('sdtInput').addEventListener('input', function () {
         clearTimeout(sdtTimer);
         const sdt = this.value.trim();
+        capNhatQr();
         if (!/^\d{9,11}$/.test(sdt)) {
             document.getElementById('khStatus').innerHTML = sdt ? '<span class="text-danger">Số điện thoại chưa hợp lệ (9-11 số)</span>' : '';
             return;
@@ -348,15 +427,44 @@
             .then(r => r.json())
             .then(data => {
                 vouchers = data.items || [];
-                const select = document.getElementById('voucherSelect');
-                select.innerHTML = '<option value="">-- Không dùng voucher --</option>' +
-                    vouchers.map(v => {
-                        const mo = v.loaiGiamGia === '%'
-                            ? (v.giaTriGiamGia + '%')
-                            : formatTien(v.giaTriGiamGia);
-                        return '<option value="' + v.id + '">' + v.maVoucher + ' - ' + v.tenVoucher + ' (' + mo + ')</option>';
-                    }).join('');
+                renderVoucherOptions();
             });
+    }
+
+    // Chỉ liệt kê các voucher mà giỏ hàng hiện tại ĐỦ điều kiện áp dụng (đạt đơn tối thiểu),
+    // tự động cập nhật lại mỗi khi giỏ hàng thay đổi. Nếu voucher đang chọn không còn đủ điều
+    // kiện (do bớt sản phẩm...) thì tự bỏ chọn và báo cho nhân viên biết.
+    function renderVoucherOptions() {
+        const select = document.getElementById('voucherSelect');
+        const dangChon = select.value;
+        const tienHang = tinhTienHang();
+        const dieuKien = vouchers.filter(v => tienHang >= (v.donToiThieu || 0));
+
+        select.innerHTML = '<option value="">-- Không dùng voucher --</option>' +
+            dieuKien.map(v => {
+                const mo = v.loaiGiamGia === '%'
+                    ? (v.giaTriGiamGia + '%')
+                    : formatTien(v.giaTriGiamGia);
+                return '<option value="' + v.id + '">' + v.maVoucher + ' - ' + v.tenVoucher + ' (' + mo + ')</option>';
+            }).join('');
+
+        if (dangChon && dieuKien.some(v => String(v.id) === String(dangChon))) {
+            select.value = dangChon;
+        } else if (dangChon) {
+            showAlert('warning', 'Giỏ hàng không còn đủ điều kiện áp dụng voucher đã chọn nên đã được bỏ chọn.');
+        }
+
+        const khongCoVoucherDuDieuKien = !dieuKien.length && vouchers.length && tienHang > 0;
+        let hint = document.getElementById('voucherHint');
+        if (!hint) {
+            hint = document.createElement('div');
+            hint.id = 'voucherHint';
+            hint.className = 'small text-muted mt-1';
+            select.insertAdjacentElement('afterend', hint);
+        }
+        hint.textContent = khongCoVoucherDuDieuKien
+            ? 'Chưa có voucher nào đủ điều kiện áp dụng cho đơn hàng hiện tại.'
+            : '';
     }
     document.getElementById('voucherSelect').addEventListener('change', renderCart);
 
@@ -388,6 +496,18 @@
             return;
         }
 
+        const phuongThucThanhToan = document.querySelector('input[name="phuongThucThanhToan"]:checked').value;
+
+        let tienKhachDua = null;
+        if (phuongThucThanhToan === 'TIENMAT') {
+            const tongTien = tinhTongThanhToan();
+            tienKhachDua = parseFloat(document.getElementById('tienKhachDuaInput').value) || 0;
+            if (tienKhachDua < tongTien) {
+                showAlert('danger', 'Số tiền khách đưa (' + formatTien(tienKhachDua) + ') nhỏ hơn tổng tiền cần thanh toán (' + formatTien(tongTien) + ').');
+                return;
+            }
+        }
+
         const payload = {
             sdtKhachHang: sdt,
             tenKhachHang: document.getElementById('tenKhInput').value.trim(),
@@ -395,7 +515,10 @@
             diaChiKhachHang: diaChi,
             idPhieuGiamGia: document.getElementById('voucherSelect').value || null,
             ghiChu: document.getElementById('ghiChuInput').value.trim(),
-            gioHang: cart.map(c => ({ idSanPhamChiTiet: c.id, soLuong: c.soLuong }))
+            gioHang: cart.map(c => ({ idSanPhamChiTiet: c.id, soLuong: c.soLuong })),
+            idHoaDonCho: currentHeldId || null,
+            phuongThucThanhToan: phuongThucThanhToan,
+            tienKhachDua: tienKhachDua
         };
 
         const btn = this;
@@ -410,10 +533,15 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    showAlert('success', 'Thanh toán thành công! Mã hóa đơn <strong>' + data.maHoaDon +
-                        '</strong> - Tổng tiền: ' + formatTien(data.tongTienThanhToan) +
-                        ' &nbsp; <a href="' + ctx + '/quanlyhoadon?action=detail&id=' + data.idHoaDon +
-                        '" class="alert-link">Xem hóa đơn</a>');
+                    let msg = 'Thanh toán thành công! Mã hóa đơn <strong>' + data.maHoaDon +
+                        '</strong> - Tổng tiền: ' + formatTien(data.tongTienThanhToan);
+                    if (phuongThucThanhToan === 'TIENMAT' && tienKhachDua !== null) {
+                        msg += ' - Khách đưa: ' + formatTien(tienKhachDua) +
+                            ' - Trả lại: ' + formatTien(tienKhachDua - data.tongTienThanhToan);
+                    }
+                    msg += ' &nbsp; <a href="' + ctx + '/quanlyhoadon?action=detail&id=' + data.idHoaDon +
+                        '" class="alert-link">Xem hóa đơn</a>';
+                    showAlert('success', msg);
                     resetWorkingOrder();
                     taiVoucher();
                 } else {
@@ -432,15 +560,9 @@
         if (e.key === 'Enter') timSanPham();
     });
 
-    // ============== HÓA ĐƠN CHỜ (giữ đơn để phục vụ khách khác / khách đi lấy thêm hàng) ==============
-    const HELD_ORDERS_KEY = 'scott_banhang_hoadoncho';
-    let heldOrders = [];
-    try { heldOrders = JSON.parse(localStorage.getItem(HELD_ORDERS_KEY) || '[]'); } catch (e) { heldOrders = []; }
-    let currentHeldId = null; // id của đơn chờ đang được mở lại để làm việc, null nếu là đơn mới
-
-    function saveHeldOrders() {
-        localStorage.setItem(HELD_ORDERS_KEY, JSON.stringify(heldOrders));
-    }
+    // ============== HÓA ĐƠN CHỜ (liên kết bảng hoa_don thật, trạng thái "Chờ xử lý") ==============
+    let heldOrders = [];        // danh sách lấy từ server: {id, maHoaDon, tenKhachHang, sdtKhachHang, tongTienThanhToan, soLuongSanPham}
+    let currentHeldId = null;   // id hóa đơn chờ đang mở để làm việc, null nếu là đơn mới chưa lưu
 
     function resetWorkingOrder() {
         cart = [];
@@ -451,85 +573,137 @@
         document.getElementById('ghiChuInput').value = '';
         document.getElementById('khStatus').innerHTML = '';
         document.getElementById('voucherSelect').value = '';
+        document.getElementById('pttTienMat').checked = true;
+        document.getElementById('tienKhachDuaInput').value = '';
+        document.getElementById('qrWrap').style.display = 'none';
         currentHeldId = null;
         renderCart();
         timSanPham();
-        renderHeldOrdersBar();
+        taiHoaDonCho();
     }
 
-    function captureCurrentOrderState(id) {
-        return {
-            id: id || ('cho' + Date.now()),
-            sdt: document.getElementById('sdtInput').value.trim(),
-            tenKh: document.getElementById('tenKhInput').value.trim(),
-            emailKh: document.getElementById('emailKhInput').value.trim(),
-            diaChiKh: document.getElementById('diaChiKhInput').value.trim(),
-            idPhieuGiamGia: document.getElementById('voucherSelect').value || '',
-            ghiChu: document.getElementById('ghiChuInput').value.trim(),
-            cart: JSON.parse(JSON.stringify(cart)),
-            thoiGian: new Date().toLocaleString('vi-VN')
-        };
+    function taiHoaDonCho() {
+        fetch(ctx + '/ban-hang-tai-quay?action=hoaDonCho')
+            .then(r => r.json())
+            .then(data => {
+                heldOrders = (data && data.success && data.items) ? data.items : [];
+                renderHeldOrdersBar();
+            })
+            .catch(() => { heldOrders = []; renderHeldOrdersBar(); });
     }
 
-    // silent = true: tự động giữ đơn khi chuyển tab, không hiện thông báo và không reset form
+    // Lưu đơn đang làm dở thành 1 hóa đơn "Chờ xử lý" thật trong CSDL
     function holdCurrentOrder(silent) {
         if (!cart.length) {
             if (!silent) showAlert('warning', 'Giỏ hàng đang trống, không có gì để giữ.');
-            return false;
+            return;
         }
-        const state = captureCurrentOrderState(currentHeldId);
-        const idx = heldOrders.findIndex(o => o.id === state.id);
-        if (idx >= 0) heldOrders[idx] = state; else heldOrders.push(state);
-        saveHeldOrders();
-        if (!silent) {
-            showAlert('success', 'Đã giữ đơn hàng. Bạn có thể tiếp tục bán cho khách khác, sau đó bấm lại vào đơn chờ này để tiếp tục.');
-            resetWorkingOrder();
-        }
-        renderHeldOrdersBar();
-        return true;
+        const payload = {
+            sdtKhachHang: document.getElementById('sdtInput').value.trim(),
+            tenKhachHang: document.getElementById('tenKhInput').value.trim(),
+            emailKhachHang: document.getElementById('emailKhInput').value.trim(),
+            diaChiKhachHang: document.getElementById('diaChiKhInput').value.trim(),
+            idPhieuGiamGia: document.getElementById('voucherSelect').value || null,
+            ghiChu: document.getElementById('ghiChuInput').value.trim(),
+            gioHang: cart.map(c => ({ idSanPhamChiTiet: c.id, soLuong: c.soLuong })),
+            idHoaDonCho: currentHeldId || null
+        };
+        return fetch(ctx + '/ban-hang-tai-quay?action=giuDon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.success) {
+                    if (!silent) {
+                        showAlert('success', 'Đã giữ đơn hàng (Mã: ' + data.maHoaDon + '). Bạn có thể tiếp tục bán cho khách khác, sau đó chọn lại đơn chờ này để tiếp tục.');
+                        resetWorkingOrder();
+                    } else {
+                        currentHeldId = data.idHoaDonCho;
+                        taiHoaDonCho();
+                    }
+                } else if (!silent) {
+                    showAlert('danger', (data && data.message) || 'Không thể giữ đơn.');
+                }
+                return data;
+            })
+            .catch(() => {
+                if (!silent) showAlert('danger', 'Lỗi kết nối tới máy chủ, vui lòng thử lại.');
+            });
     }
 
     window.switchToHeldOrder = function (id) {
         if (id === currentHeldId) return;
-        if (cart.length) holdCurrentOrder(true); // tự giữ đơn đang làm dở trước khi chuyển
-        const idx = heldOrders.findIndex(o => o.id === id);
-        if (idx < 0) return;
-        const state = heldOrders[idx];
-        heldOrders.splice(idx, 1);
-        saveHeldOrders();
+        const proceed = function () {
+            fetch(ctx + '/ban-hang-tai-quay?action=chiTietHoaDonCho&id=' + id)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data || !data.success) {
+                        showAlert('danger', (data && data.message) || 'Không tải được hóa đơn chờ.');
+                        return;
+                    }
+                    const hd = data.hoaDon;
+                    cart = (hd.gioHang || []).map(function (it) {
+                        productCache[it.id] = it;
+                        return {
+                            id: it.id, ma: it.ma, tenSanPham: it.tenSanPham,
+                            mauSac: it.mauSac, kichThuoc: it.kichThuoc,
+                            giaBan: it.giaBan, soLuongTon: it.soLuongTon, soLuong: it.soLuong
+                        };
+                    });
+                    document.getElementById('sdtInput').value = hd.sdtKhachHang || '';
+                    document.getElementById('tenKhInput').value = hd.tenKhachHang || '';
+                    document.getElementById('emailKhInput').value = hd.emailKhachHang || '';
+                    document.getElementById('diaChiKhInput').value = hd.diaChiKhachHang || '';
+                    document.getElementById('ghiChuInput').value = hd.ghiChu || '';
+                    document.getElementById('khStatus').innerHTML = '';
+                    currentHeldId = hd.id;
 
-        cart = state.cart || [];
-        document.getElementById('sdtInput').value = state.sdt || '';
-        document.getElementById('tenKhInput').value = state.tenKh || '';
-        document.getElementById('emailKhInput').value = state.emailKh || '';
-        document.getElementById('diaChiKhInput').value = state.diaChiKh || '';
-        document.getElementById('ghiChuInput').value = state.ghiChu || '';
-        document.getElementById('khStatus').innerHTML = '';
-        currentHeldId = state.id;
+                    renderCart();
+                    timSanPham();
+                    taiVoucher();
+                    const voucherId = hd.idPhieuGiamGia || '';
+                    if (voucherId) {
+                        setTimeout(function () {
+                            document.getElementById('voucherSelect').value = voucherId;
+                            renderCart();
+                        }, 300);
+                    }
+                    taiHoaDonCho();
+                })
+                .catch(() => showAlert('danger', 'Lỗi kết nối tới máy chủ, vui lòng thử lại.'));
+        };
 
-        renderCart();
-        timSanPham();
-        taiVoucher();
-        const voucherId = state.idPhieuGiamGia || '';
-        if (voucherId) {
-            setTimeout(function () {
-                document.getElementById('voucherSelect').value = voucherId;
-                renderCart();
-            }, 300);
+        if (cart.length && !currentHeldId) {
+            if (confirm('Đơn đang làm dở chưa được giữ, chuyển sang đơn chờ khác sẽ mất giỏ hàng hiện tại. Tiếp tục?')) proceed();
+        } else if (cart.length) {
+            holdCurrentOrder(true).then(proceed);
+        } else {
+            proceed();
         }
-        renderHeldOrdersBar();
     };
 
     window.deleteHeldOrder = function (id, ev) {
         if (ev) ev.stopPropagation();
-        if (!confirm('Xóa đơn chờ này? Toàn bộ giỏ hàng và thông tin khách của đơn sẽ mất.')) return;
-        heldOrders = heldOrders.filter(o => o.id !== id);
-        saveHeldOrders();
-        renderHeldOrdersBar();
+        if (!confirm('Hủy đơn chờ này? Đơn sẽ được đánh dấu Đã hủy.')) return;
+        fetch(ctx + '/ban-hang-tai-quay?action=huyHoaDonCho&id=' + id, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.success) {
+                    if (currentHeldId === id) resetWorkingOrder();
+                    taiHoaDonCho();
+                } else {
+                    showAlert('danger', (data && data.message) || 'Không thể hủy đơn chờ này.');
+                }
+            })
+            .catch(() => showAlert('danger', 'Lỗi kết nối tới máy chủ, vui lòng thử lại.'));
     };
 
     window.newOrderTab = function () {
-        if (cart.length) holdCurrentOrder(true);
+        if (cart.length && !currentHeldId) {
+            if (!confirm('Đơn đang làm dở chưa được giữ, tạo đơn mới sẽ mất giỏ hàng hiện tại. Tiếp tục?')) return;
+        }
         resetWorkingOrder();
     };
 
@@ -538,14 +712,14 @@
         let html = '<button type="button" class="btn btn-sm ' + (!currentHeldId ? 'btn-primary' : 'btn-outline-primary') +
             '" onclick="newOrderTab()"><i class="bi bi-plus-lg"></i> Đơn mới</button>';
         if (!heldOrders.length) {
-            html += '<span class="text-muted small ms-1">Chưa có đơn nào đang giữ</span>';
+            html += '<span class="text-muted small ms-1">Chưa có hóa đơn nào đang chờ xử lý</span>';
         }
         heldOrders.forEach(function (o) {
-            const soLuong = (o.cart || []).reduce(function (s, c) { return s + c.soLuong; }, 0);
-            const nhan = (o.tenKh || o.sdt || 'Khách lẻ') + ' • ' + soLuong + ' SP';
-            html += '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="switchToHeldOrder(\'' + o.id + '\')">' +
+            const nhan = (o.tenKhachHang || o.sdtKhachHang || 'Khách lẻ') + ' • ' + (o.soLuongSanPham || 0) + ' SP • ' + formatTien(o.tongTienThanhToan);
+            const active = (o.id === currentHeldId) ? 'btn-primary' : 'btn-outline-secondary';
+            html += '<button type="button" class="btn btn-sm ' + active + '" onclick="switchToHeldOrder(' + o.id + ')">' +
                 '<i class="bi bi-hourglass-split"></i> ' + nhan +
-                '<span class="held-badge-close" style="color:#e14b4b;" onclick="deleteHeldOrder(\'' + o.id + '\', event)">' +
+                '<span class="held-badge-close" style="color:#e14b4b;" onclick="deleteHeldOrder(' + o.id + ', event)">' +
                 '<i class="bi bi-x-circle-fill"></i></span></button>';
         });
         wrap.innerHTML = html;
@@ -559,7 +733,7 @@
     timSanPham();
     taiVoucher();
     renderCart();
-    renderHeldOrdersBar();
+    taiHoaDonCho();
 </script>
 
 <script src="${pageContext.request.contextPath}/assets/js/main.js?v=mono3" defer></script>
