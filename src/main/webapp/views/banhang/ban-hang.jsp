@@ -57,6 +57,10 @@
 
         #khStatus { font-size:13px; margin-top:4px; }
         .btn-thanh-toan { padding:12px; font-size:16px; font-weight:700; border-radius:10px; }
+
+        .orders-bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+        .orders-bar .btn { border-radius:20px; }
+        .held-badge-close { margin-left:6px; }
     </style>
 </head>
 <body>
@@ -67,6 +71,15 @@
     <h2><i class="bi bi-cart-check"></i> Bán hàng tại quầy</h2>
 
     <div id="alertBox"></div>
+
+    <div class="card-custom">
+        <div class="title-box"><i class="bi bi-hourglass-split"></i><span>Hóa đơn chờ</span></div>
+        <div class="orders-bar" id="heldOrdersList"></div>
+        <small class="text-muted d-block mt-2">
+            Dùng khi khách muốn đi lấy thêm sản phẩm hoặc bạn cần phục vụ khách khác:
+            bấm "Giữ đơn" để tạm giữ giỏ hàng hiện tại, sau đó bấm lại vào đơn chờ để tiếp tục.
+        </small>
+    </div>
 
     <div class="pos-layout">
         <!-- CỘT TRÁI: TÌM & CHỌN SẢN PHẨM -->
@@ -95,15 +108,15 @@
                 <input type="text" id="sdtInput" class="form-control" placeholder="Bắt buộc nhập số điện thoại">
                 <div id="khStatus"></div>
 
-                <div class="mt-2" id="tenKhWrap" style="display:none;">
-                    <label class="form-label">Tên khách hàng (khách mới)</label>
+                <div class="mt-2" id="tenKhWrap">
+                    <label class="form-label">Tên khách hàng</label>
                     <input type="text" id="tenKhInput" class="form-control" placeholder="Khách lẻ">
 
-                    <label class="form-label mt-2">Email</label>
-                    <input type="email" id="emailKhInput" class="form-control" placeholder="email@vidu.com">
+                    <label class="form-label mt-2">Email <span class="text-danger">*</span></label>
+                    <input type="email" id="emailKhInput" class="form-control" placeholder="Bắt buộc nhập email">
 
-                    <label class="form-label mt-2">Địa chỉ</label>
-                    <input type="text" id="diaChiKhInput" class="form-control" placeholder="Địa chỉ khách hàng">
+                    <label class="form-label mt-2">Địa chỉ <span class="text-danger">*</span></label>
+                    <input type="text" id="diaChiKhInput" class="form-control" placeholder="Bắt buộc nhập địa chỉ">
                 </div>
 
                 <div class="mt-3">
@@ -147,9 +160,14 @@
                     <div class="summary-row total"><span>Khách trả</span><span id="sumTong">0 đ</span></div>
                 </div>
 
-                <button type="button" class="btn btn-success w-100 mt-3 btn-thanh-toan" id="btnThanhToan">
-                    <i class="bi bi-cash-coin"></i> Thanh toán
-                </button>
+                <div class="d-flex gap-2 mt-3">
+                    <button type="button" class="btn btn-outline-secondary btn-thanh-toan flex-shrink-0" id="btnGiuDon">
+                        <i class="bi bi-hourglass-split"></i> Giữ đơn
+                    </button>
+                    <button type="button" class="btn btn-success w-100 btn-thanh-toan" id="btnThanhToan">
+                        <i class="bi bi-cash-coin"></i> Thanh toán
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -300,7 +318,6 @@
     document.getElementById('sdtInput').addEventListener('input', function () {
         clearTimeout(sdtTimer);
         const sdt = this.value.trim();
-        document.getElementById('tenKhWrap').style.display = 'none';
         if (!/^\d{9,11}$/.test(sdt)) {
             document.getElementById('khStatus').innerHTML = sdt ? '<span class="text-danger">Số điện thoại chưa hợp lệ (9-11 số)</span>' : '';
             return;
@@ -313,11 +330,13 @@
                         document.getElementById('khStatus').innerHTML =
                             '<span class="text-success"><i class="bi bi-check-circle"></i> Khách quen: ' +
                             data.khachHang.hoTen + ' (' + data.khachHang.ma + ')</span>';
-                        document.getElementById('tenKhWrap').style.display = 'none';
+                        // Điền sẵn thông tin đã có, nhân viên vẫn có thể sửa/bổ sung
+                        if (data.khachHang.hoTen) document.getElementById('tenKhInput').value = data.khachHang.hoTen;
+                        if (data.khachHang.email) document.getElementById('emailKhInput').value = data.khachHang.email;
+                        if (data.khachHang.diaChi) document.getElementById('diaChiKhInput').value = data.khachHang.diaChi;
                     } else {
                         document.getElementById('khStatus').innerHTML =
                             '<span class="text-primary"><i class="bi bi-person-plus"></i> Khách mới, sẽ tạo hồ sơ khi thanh toán</span>';
-                        document.getElementById('tenKhWrap').style.display = 'block';
                     }
                 });
         }, 400);
@@ -354,8 +373,18 @@
         }
 
         const email = document.getElementById('emailKhInput').value.trim();
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (!email) {
+            showAlert('danger', 'Vui lòng nhập email khách hàng, đây là thông tin bắt buộc.');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             showAlert('danger', 'Email khách hàng không hợp lệ.');
+            return;
+        }
+
+        const diaChi = document.getElementById('diaChiKhInput').value.trim();
+        if (!diaChi) {
+            showAlert('danger', 'Vui lòng nhập địa chỉ khách hàng, đây là thông tin bắt buộc.');
             return;
         }
 
@@ -363,7 +392,7 @@
             sdtKhachHang: sdt,
             tenKhachHang: document.getElementById('tenKhInput').value.trim(),
             emailKhachHang: email,
-            diaChiKhachHang: document.getElementById('diaChiKhInput').value.trim(),
+            diaChiKhachHang: diaChi,
             idPhieuGiamGia: document.getElementById('voucherSelect').value || null,
             ghiChu: document.getElementById('ghiChuInput').value.trim(),
             gioHang: cart.map(c => ({ idSanPhamChiTiet: c.id, soLuong: c.soLuong }))
@@ -385,17 +414,7 @@
                         '</strong> - Tổng tiền: ' + formatTien(data.tongTienThanhToan) +
                         ' &nbsp; <a href="' + ctx + '/quanlyhoadon?action=detail&id=' + data.idHoaDon +
                         '" class="alert-link">Xem hóa đơn</a>');
-                    cart = [];
-                    document.getElementById('sdtInput').value = '';
-                    document.getElementById('tenKhInput').value = '';
-                    document.getElementById('emailKhInput').value = '';
-                    document.getElementById('diaChiKhInput').value = '';
-                    document.getElementById('ghiChuInput').value = '';
-                    document.getElementById('khStatus').innerHTML = '';
-                    document.getElementById('tenKhWrap').style.display = 'none';
-                    document.getElementById('voucherSelect').value = '';
-                    renderCart();
-                    timSanPham();
+                    resetWorkingOrder();
                     taiVoucher();
                 } else {
                     showAlert('danger', data.message || 'Thanh toán thất bại.');
@@ -413,10 +432,134 @@
         if (e.key === 'Enter') timSanPham();
     });
 
+    // ============== HÓA ĐƠN CHỜ (giữ đơn để phục vụ khách khác / khách đi lấy thêm hàng) ==============
+    const HELD_ORDERS_KEY = 'scott_banhang_hoadoncho';
+    let heldOrders = [];
+    try { heldOrders = JSON.parse(localStorage.getItem(HELD_ORDERS_KEY) || '[]'); } catch (e) { heldOrders = []; }
+    let currentHeldId = null; // id của đơn chờ đang được mở lại để làm việc, null nếu là đơn mới
+
+    function saveHeldOrders() {
+        localStorage.setItem(HELD_ORDERS_KEY, JSON.stringify(heldOrders));
+    }
+
+    function resetWorkingOrder() {
+        cart = [];
+        document.getElementById('sdtInput').value = '';
+        document.getElementById('tenKhInput').value = '';
+        document.getElementById('emailKhInput').value = '';
+        document.getElementById('diaChiKhInput').value = '';
+        document.getElementById('ghiChuInput').value = '';
+        document.getElementById('khStatus').innerHTML = '';
+        document.getElementById('voucherSelect').value = '';
+        currentHeldId = null;
+        renderCart();
+        timSanPham();
+        renderHeldOrdersBar();
+    }
+
+    function captureCurrentOrderState(id) {
+        return {
+            id: id || ('cho' + Date.now()),
+            sdt: document.getElementById('sdtInput').value.trim(),
+            tenKh: document.getElementById('tenKhInput').value.trim(),
+            emailKh: document.getElementById('emailKhInput').value.trim(),
+            diaChiKh: document.getElementById('diaChiKhInput').value.trim(),
+            idPhieuGiamGia: document.getElementById('voucherSelect').value || '',
+            ghiChu: document.getElementById('ghiChuInput').value.trim(),
+            cart: JSON.parse(JSON.stringify(cart)),
+            thoiGian: new Date().toLocaleString('vi-VN')
+        };
+    }
+
+    // silent = true: tự động giữ đơn khi chuyển tab, không hiện thông báo và không reset form
+    function holdCurrentOrder(silent) {
+        if (!cart.length) {
+            if (!silent) showAlert('warning', 'Giỏ hàng đang trống, không có gì để giữ.');
+            return false;
+        }
+        const state = captureCurrentOrderState(currentHeldId);
+        const idx = heldOrders.findIndex(o => o.id === state.id);
+        if (idx >= 0) heldOrders[idx] = state; else heldOrders.push(state);
+        saveHeldOrders();
+        if (!silent) {
+            showAlert('success', 'Đã giữ đơn hàng. Bạn có thể tiếp tục bán cho khách khác, sau đó bấm lại vào đơn chờ này để tiếp tục.');
+            resetWorkingOrder();
+        }
+        renderHeldOrdersBar();
+        return true;
+    }
+
+    window.switchToHeldOrder = function (id) {
+        if (id === currentHeldId) return;
+        if (cart.length) holdCurrentOrder(true); // tự giữ đơn đang làm dở trước khi chuyển
+        const idx = heldOrders.findIndex(o => o.id === id);
+        if (idx < 0) return;
+        const state = heldOrders[idx];
+        heldOrders.splice(idx, 1);
+        saveHeldOrders();
+
+        cart = state.cart || [];
+        document.getElementById('sdtInput').value = state.sdt || '';
+        document.getElementById('tenKhInput').value = state.tenKh || '';
+        document.getElementById('emailKhInput').value = state.emailKh || '';
+        document.getElementById('diaChiKhInput').value = state.diaChiKh || '';
+        document.getElementById('ghiChuInput').value = state.ghiChu || '';
+        document.getElementById('khStatus').innerHTML = '';
+        currentHeldId = state.id;
+
+        renderCart();
+        timSanPham();
+        taiVoucher();
+        const voucherId = state.idPhieuGiamGia || '';
+        if (voucherId) {
+            setTimeout(function () {
+                document.getElementById('voucherSelect').value = voucherId;
+                renderCart();
+            }, 300);
+        }
+        renderHeldOrdersBar();
+    };
+
+    window.deleteHeldOrder = function (id, ev) {
+        if (ev) ev.stopPropagation();
+        if (!confirm('Xóa đơn chờ này? Toàn bộ giỏ hàng và thông tin khách của đơn sẽ mất.')) return;
+        heldOrders = heldOrders.filter(o => o.id !== id);
+        saveHeldOrders();
+        renderHeldOrdersBar();
+    };
+
+    window.newOrderTab = function () {
+        if (cart.length) holdCurrentOrder(true);
+        resetWorkingOrder();
+    };
+
+    function renderHeldOrdersBar() {
+        const wrap = document.getElementById('heldOrdersList');
+        let html = '<button type="button" class="btn btn-sm ' + (!currentHeldId ? 'btn-primary' : 'btn-outline-primary') +
+            '" onclick="newOrderTab()"><i class="bi bi-plus-lg"></i> Đơn mới</button>';
+        if (!heldOrders.length) {
+            html += '<span class="text-muted small ms-1">Chưa có đơn nào đang giữ</span>';
+        }
+        heldOrders.forEach(function (o) {
+            const soLuong = (o.cart || []).reduce(function (s, c) { return s + c.soLuong; }, 0);
+            const nhan = (o.tenKh || o.sdt || 'Khách lẻ') + ' • ' + soLuong + ' SP';
+            html += '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="switchToHeldOrder(\'' + o.id + '\')">' +
+                '<i class="bi bi-hourglass-split"></i> ' + nhan +
+                '<span class="held-badge-close" style="color:#e14b4b;" onclick="deleteHeldOrder(\'' + o.id + '\', event)">' +
+                '<i class="bi bi-x-circle-fill"></i></span></button>';
+        });
+        wrap.innerHTML = html;
+    }
+
+    document.getElementById('btnGiuDon').addEventListener('click', function () {
+        holdCurrentOrder(false);
+    });
+
     // Khởi tạo
     timSanPham();
     taiVoucher();
     renderCart();
+    renderHeldOrdersBar();
 </script>
 
 <script src="${pageContext.request.contextPath}/assets/js/main.js?v=mono3" defer></script>
