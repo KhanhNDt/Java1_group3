@@ -40,31 +40,26 @@
             gap:15px;
             margin-bottom:10px;
         }
-
         .login-title span{
             flex:1;
             height:1px;
             background:#dcdcdc;
         }
-
         .login-title h3{
             margin:0;
             font-weight:700;
             font-size:35px;
             white-space:nowrap;
         }
-
         .card-header{
             background:white;
             border:none;
             padding-bottom:25px;
         }
-
         .form-control{
             height:48px;
             border-radius:10px;
         }
-
         .btn-primary{
             height:48px;
             border-radius:10px;
@@ -72,46 +67,34 @@
         }
     </style>
 </head>
-
 <body>
-
 <div class="container">
     <div class="row justify-content-center mt-5">
         <div class="col-md-6">
-
             <div class="card shadow">
-
                 <!-- Logo -->
                 <div class="admin-sidebar__logo-wrap">
                     <img src="${pageContext.request.contextPath}/assets/images/scott-logo.png"
                          alt="Scott">
                 </div>
-
                 <!-- Tiêu đề -->
                 <div class="card-header">
-
                     <div class="login-title">
                         <span></span>
                         <h3>Đăng nhập</h3>
                         <span></span>
                     </div>
-
                     <p class="text-center text-muted mb-0">
                         Đăng nhập để truy cập hệ thống Scott
                     </p>
-
                 </div>
-
                 <div class="card-body px-4 pb-4">
-
                     <% if(request.getAttribute("error") != null){ %>
                     <div class="alert alert-danger">
                         <%= request.getAttribute("error") %>
                     </div>
                     <% } %>
-
                     <form action="${pageContext.request.contextPath}/login" method="post">
-
                         <div class="mb-3">
                             <label class="form-label">Tên đăng nhập</label>
                             <input type="text"
@@ -119,7 +102,6 @@
                                    class="form-control"
                                    required>
                         </div>
-
                         <div class="mb-4">
                             <label class="form-label">Mật khẩu</label>
                             <input type="password"
@@ -127,17 +109,12 @@
                                    class="form-control"
                                    required>
                         </div>
-
                         <button class="btn btn-primary w-100">
                             Đăng nhập
                         </button>
-
                     </form>
-
                 </div>
-
             </div>
-
         </div>
     </div>
 </div>

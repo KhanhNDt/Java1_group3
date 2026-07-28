@@ -21,6 +21,13 @@
     <nav class="admin-sidebar__nav">
         <div class="admin-sidebar__section-label">Tổng quan</div>
 
+        <a href="${pageContext.request.contextPath}/ban-hang-tai-quay"
+           class="admin-sidebar__item ${menu == 'banhang' ? 'active' : ''}"
+           data-sidebar-tooltip="Bán hàng tại quầy">
+            <span class="admin-sidebar__icon"><i class="bi bi-cart-check"></i></span>
+            <span class="admin-sidebar__label">Bán hàng tại quầy</span>
+        </a>
+
         <c:if test="${sessionScope.user.nhanVien.chucVu == 'Admin'}">
             <a href="${pageContext.request.contextPath}/dashboard"
                class="admin-sidebar__item ${menu == 'dashboard' ? 'active' : ''}"
@@ -88,12 +95,14 @@
             <span class="admin-sidebar__label">Khách hàng</span>
         </a>
 
-        <a href="${pageContext.request.contextPath}/nhan-vien/hien-thi"
-           class="admin-sidebar__item ${menu == 'nhanvien' ? 'active' : ''}"
-           data-sidebar-tooltip="Nhân viên">
-            <span class="admin-sidebar__icon"><i class="bi bi-person-badge"></i></span>
-            <span class="admin-sidebar__label">Nhân viên</span>
-        </a>
+        <c:if test="${sessionScope.user.nhanVien.chucVu == 'Admin'}">
+            <a href="${pageContext.request.contextPath}/nhan-vien/hien-thi"
+               class="admin-sidebar__item ${menu == 'nhanvien' ? 'active' : ''}"
+               data-sidebar-tooltip="Nhân viên">
+                <span class="admin-sidebar__icon"><i class="bi bi-person-badge"></i></span>
+                <span class="admin-sidebar__label">Nhân viên</span>
+            </a>
+        </c:if>
     </nav>
 
     <div class="admin-sidebar__footer">

@@ -5,4 +5,4 @@
     Trang nay chi lam 1 viec: chuyen huong ngay sang Dashboard.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<% response.sendRedirect(request.getContextPath() + "/dashboard"); %>
+<% response.sendRedirect(request.getContextPath() + "/ban-hang-tai-quay"); %>
