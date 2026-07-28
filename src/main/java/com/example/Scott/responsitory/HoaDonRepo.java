@@ -1,9 +1,11 @@
 package com.example.Scott.responsitory;
 
 import com.example.Scott.dto.DoanhThuDiemDTO;
+import com.example.Scott.entity.ChiTietSanPham;
 import com.example.Scott.entity.HoaDon;
 import com.example.Scott.entity.HoaDonChiTiet;
 import com.example.Scott.entity.LichSuHoaDon;
+import com.example.Scott.entity.PhieuGiamGia;
 import com.example.Scott.entity.ThanhToanHoaDon;
 import com.example.Scott.utils.HibernateConfig;
 import org.hibernate.Session;
@@ -576,5 +578,136 @@ public class HoaDonRepo {
             e.printStackTrace();
         }
         return map;
+    }
+
+    // ================== BÁN HÀNG TẠI QUẦY (POS) ==================
+
+    /**
+     * Sinh mã hóa đơn kế tiếp theo dạng HDxxx, tiếp nối số lớn nhất đang có trong bảng hoa_don.
+     */
+    private String sinhMaHoaDonTiepTheo(Session session) {
+        List<String> codes = session.createQuery("select maHoaDon from HoaDon", String.class).list();
+        int max = 0;
+        for (String code : codes) {
+            if (code != null && code.toUpperCase().matches("HD\\d+")) {
+                try { max = Math.max(max, Integer.parseInt(code.substring(2))); } catch (NumberFormatException ignored) {}
+            }
+        }
+        return String.format("HD%03d", max + 1);
+    }
+
+    /**
+     * Tạo hóa đơn cho chức năng Bán hàng tại quầy trong 1 transaction duy nhất:
+     * - Kiểm tra & trừ tồn kho từng biến thể sản phẩm trong giỏ hàng.
+     * - Áp dụng phiếu giảm giá (nếu có) và tăng số lượt đã dùng.
+     * - Ghi hóa đơn, chi tiết hóa đơn và lịch sử hóa đơn.
+     * Toàn bộ được rollback nếu có bất kỳ bước nào lỗi (vd: hết hàng, voucher hết lượt...).
+     *
+     * @param idKhachHang    id khách hàng (bắt buộc, đã được tìm/tạo trước theo số điện thoại)
+     * @param idNhanVien     id nhân viên đang đăng nhập, phụ trách bán đơn
+     * @param idPhieuGiamGia id phiếu giảm giá áp dụng, có thể null nếu không dùng
+     * @param gioHang        danh sách sản phẩm trong giỏ hàng (chỉ cần idSanPhamChiTiet + soLuong)
+     * @param ghiChu         ghi chú của đơn hàng (có thể null)
+     */
+    public HoaDon taoHoaDonBanHang(Integer idKhachHang, Integer idNhanVien, Integer idPhieuGiamGia,
+                                   List<HoaDonChiTiet> gioHang, String ghiChu) {
+        if (gioHang == null || gioHang.isEmpty()) {
+            throw new IllegalArgumentException("Giỏ hàng đang trống, không thể tạo hóa đơn.");
+        }
+        Transaction tx = null;
+        try (Session session = getSession()) {
+            tx = session.beginTransaction();
+
+            double tongTienHang = 0;
+            for (HoaDonChiTiet ct : gioHang) {
+                if (ct.getIdSanPhamChiTiet() == null || ct.getSoLuong() == null || ct.getSoLuong() <= 0) {
+                    throw new IllegalStateException("Sản phẩm trong giỏ hàng không hợp lệ.");
+                }
+                ChiTietSanPham sp = session.get(ChiTietSanPham.class, ct.getIdSanPhamChiTiet());
+                if (sp == null) {
+                    throw new IllegalStateException("Sản phẩm không tồn tại hoặc đã bị xóa.");
+                }
+                int tonHienTai = sp.getSoLuongTon() == null ? 0 : sp.getSoLuongTon();
+                if (tonHienTai < ct.getSoLuong()) {
+                    throw new IllegalStateException("Sản phẩm \"" + sp.getMa() + "\" chỉ còn " + tonHienTai + " sản phẩm trong kho.");
+                }
+
+                double gia = sp.getGiaBan() == null ? 0 : sp.getGiaBan().doubleValue();
+                ct.setDonGia(gia);
+                ct.setGiaBanRa(gia);
+                ct.setTongTien(gia * ct.getSoLuong());
+                ct.setTrangThai(1);
+                tongTienHang += ct.getTongTien();
+
+                sp.setSoLuongTon(tonHienTai - ct.getSoLuong());
+                session.merge(sp);
+            }
+
+            double tienGiam = 0;
+            if (idPhieuGiamGia != null) {
+                PhieuGiamGia pgg = session.get(PhieuGiamGia.class, idPhieuGiamGia);
+                if (pgg == null) {
+                    throw new IllegalStateException("Phiếu giảm giá không tồn tại.");
+                }
+                int soLuongToiDa = pgg.getSoLuong() == null ? Integer.MAX_VALUE : pgg.getSoLuong();
+                int daDung = pgg.getSoLuongDaDung() == null ? 0 : pgg.getSoLuongDaDung();
+                if (daDung >= soLuongToiDa) {
+                    throw new IllegalStateException("Phiếu giảm giá \"" + pgg.getMaVoucher() + "\" đã hết lượt sử dụng.");
+                }
+                double donToiThieu = pgg.getDonToiThieu() == null ? 0 : pgg.getDonToiThieu().doubleValue();
+                if (tongTienHang < donToiThieu) {
+                    throw new IllegalStateException("Đơn hàng chưa đạt giá trị tối thiểu để áp dụng phiếu giảm giá này.");
+                }
+                double giaTri = pgg.getGiaTriGiamGia() == null ? 0 : pgg.getGiaTriGiamGia().doubleValue();
+                if ("%".equals(pgg.getLoaiGiamGia())) {
+                    tienGiam = tongTienHang * giaTri / 100.0;
+                    if (pgg.getGiamToiDa() != null && tienGiam > pgg.getGiamToiDa().doubleValue()) {
+                        tienGiam = pgg.getGiamToiDa().doubleValue();
+                    }
+                } else {
+                    tienGiam = giaTri;
+                }
+                if (tienGiam > tongTienHang) tienGiam = tongTienHang;
+
+                pgg.setSoLuongDaDung(daDung + 1);
+                session.merge(pgg);
+            }
+
+            double tongThanhToan = tongTienHang - tienGiam;
+
+            HoaDon hd = new HoaDon();
+            hd.setIdKhachHang(idKhachHang);
+            hd.setIdNhanVien(idNhanVien);
+            hd.setIdPhieuGiamGia(idPhieuGiamGia);
+            hd.setMaHoaDon(sinhMaHoaDonTiepTheo(session));
+            hd.setNgayTao(new Date());
+            hd.setNgayThanhToan(new Date());
+            hd.setTongTienThanhToan(tongThanhToan);
+            hd.setTrangThai(1); // Đã thanh toán ngay tại quầy
+            hd.setGhiChu(ghiChu);
+            session.persist(hd);
+            session.flush();
+
+            for (HoaDonChiTiet ct : gioHang) {
+                ct.setId(null);
+                ct.setIdHoaDon(hd.getId());
+                session.persist(ct);
+            }
+
+            session.createNativeQuery(
+                    "INSERT INTO lich_su_hoa_don (id_hoa_don, ma, thoi_gian, ghi_chu, trang_thai) " +
+                            "VALUES (:id, :ma, GETDATE(), :ghiChu, :status)")
+                    .setParameter("id", hd.getId())
+                    .setParameter("ma", "LS-" + hd.getId() + "-" + System.currentTimeMillis())
+                    .setParameter("ghiChu", "Tạo đơn qua Bán hàng tại quầy, thanh toán thành công")
+                    .setParameter("status", 1)
+                    .executeUpdate();
+
+            tx.commit();
+            return hd;
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            throw new IllegalStateException(e.getMessage(), e);
+        }
     }
 }

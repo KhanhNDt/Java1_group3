@@ -31,14 +31,22 @@ public class KhachHangResponsitory {
         }
     }
 
+    /** Dung cho Ban hang tai quay: tra cuu khach hang theo dung so dien thoai da nhap. */
+    public KhachHang findBySdt(String sdt) {
+        if (sdt == null || sdt.trim().isEmpty()) return null;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            List<KhachHang> list = session.createQuery("from KhachHang where sdt = :sdt", KhachHang.class)
+                    .setParameter("sdt", sdt.trim())
+                    .setMaxResults(1)
+                    .list();
+            return list.isEmpty() ? null : list.get(0);
+        }
+    }
+
     public void addKhachHang(KhachHang khachHang) {
         execute(session -> session.persist(khachHang));
     }
 
-    public void DeleteKhachHang(KhachHang khachHang) {
-        if (khachHang == null) return;
-        execute(session -> session.remove(session.contains(khachHang) ? khachHang : session.merge(khachHang)));
-    }
 
     public void UpdateKhachHang(KhachHang khachHang) {
         execute(session -> session.merge(khachHang));
@@ -54,10 +62,10 @@ public class KhachHangResponsitory {
             StringBuilder hql = new StringBuilder("from KhachHang kh where 1=1");
             if (!kw.isEmpty()) {
                 hql.append(" and (lower(coalesce(kh.ma,'')) like :kw")
-                   .append(" or lower(coalesce(kh.hoTen,'')) like :kw")
-                   .append(" or lower(coalesce(kh.sdt,'')) like :kw")
-                   .append(" or lower(coalesce(kh.email,'')) like :kw")
-                   .append(" or lower(coalesce(kh.diaChi,'')) like :kw)");
+                        .append(" or lower(coalesce(kh.hoTen,'')) like :kw")
+                        .append(" or lower(coalesce(kh.sdt,'')) like :kw")
+                        .append(" or lower(coalesce(kh.email,'')) like :kw")
+                        .append(" or lower(coalesce(kh.diaChi,'')) like :kw)");
             }
             if (gioiTinh != null && !gioiTinh.trim().isEmpty()) hql.append(" and kh.gioiTinh = :gioiTinh");
             if (trangThai != null) hql.append(" and kh.trangThai = :trangThai");

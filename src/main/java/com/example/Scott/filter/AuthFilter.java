@@ -22,9 +22,10 @@ import java.io.IOException;
  *    session), tự động đá về /login. Ngoại lệ: trang login, file tĩnh
  *    (css/js/ảnh...) vì các trang này phải xem được TRƯỚC khi đăng nhập.
  *
- * 2) AUTHORIZATION: khu vực "Quản lý nhân viên" (/nhan-vien/*) chỉ dành cho
- *    tài khoản có chức vụ "Admin". Nhân viên thường cố truy cập sẽ bị chặn
- *    và trả về trang 403 (access-denied.jsp), KHÔNG cho render dữ liệu.
+ * 2) AUTHORIZATION: khu vực "Quản lý nhân viên" (/nhan-vien/*) và trang
+ *    "Thống kê" (/dashboard) chỉ dành cho tài khoản có chức vụ "Admin".
+ *    Nhân viên thường cố truy cập sẽ bị chặn và trả về trang 403
+ *    (access-denied.jsp), KHÔNG cho render dữ liệu.
  *
  * Filter chạy sau CharacterEncodingFilter (do đặt tên A -> C theo alphabet,
  * container sẽ nạp theo thứ tự @WebFilter khai báo trong web.xml/scan;
@@ -44,7 +45,8 @@ public class AuthFilter implements Filter {
 
     // Các đường dẫn chỉ Admin mới được vào
     private static final String[] ADMIN_ONLY_PATHS = {
-            "/nhan-vien/"
+            "/nhan-vien/",
+            "/dashboard"
     };
 
     @Override
@@ -83,7 +85,7 @@ public class AuthFilter implements Filter {
 
         // 3) AUTHORIZATION: khu vực Admin-only
         if (isAdminOnlyPath(path) && !isAdmin(user)) {
-            request.setAttribute("error", "Bạn không có quyền truy cập chức năng này.");
+            request.setAttribute("error", "Bạn không có quyền truy cập chức năng thống kê.");
             request.getRequestDispatcher("/access-denied.jsp").forward(request, response);
             return;
         }

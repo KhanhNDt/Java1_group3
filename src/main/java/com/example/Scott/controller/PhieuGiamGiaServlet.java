@@ -88,7 +88,6 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         request.setAttribute("listPhieuGiamGia", list);
 
         moveFlash(request);
-
         request.getRequestDispatcher("/views/phieugiamgian3/phieugiamgias.jsp")
                 .forward(request, response);
     }

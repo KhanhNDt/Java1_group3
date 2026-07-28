@@ -27,7 +27,7 @@ public class ChiTietSanPhamResponsitory {
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
             StringBuilder hql = new StringBuilder(
                     "SELECT ct FROM ChiTietSanPham ct " +
-                    "JOIN FETCH ct.sanPham sp JOIN FETCH ct.mauSac ms JOIN FETCH ct.size sz WHERE 1=1");
+                            "JOIN FETCH ct.sanPham sp JOIN FETCH ct.mauSac ms JOIN FETCH ct.size sz WHERE 1=1");
             appendFilter(hql, keyword, idSanPham, idMauSac, idSize, tonKho, soLuong, trangThai, giaToiDa);
             hql.append(" ORDER BY ct.id DESC");
             Query<ChiTietSanPham> q = s.createQuery(hql.toString(), ChiTietSanPham.class);
@@ -43,7 +43,7 @@ public class ChiTietSanPhamResponsitory {
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
             StringBuilder hql = new StringBuilder(
                     "SELECT COUNT(ct.id) FROM ChiTietSanPham ct " +
-                    "JOIN ct.sanPham sp JOIN ct.mauSac ms JOIN ct.size sz WHERE 1=1");
+                            "JOIN ct.sanPham sp JOIN ct.mauSac ms JOIN ct.size sz WHERE 1=1");
             appendFilter(hql, keyword, idSanPham, idMauSac, idSize, tonKho, soLuong, trangThai, giaToiDa);
             Query<Long> q = s.createQuery(hql.toString(), Long.class);
             bindFilter(q, keyword, idSanPham, idMauSac, idSize, trangThai, giaToiDa);
@@ -79,6 +79,29 @@ public class ChiTietSanPhamResponsitory {
         if (idSize != null) q.setParameter("idSize", idSize);
         if (trangThai != null) q.setParameter("trangThai", trangThai);
         if (giaToiDa != null) q.setParameter("giaToiDa", giaToiDa);
+    }
+
+    /**
+     * Tim bien the san pham dang ban va con ton kho, dung cho man hinh
+     * Ban hang tai quay (goi qua AJAX). Gioi han 30 ket qua de tra ve nhanh.
+     */
+    public List<ChiTietSanPham> searchForBanHang(String keyword){
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            StringBuilder hql = new StringBuilder(
+                    "SELECT ct FROM ChiTietSanPham ct " +
+                            "JOIN FETCH ct.sanPham sp JOIN FETCH ct.mauSac ms JOIN FETCH ct.size sz " +
+                            "WHERE ct.trangThai = 1 AND ct.soLuongTon > 0");
+            String kw = keyword == null ? "" : keyword.trim().toLowerCase();
+            if (!kw.isEmpty()) {
+                hql.append(" AND (LOWER(ct.ma) LIKE :kw OR LOWER(sp.maSanPham) LIKE :kw " +
+                        "OR LOWER(sp.tenSanPham) LIKE :kw)");
+            }
+            hql.append(" ORDER BY sp.tenSanPham ASC");
+            Query<ChiTietSanPham> q = s.createQuery(hql.toString(), ChiTietSanPham.class);
+            if (!kw.isEmpty()) q.setParameter("kw", "%" + kw + "%");
+            q.setMaxResults(30);
+            return q.list();
+        }
     }
 
     public BigDecimal getMaxGiaBan(){

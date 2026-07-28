@@ -24,6 +24,25 @@ public class PhieuGiamGiaResponsitory {
         return list;
     }
 
+    /**
+     * Danh sach phieu giam gia con hieu luc (dang bat, con luot dung, chua het han),
+     * dung cho man hinh Ban hang tai quay.
+     */
+    public List<PhieuGiamGia> getValidVouchers() {
+        List<PhieuGiamGia> list = new ArrayList<>();
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            session.clear();
+            String hql = "FROM PhieuGiamGia p WHERE p.trangThai = 1 " +
+                    "AND (p.soLuong IS NULL OR p.soLuongDaDung IS NULL OR p.soLuongDaDung < p.soLuong) " +
+                    "AND (p.ngayKetThuc IS NULL OR p.ngayKetThuc >= CURRENT_DATE) " +
+                    "ORDER BY p.id DESC";
+            list = session.createQuery(hql, PhieuGiamGia.class).list();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // Lấy 1 đối tượng theo ID
     public PhieuGiamGia getOne(Integer id) {
         PhieuGiamGia pgg = null;

@@ -48,6 +48,6 @@ public class LoginServlet extends HttpServlet {
 
         session.setAttribute("user", tk);
 
-        response.sendRedirect(request.getContextPath() + "/dashboard");
+        response.sendRedirect(request.getContextPath() + "/ban-hang-tai-quay");
     }
 }
