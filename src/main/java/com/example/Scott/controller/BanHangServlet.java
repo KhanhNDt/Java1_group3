@@ -123,6 +123,7 @@ public class BanHangServlet extends HttpServlet {
             data.put("ma", kh.getMa());
             data.put("hoTen", kh.getHoTen());
             data.put("sdt", kh.getSdt());
+            data.put("email", kh.getEmail());
             data.put("diaChi", kh.getDiaChi());
             result.put("khachHang", data);
         } else {
@@ -190,15 +191,29 @@ public class BanHangServlet extends HttpServlet {
                 return;
             }
 
-            // Kiểm tra định dạng email (nếu có nhập)
+            // Email khách hàng là bắt buộc và phải đúng định dạng
             String email = payload.emailKhachHang == null ? "" : payload.emailKhachHang.trim();
-            if (!email.isEmpty() && !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            if (email.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "Email khách hàng là bắt buộc, vui lòng nhập email.");
+                writeJson(resp, result);
+                return;
+            }
+            if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
                 result.put("success", false);
                 result.put("message", "Email khách hàng không hợp lệ.");
                 writeJson(resp, result);
                 return;
             }
+
+            // Địa chỉ khách hàng là bắt buộc
             String diaChi = payload.diaChiKhachHang == null ? "" : payload.diaChiKhachHang.trim();
+            if (diaChi.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "Địa chỉ khách hàng là bắt buộc, vui lòng nhập địa chỉ.");
+                writeJson(resp, result);
+                return;
+            }
 
             // Tìm hoặc tạo khách hàng theo số điện thoại (bắt buộc phải nhập SĐT)
             KhachHang kh = khachHangRepo.findBySdt(sdt);
@@ -214,6 +229,18 @@ public class BanHangServlet extends HttpServlet {
                 kh.setTrangThai(1);
                 khachHangRepo.addKhachHang(kh);
                 kh = khachHangRepo.findBySdt(sdt);
+            } else {
+                // Khách quen: bổ sung email/địa chỉ nếu hồ sơ cũ đang thiếu
+                boolean canCapNhat = false;
+                if ((kh.getEmail() == null || kh.getEmail().trim().isEmpty())) {
+                    kh.setEmail(email);
+                    canCapNhat = true;
+                }
+                if ((kh.getDiaChi() == null || kh.getDiaChi().trim().isEmpty())) {
+                    kh.setDiaChi(diaChi);
+                    canCapNhat = true;
+                }
+                if (canCapNhat) khachHangRepo.UpdateKhachHang(kh);
             }
 
             List<HoaDonChiTiet> gioHang = new ArrayList<>();
