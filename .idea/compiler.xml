@@ -3,7 +3,6 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
-<<<<<<< HEAD
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -14,8 +13,5 @@
     <bytecodeTargetLevel>
       <module name="Scott" target="11" />
     </bytecodeTargetLevel>
-=======
-    </annotationProcessing>
->>>>>>> main
   </component>
 </project>
