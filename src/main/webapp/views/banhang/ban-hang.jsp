@@ -78,6 +78,9 @@
         <small class="text-muted d-block mt-2">
             Dùng khi khách muốn đi lấy thêm sản phẩm hoặc bạn cần phục vụ khách khác:
             bấm "Giữ đơn" để tạm giữ giỏ hàng hiện tại, sau đó bấm lại vào đơn chờ để tiếp tục.
+            <br>
+            <i class="bi bi-exclamation-circle"></i>
+            Lưu ý: đơn chờ nếu để qua ngày hôm sau mà vẫn chưa hoàn tất thanh toán sẽ tự động chuyển sang "Đã hủy".
         </small>
     </div>
 
@@ -431,30 +434,39 @@
             });
     }
 
-    // Chỉ liệt kê các voucher mà giỏ hàng hiện tại ĐỦ điều kiện áp dụng (đạt đơn tối thiểu),
-    // tự động cập nhật lại mỗi khi giỏ hàng thay đổi. Nếu voucher đang chọn không còn đủ điều
-    // kiện (do bớt sản phẩm...) thì tự bỏ chọn và báo cho nhân viên biết.
+    // Liệt kê TẤT CẢ voucher còn hiệu lực; voucher nào đơn hàng hiện tại CHƯA đủ điều kiện
+    // (chưa đạt giá trị tối thiểu) sẽ hiển thị mờ, không chọn được, kèm số tiền còn thiếu -
+    // để nhân viên biết rõ lý do thay vì voucher "biến mất" không rõ nguyên nhân.
+    // Tự động cập nhật lại mỗi khi giỏ hàng thay đổi.
     function renderVoucherOptions() {
         const select = document.getElementById('voucherSelect');
         const dangChon = select.value;
         const tienHang = tinhTienHang();
-        const dieuKien = vouchers.filter(v => tienHang >= (v.donToiThieu || 0));
 
-        select.innerHTML = '<option value="">-- Không dùng voucher --</option>' +
-            dieuKien.map(v => {
-                const mo = v.loaiGiamGia === '%'
-                    ? (v.giaTriGiamGia + '%')
-                    : formatTien(v.giaTriGiamGia);
-                return '<option value="' + v.id + '">' + v.maVoucher + ' - ' + v.tenVoucher + ' (' + mo + ')</option>';
-            }).join('');
+        const dsDuDieuKien = [];
+        const options = ['<option value="">-- Không dùng voucher --</option>'];
+        vouchers.forEach(v => {
+            const donToiThieu = Number(v.donToiThieu) || 0;
+            const duDieuKien = tienHang >= donToiThieu;
+            const mo = v.loaiGiamGia === '%'
+                ? (v.giaTriGiamGia + '%')
+                : formatTien(v.giaTriGiamGia);
+            let nhan = v.maVoucher + ' - ' + v.tenVoucher + ' (' + mo + ')';
+            if (duDieuKien) {
+                dsDuDieuKien.push(v);
+            } else {
+                nhan += ' — cần thêm đơn tối thiểu ' + formatTien(donToiThieu);
+            }
+            options.push('<option value="' + v.id + '"' + (duDieuKien ? '' : ' disabled') + '>' + nhan + '</option>');
+        });
+        select.innerHTML = options.join('');
 
-        if (dangChon && dieuKien.some(v => String(v.id) === String(dangChon))) {
+        if (dangChon && dsDuDieuKien.some(v => String(v.id) === String(dangChon))) {
             select.value = dangChon;
         } else if (dangChon) {
             showAlert('warning', 'Giỏ hàng không còn đủ điều kiện áp dụng voucher đã chọn nên đã được bỏ chọn.');
         }
 
-        const khongCoVoucherDuDieuKien = !dieuKien.length && vouchers.length && tienHang > 0;
         let hint = document.getElementById('voucherHint');
         if (!hint) {
             hint = document.createElement('div');
@@ -462,9 +474,13 @@
             hint.className = 'small text-muted mt-1';
             select.insertAdjacentElement('afterend', hint);
         }
-        hint.textContent = khongCoVoucherDuDieuKien
-            ? 'Chưa có voucher nào đủ điều kiện áp dụng cho đơn hàng hiện tại.'
-            : '';
+        if (!vouchers.length) {
+            hint.textContent = 'Hiện chưa có phiếu giảm giá nào còn hiệu lực trong hệ thống.';
+        } else if (!dsDuDieuKien.length) {
+            hint.textContent = 'Giỏ hàng hiện tại chưa đủ điều kiện áp dụng voucher nào (xem số tiền còn thiếu trong danh sách phía trên).';
+        } else {
+            hint.textContent = '';
+        }
     }
     document.getElementById('voucherSelect').addEventListener('change', renderCart);
 
