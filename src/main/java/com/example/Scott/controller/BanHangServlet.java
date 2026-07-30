@@ -166,6 +166,8 @@ public class BanHangServlet extends HttpServlet {
 
     // ================= AJAX: danh sách hóa đơn CHỜ XỬ LÝ (liên kết bảng hoa_don) =================
     private void danhSachHoaDonCho(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        // Hóa đơn chờ giữ từ hôm trước mà chưa xử lý sẽ tự động chuyển "Đã hủy" trước khi lấy danh sách.
+        hoaDonRepo.huyCacHoaDonChoQuaHan();
         List<HoaDon> list = hoaDonRepo.layDanhSachHoaDonCho();
         List<Map<String, Object>> items = new ArrayList<>();
         for (HoaDon hd : list) {

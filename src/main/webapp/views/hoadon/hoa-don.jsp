@@ -279,7 +279,8 @@
     <div class="table-card">
         <div class="mb-4">
             <button type="button" onclick="filterByStatus('')" class="btn status-btn ${empty status ? 'status-active' : ''}">Tất cả</button>
-            <button type="button" onclick="filterByStatus('0')" class="btn status-btn ${status=='0' ? 'status-active' : ''}">Chờ xử lý</button>
+            <%--            Hóa đơn "Chờ xử lý" không còn hiển thị ở màn Quản lý hóa đơn nữa (chỉ quản lý bên Bán hàng tại quầy) --%>
+            <%--            <button type="button" onclick="filterByStatus('0')" class="btn status-btn ${status=='0' ? 'status-active' : ''}">Chờ xử lý</button>--%>
             <button type="button" onclick="filterByStatus('1')" class="btn status-btn ${status=='1' ? 'status-active' : ''}">Đã thanh toán</button>
             <button type="button" onclick="filterByStatus('2')" class="btn status-btn ${status=='2' ? 'status-active' : ''}">Đã hủy</button>
             <%--            <button type="button" onclick="filterByStatus('3')" class="btn status-btn ${status=='3' ? 'status-active' : ''}">Đã xóa</button>--%>
@@ -314,9 +315,10 @@
                             <c:when test="${hd.trangThai==1}">
                                 <span class="badge-success">Đã thanh toán</span>
                             </c:when>
-                            <c:when test="${hd.trangThai==0}">
-                                <span class="badge-warning">Chờ xử lý</span>
-                            </c:when>
+                            <%--                            Hóa đơn "Chờ xử lý" không còn xuất hiện trong danh sách này nữa --%>
+                            <%--                            <c:when test="${hd.trangThai==0}">--%>
+                            <%--                                <span class="badge-warning">Chờ xử lý</span>--%>
+                            <%--                            </c:when>--%>
                             <c:when test="${hd.trangThai==2}">
                                 <span class="badge-danger">Đã hủy</span>
                             </c:when>

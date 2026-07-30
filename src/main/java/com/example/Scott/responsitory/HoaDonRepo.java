@@ -58,10 +58,14 @@ public class HoaDonRepo {
                         "WHERE 1=1 "
         );
 
+        // Màn "Quản lý hóa đơn" không còn hiển thị hóa đơn "Chờ xử lý" (trạng thái 0) nữa;
+        // hóa đơn chờ chỉ được quản lý bên màn hình Bán hàng tại quầy (mục Hóa đơn chờ).
+        sql.append("AND hd.trang_thai IN (1, 2) "); // chỉ Đã thanh toán / Đã hủy
+
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append("AND (hd.ma_hoa_don LIKE :keyword OR kh.ho_ten LIKE :keyword OR kh.sdt LIKE :keyword) ");
         }
-        if (status != null) {
+        if (status != null && (status == 1 || status == 2)) {
             sql.append("AND hd.trang_thai = :status ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) >= CAST(:fromDate AS DATE) ");
@@ -74,7 +78,7 @@ public class HoaDonRepo {
             if (keyword != null && !keyword.trim().isEmpty()) {
                 query.setParameter("keyword", "%" + keyword.trim() + "%");
             }
-            if (status != null) {
+            if (status != null && (status == 1 || status == 2)) {
                 query.setParameter("status", status);
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) query.setParameter("fromDate", fromDate);
@@ -121,10 +125,13 @@ public class HoaDonRepo {
                         "WHERE 1=1 "
         );
 
+        // Đồng bộ với getFullInvoiceListPage(): không đếm hóa đơn "Chờ xử lý" (trạng thái 0).
+        sql.append("AND hd.trang_thai IN (1, 2) "); // chỉ Đã thanh toán / Đã hủy
+
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append("AND (hd.ma_hoa_don LIKE :keyword OR kh.ho_ten LIKE :keyword OR kh.sdt LIKE :keyword) ");
         }
-        if (status != null) {
+        if (status != null && (status == 1 || status == 2)) {
             sql.append("AND hd.trang_thai = :status ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) >= CAST(:fromDate AS DATE) ");
@@ -135,7 +142,7 @@ public class HoaDonRepo {
             if (keyword != null && !keyword.trim().isEmpty()) {
                 query.setParameter("keyword", "%" + keyword.trim() + "%");
             }
-            if (status != null) {
+            if (status != null && (status == 1 || status == 2)) {
                 query.setParameter("status", status);
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) query.setParameter("fromDate", fromDate);
@@ -361,10 +368,12 @@ public class HoaDonRepo {
                         "LEFT JOIN phieu_giam_gia pgg ON hd.id_phieu_giam_gia = pgg.id " +
                         "WHERE 1=1 "
         );
+        // Xuất Excel đồng bộ với danh sách hiển thị: không xuất hóa đơn "Chờ xử lý" (trạng thái 0).
+        sql.append("AND hd.trang_thai IN (1, 2) "); // chỉ Đã thanh toán / Đã hủy
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append("AND (hd.ma_hoa_don LIKE :keyword OR kh.ho_ten LIKE :keyword OR kh.sdt LIKE :keyword) ");
         }
-        if (status != null) {
+        if (status != null && (status == 1 || status == 2)) {
             sql.append("AND hd.trang_thai = :status ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) >= CAST(:fromDate AS DATE) ");
@@ -377,7 +386,7 @@ public class HoaDonRepo {
             if (keyword != null && !keyword.trim().isEmpty()) {
                 query.setParameter("keyword", "%" + keyword.trim() + "%");
             }
-            if (status != null) {
+            if (status != null && (status == 1 || status == 2)) {
                 query.setParameter("status", status);
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) query.setParameter("fromDate", fromDate);
@@ -943,6 +952,52 @@ public class HoaDonRepo {
         } catch (Exception e) {
             if (tx != null && tx.isActive()) tx.rollback();
             throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Tự động hủy các hóa đơn "Chờ xử lý" (trạng thái 0 - được giữ đơn tại quầy) có
+     * ngày tạo KHÁC ngày hôm nay (tức đã sang ngày hôm sau) mà vẫn chưa được nhân viên
+     * hoàn tất thanh toán hoặc hủy thủ công. Được gọi:
+     * - Mỗi khi màn "Quản lý hóa đơn" (HoaDonServlet) hoặc danh sách "Hóa đơn chờ" bên
+     *   Bán hàng tại quầy (BanHangServlet) được tải, và
+     * - Định kỳ dưới nền bởi HoaDonChoScheduler,
+     * để đảm bảo hóa đơn chờ quá hạn luôn tự động chuyển thành "Đã hủy".
+     *
+     * @return số lượng hóa đơn chờ đã bị tự động chuyển sang trạng thái "Đã hủy"
+     */
+    public int huyCacHoaDonChoQuaHan() {
+        Transaction tx = null;
+        try (Session session = getSession()) {
+            tx = session.beginTransaction();
+
+            NativeQuery<?> idQuery = session.createNativeQuery(
+                    "SELECT id FROM hoa_don WHERE trang_thai = 0 AND CAST(ngay_tao AS DATE) < CAST(GETDATE() AS DATE)");
+            List<?> dsId = idQuery.getResultList();
+
+            int soLuong = 0;
+            for (Object rawId : dsId) {
+                Integer id = toInteger(rawId);
+                session.createNativeQuery("UPDATE hoa_don SET trang_thai = 2 WHERE id = :id AND trang_thai = 0")
+                        .setParameter("id", id)
+                        .executeUpdate();
+                session.createNativeQuery(
+                        "INSERT INTO lich_su_hoa_don (id_hoa_don, ma, thoi_gian, ghi_chu, trang_thai) " +
+                                "VALUES (:id, :ma, GETDATE(), :ghiChu, :status)")
+                        .setParameter("id", id)
+                        .setParameter("ma", "LS-" + id + "-" + System.currentTimeMillis())
+                        .setParameter("ghiChu", "Tự động hủy: hóa đơn chờ xử lý đã quá hạn sang ngày hôm sau")
+                        .setParameter("status", 2)
+                        .executeUpdate();
+                soLuong++;
+            }
+
+            tx.commit();
+            return soLuong;
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            e.printStackTrace();
+            return 0;
         }
     }
 }
