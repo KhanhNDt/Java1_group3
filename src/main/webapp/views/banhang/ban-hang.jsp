@@ -15,7 +15,7 @@
         .main-content { margin-left:260px; padding:24px; }
         @media (max-width:900px){ .main-content{ margin-left:78px!important; padding:14px!important; } }
 
-        h2 { font-weight:700; margin-bottom:20px; }
+        h2 { font-weight:700; margin-bottom:0; }
 
         .card-custom {
             background:#fff; border-radius:16px; padding:20px;
@@ -24,14 +24,41 @@
         .title-box { display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:14px; }
         .title-box i { color:#6c5ce7; }
 
-        .pos-layout { display:flex; gap:20px; align-items:flex-start; }
-        .pos-left { flex:1 1 58%; min-width:0; }
-        .pos-right { flex:1 1 42%; min-width:340px; position:sticky; top:20px; }
-        @media (max-width:1100px){ .pos-layout{ flex-direction:column; } .pos-right{ position:static; width:100%; } }
+        /* ==== Thanh tiêu đề + tab hóa đơn đang mở ==== */
+        .pos-header-row { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:4px; }
+        .pos-header-actions { display:flex; align-items:center; gap:16px; }
+        .pos-link-all { color:#6c5ce7; font-size:14px; text-decoration:none; font-weight:600; }
+        .pos-link-all:hover { text-decoration:underline; }
+        .pos-limit-hint { text-align:right; font-size:12px; color:#8a8fa3; margin-bottom:14px; }
+
+        .pos-tabs-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+        .pos-tab {
+            display:inline-flex; align-items:center; gap:8px;
+            background:#292b38; color:#fff; border:none; border-radius:8px;
+            padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        .pos-tab:hover { background:#3a3d4f; }
+        .pos-tab.active { background:#6c5ce7; }
+        .pos-tab .pos-tab-close { opacity:.65; display:inline-flex; margin-left:2px; }
+        .pos-tab .pos-tab-close:hover { opacity:1; }
+        .pos-tab-empty { color:#8a8fa3; font-size:13px; padding:9px 2px; }
+
+        /* ==== Thẻ giỏ hàng full-width ==== */
+        .cart-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px; }
+        .cart-card-header .title-box { margin-bottom:0; }
+        .cart-card-header .ma-hint { font-weight:400; color:#8a8fa3; font-size:13px; margin-left:6px; }
+
+        .cart-empty-big { text-align:center; color:#aaa; padding:46px 0; }
+        .cart-empty-big i { font-size:38px; display:block; margin-bottom:10px; color:#d7d9e3; }
+
+        /* ==== Hàng 2 cột: thông tin khách hàng | thanh toán ==== */
+        .info-payment-row { display:flex; gap:20px; align-items:flex-start; }
+        .info-payment-row > .card-custom { flex:1 1 50%; min-width:0; }
+        @media (max-width:1100px){ .info-payment-row{ flex-direction:column; } }
 
         .product-grid {
             display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
-            gap:14px; max-height:560px; overflow-y:auto; padding-right:4px;
+            gap:14px; max-height:min(60vh,520px); overflow-y:auto; padding-right:4px;
         }
         .product-card {
             border:1px solid #eef0f5; border-radius:12px; padding:14px; cursor:pointer;
@@ -57,10 +84,6 @@
 
         #khStatus { font-size:13px; margin-top:4px; }
         .btn-thanh-toan { padding:12px; font-size:16px; font-weight:700; border-radius:10px; }
-
-        .orders-bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-        .orders-bar .btn { border-radius:20px; }
-        .held-badge-close { margin-left:6px; }
     </style>
 </head>
 <body>
@@ -68,138 +91,165 @@
 <jsp:include page="/views/layout/sidebar.jsp"/>
 
 <div class="main-content">
-    <h2><i class="bi bi-cart-check"></i> Bán hàng tại quầy</h2>
+    <div class="pos-header-row">
+        <h2><i class="bi bi-cart-check"></i> Bán hàng tại quầy</h2>
+        <div class="pos-header-actions">
+            <a href="${pageContext.request.contextPath}/quanlyhoadon" class="pos-link-all">
+                <i class="bi bi-receipt"></i> Xem tất cả hóa đơn
+            </a>
+            <button type="button" class="btn btn-primary btn-sm" id="btnTaoDonHang">
+                <i class="bi bi-plus-lg"></i> Tạo đơn hàng <span id="tabCountBadge">(0/10)</span>
+            </button>
+        </div>
+    </div>
+    <div class="pos-limit-hint" id="tabLimitHint">Giới hạn: 0/10 đơn chờ</div>
 
     <div id="alertBox"></div>
 
+    <!-- TAB CÁC HÓA ĐƠN ĐANG CHỜ (liên kết bảng hoa_don, trạng thái "Chờ xử lý") -->
+    <div class="pos-tabs-bar" id="heldOrdersList"></div>
+
+    <!-- GIỎ HÀNG CỦA TAB ĐANG MỞ -->
     <div class="card-custom">
-        <div class="title-box"><i class="bi bi-hourglass-split"></i><span>Hóa đơn chờ</span></div>
-        <div class="orders-bar" id="heldOrdersList"></div>
-        <small class="text-muted d-block mt-2">
-            Dùng khi khách muốn đi lấy thêm sản phẩm hoặc bạn cần phục vụ khách khác:
-            bấm "Giữ đơn" để tạm giữ giỏ hàng hiện tại, sau đó bấm lại vào đơn chờ để tiếp tục.
-        </small>
+        <div class="cart-card-header">
+            <div class="title-box">
+                <i class="bi bi-cart3"></i><span>Sản phẩm trong giỏ<span class="ma-hint" id="cartMaHoaDon"></span></span>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="btnThemSanPham" data-bs-toggle="modal" data-bs-target="#productModal">
+                <i class="bi bi-plus-lg"></i> Thêm sản phẩm
+            </button>
+        </div>
+        <table class="cart-table">
+            <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>SL</th>
+                <th>Thành tiền</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="cartBody">
+            <tr><td colspan="4" class="cart-empty-big"><i class="bi bi-bag"></i>Chưa có sản phẩm nào trong giỏ hàng</td></tr>
+            </tbody>
+        </table>
     </div>
 
-    <div class="pos-layout">
-        <!-- CỘT TRÁI: TÌM & CHỌN SẢN PHẨM -->
-        <div class="pos-left">
-            <div class="card-custom">
-                <div class="title-box"><i class="bi bi-search"></i><span>Tìm sản phẩm</span></div>
-                <div class="input-group">
+    <div class="info-payment-row">
+        <!-- THÔNG TIN KHÁCH HÀNG -->
+        <div class="card-custom">
+            <div class="title-box"><i class="bi bi-person"></i><span>Thông tin khách hàng</span></div>
+
+            <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+            <input type="text" id="sdtInput" class="form-control" placeholder="Bắt buộc nhập số điện thoại">
+            <div id="khStatus"></div>
+
+            <div class="mt-2" id="tenKhWrap">
+                <label class="form-label">Tên khách hàng</label>
+                <input type="text" id="tenKhInput" class="form-control" placeholder="Khách lẻ">
+
+                <label class="form-label mt-2">Email <span class="text-danger">*</span></label>
+                <input type="email" id="emailKhInput" class="form-control" placeholder="Bắt buộc nhập email">
+
+                <label class="form-label mt-2">Địa chỉ <span class="text-danger">*</span></label>
+                <input type="text" id="diaChiKhInput" class="form-control" placeholder="Bắt buộc nhập địa chỉ">
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Nhân viên phụ trách</label>
+                <input type="text" class="form-control" disabled
+                       value="${sessionScope.user.nhanVien.hoTen}">
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Ghi chú</label>
+                <textarea id="ghiChuInput" class="form-control" rows="2"></textarea>
+            </div>
+        </div>
+
+        <!-- THANH TOÁN -->
+        <div class="card-custom">
+            <div class="title-box"><i class="bi bi-credit-card"></i><span>Thanh toán</span></div>
+
+            <label class="form-label">Phiếu giảm giá</label>
+            <select id="voucherSelect" class="form-select">
+                <option value="">-- Không dùng voucher --</option>
+            </select>
+
+            <div class="mt-3">
+                <div class="summary-row"><span>Tiền hàng</span><span id="sumTienHang">0 đ</span></div>
+                <div class="summary-row"><span>Giảm giá</span><span id="sumGiam">0 đ</span></div>
+                <div class="summary-row total"><span>Khách trả</span><span id="sumTong">0 đ</span></div>
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label d-block">Phương thức thanh toán</label>
+                <div class="btn-group w-100" role="group" aria-label="Phương thức thanh toán">
+                    <input type="radio" class="btn-check" name="phuongThucThanhToan" id="pttTienMat" value="TIENMAT" checked>
+                    <label class="btn btn-outline-primary" for="pttTienMat"><i class="bi bi-cash"></i> Tiền mặt</label>
+
+                    <input type="radio" class="btn-check" name="phuongThucThanhToan" id="pttChuyenKhoan" value="CHUYENKHOAN">
+                    <label class="btn btn-outline-primary" for="pttChuyenKhoan"><i class="bi bi-qr-code"></i> Chuyển khoản (QR)</label>
+                </div>
+
+                <div id="tienMatWrap" class="mt-3">
+                    <label class="form-label">Tiền khách đưa</label>
+                    <input type="number" min="0" step="1000" id="tienKhachDuaInput" class="form-control" placeholder="Nhập số tiền khách đưa">
+                    <div class="summary-row total mt-2">
+                        <span>Tiền thừa trả khách</span>
+                        <span id="sumTienThua">0 đ</span>
+                    </div>
+                </div>
+
+                <div id="qrWrap" class="text-center mt-3" style="display:none;">
+                    <img id="qrImg" src="" alt="Mã QR thanh toán" style="width:220px;height:220px;border:1px solid #eef0f5;border-radius:12px;padding:6px;background:#fff;">
+                    <div class="small text-muted mt-2">Khách quét mã để chuyển khoản đúng số tiền, sau đó bấm Thanh toán để hoàn tất đơn.</div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="button" class="btn btn-outline-secondary btn-thanh-toan flex-shrink-0" id="btnGiuDon">
+                    <i class="bi bi-hourglass-split"></i> Giữ đơn
+                </button>
+                <button type="button" class="btn btn-success w-100 btn-thanh-toan" id="btnThanhToan">
+                    <i class="bi bi-cash-coin"></i> Thanh toán
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: THÊM SẢN PHẨM VÀO GIỎ (chỉ hiển thị danh sách/tìm sản phẩm khi được mở) -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-search"></i> Thêm sản phẩm vào giỏ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
                     <input type="text" id="searchInput" class="form-control"
                            placeholder="Nhập mã hoặc tên sản phẩm...">
                     <button class="btn btn-primary" type="button" id="btnSearch">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
-                <div class="product-grid mt-3" id="productGrid">
+                <div class="product-grid" id="productGrid">
                     <div class="cart-empty" style="grid-column:1/-1;">Đang tải sản phẩm...</div>
                 </div>
             </div>
-        </div>
-
-        <!-- CỘT PHẢI: GIỎ HÀNG + THANH TOÁN -->
-        <div class="pos-right">
-            <div class="card-custom">
-                <div class="title-box"><i class="bi bi-person"></i><span>Thông tin khách hàng</span></div>
-
-                <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                <input type="text" id="sdtInput" class="form-control" placeholder="Bắt buộc nhập số điện thoại">
-                <div id="khStatus"></div>
-
-                <div class="mt-2" id="tenKhWrap">
-                    <label class="form-label">Tên khách hàng</label>
-                    <input type="text" id="tenKhInput" class="form-control" placeholder="Khách lẻ">
-
-                    <label class="form-label mt-2">Email <span class="text-danger">*</span></label>
-                    <input type="email" id="emailKhInput" class="form-control" placeholder="Bắt buộc nhập email">
-
-                    <label class="form-label mt-2">Địa chỉ <span class="text-danger">*</span></label>
-                    <input type="text" id="diaChiKhInput" class="form-control" placeholder="Bắt buộc nhập địa chỉ">
-                </div>
-
-                <div class="mt-3">
-                    <label class="form-label">Nhân viên phụ trách</label>
-                    <input type="text" class="form-control" disabled
-                           value="${sessionScope.user.nhanVien.hoTen}">
-                </div>
-
-                <div class="mt-3">
-                    <label class="form-label">Phiếu giảm giá</label>
-                    <select id="voucherSelect" class="form-select">
-                        <option value="">-- Không dùng voucher --</option>
-                    </select>
-                </div>
-
-                <div class="mt-3">
-                    <label class="form-label">Ghi chú</label>
-                    <textarea id="ghiChuInput" class="form-control" rows="2"></textarea>
-                </div>
-            </div>
-
-            <div class="card-custom">
-                <div class="title-box"><i class="bi bi-cart3"></i><span>Giỏ hàng</span></div>
-                <table class="cart-table">
-                    <thead>
-                    <tr>
-                        <th>Sản phẩm</th>
-                        <th>SL</th>
-                        <th>Thành tiền</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody id="cartBody">
-                    <tr><td colspan="4" class="cart-empty">Chưa có sản phẩm nào</td></tr>
-                    </tbody>
-                </table>
-
-                <div class="mt-3">
-                    <div class="summary-row"><span>Tiền hàng</span><span id="sumTienHang">0 đ</span></div>
-                    <div class="summary-row"><span>Giảm giá</span><span id="sumGiam">0 đ</span></div>
-                    <div class="summary-row total"><span>Khách trả</span><span id="sumTong">0 đ</span></div>
-                </div>
-
-                <div class="mt-3">
-                    <label class="form-label d-block">Phương thức thanh toán</label>
-                    <div class="btn-group w-100" role="group" aria-label="Phương thức thanh toán">
-                        <input type="radio" class="btn-check" name="phuongThucThanhToan" id="pttTienMat" value="TIENMAT" checked>
-                        <label class="btn btn-outline-primary" for="pttTienMat"><i class="bi bi-cash"></i> Tiền mặt</label>
-
-                        <input type="radio" class="btn-check" name="phuongThucThanhToan" id="pttChuyenKhoan" value="CHUYENKHOAN">
-                        <label class="btn btn-outline-primary" for="pttChuyenKhoan"><i class="bi bi-qr-code"></i> Chuyển khoản (QR)</label>
-                    </div>
-
-                    <div id="tienMatWrap" class="mt-3">
-                        <label class="form-label">Tiền khách đưa</label>
-                        <input type="number" min="0" step="1000" id="tienKhachDuaInput" class="form-control" placeholder="Nhập số tiền khách đưa">
-                        <div class="summary-row total mt-2">
-                            <span>Tiền thừa trả khách</span>
-                            <span id="sumTienThua">0 đ</span>
-                        </div>
-                    </div>
-
-                    <div id="qrWrap" class="text-center mt-3" style="display:none;">
-                        <img id="qrImg" src="" alt="Mã QR thanh toán" style="width:220px;height:220px;border:1px solid #eef0f5;border-radius:12px;padding:6px;background:#fff;">
-                        <div class="small text-muted mt-2">Khách quét mã để chuyển khoản đúng số tiền, sau đó bấm Thanh toán để hoàn tất đơn.</div>
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2 mt-3">
-                    <button type="button" class="btn btn-outline-secondary btn-thanh-toan flex-shrink-0" id="btnGiuDon">
-                        <i class="bi bi-hourglass-split"></i> Giữ đơn
-                    </button>
-                    <button type="button" class="btn btn-success w-100 btn-thanh-toan" id="btnThanhToan">
-                        <i class="bi bi-cash-coin"></i> Thanh toán
-                    </button>
-                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Xong</button>
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     const ctx = "${pageContext.request.contextPath}";
+    const MAX_DON_CHO = 10; // Giới hạn số hóa đơn "Chờ xử lý" (tab) được mở cùng lúc tại quầy
     let cart = [];       // {id, ma, tenSanPham, mauSac, kichThuoc, giaBan, soLuongTon, soLuong}
     let vouchers = [];
     let productCache = {};
@@ -365,7 +415,7 @@
     function renderCart() {
         const body = document.getElementById('cartBody');
         if (!cart.length) {
-            body.innerHTML = '<tr><td colspan="4" class="cart-empty">Chưa có sản phẩm nào</td></tr>';
+            body.innerHTML = '<tr><td colspan="4" class="cart-empty-big"><i class="bi bi-bag"></i>Chưa có sản phẩm nào trong giỏ hàng</td></tr>';
         } else {
             body.innerHTML = cart.map((c, i) => {
                 return '<tr>' +
@@ -589,6 +639,7 @@
         document.getElementById('pttTienMat').checked = true;
         document.getElementById('tienKhachDuaInput').value = '';
         document.getElementById('qrWrap').style.display = 'none';
+        document.getElementById('cartMaHoaDon').textContent = '';
         currentHeldId = null;
         renderCart();
         timSanPham();
@@ -671,6 +722,7 @@
                     document.getElementById('diaChiKhInput').value = hd.diaChiKhachHang || '';
                     document.getElementById('ghiChuInput').value = hd.ghiChu || '';
                     document.getElementById('khStatus').innerHTML = '';
+                    document.getElementById('cartMaHoaDon').textContent = ' (' + hd.maHoaDon + ')';
                     currentHeldId = hd.id;
 
                     renderCart();
@@ -713,33 +765,52 @@
             .catch(() => showAlert('danger', 'Lỗi kết nối tới máy chủ, vui lòng thử lại.'));
     };
 
+    // Tạo một tab đơn hàng mới: nếu đơn đang làm dở có sản phẩm (kể cả đang sửa 1 đơn chờ có
+    // sẵn) thì tự động "giữ đơn" (lặng lẽ, không hỏi lại) trước khi chuyển sang giỏ trống,
+    // tránh mất dữ liệu mà không làm gián đoạn thao tác - tương tự cách switchToHeldOrder xử lý.
     window.newOrderTab = function () {
-        if (cart.length && !currentHeldId) {
-            if (!confirm('Đơn đang làm dở chưa được giữ, tạo đơn mới sẽ mất giỏ hàng hiện tại. Tiếp tục?')) return;
+        if (heldOrders.length >= MAX_DON_CHO) {
+            showAlert('warning', 'Đã đạt giới hạn ' + MAX_DON_CHO + ' đơn chờ. Vui lòng hoàn tất hoặc hủy bớt đơn trước khi tạo đơn hàng mới.');
+            return;
         }
-        resetWorkingOrder();
+        if (cart.length) {
+            holdCurrentOrder(true).then(function () { resetWorkingOrder(); });
+        } else {
+            resetWorkingOrder();
+        }
     };
 
+    // Render dãy tab hóa đơn "Chờ xử lý" ở đầu trang + cập nhật số đếm/giới hạn 10 đơn chờ
     function renderHeldOrdersBar() {
         const wrap = document.getElementById('heldOrdersList');
-        let html = '<button type="button" class="btn btn-sm ' + (!currentHeldId ? 'btn-primary' : 'btn-outline-primary') +
-            '" onclick="newOrderTab()"><i class="bi bi-plus-lg"></i> Đơn mới</button>';
         if (!heldOrders.length) {
-            html += '<span class="text-muted small ms-1">Chưa có hóa đơn nào đang chờ xử lý</span>';
+            wrap.innerHTML = '<span class="pos-tab-empty">Chưa có hóa đơn nào đang mở, bấm "Tạo đơn hàng" để bắt đầu.</span>';
+        } else {
+            wrap.innerHTML = heldOrders.map(function (o) {
+                const active = (o.id === currentHeldId) ? ' active' : '';
+                const goiY = (o.tenKhachHang || o.sdtKhachHang || 'Khách lẻ') + ' • ' + (o.soLuongSanPham || 0) + ' SP • ' + formatTien(o.tongTienThanhToan);
+                return '<button type="button" class="pos-tab' + active + '" title="' + goiY.replace(/"/g, '') + '" onclick="switchToHeldOrder(' + o.id + ')">' +
+                    '<i class="bi bi-receipt"></i> Hóa đơn - ' + o.maHoaDon +
+                    '<span class="pos-tab-close" onclick="deleteHeldOrder(' + o.id + ', event)"><i class="bi bi-x-lg"></i></span>' +
+                    '</button>';
+            }).join('');
         }
-        heldOrders.forEach(function (o) {
-            const nhan = (o.tenKhachHang || o.sdtKhachHang || 'Khách lẻ') + ' • ' + (o.soLuongSanPham || 0) + ' SP • ' + formatTien(o.tongTienThanhToan);
-            const active = (o.id === currentHeldId) ? 'btn-primary' : 'btn-outline-secondary';
-            html += '<button type="button" class="btn btn-sm ' + active + '" onclick="switchToHeldOrder(' + o.id + ')">' +
-                '<i class="bi bi-hourglass-split"></i> ' + nhan +
-                '<span class="held-badge-close" style="color:#e14b4b;" onclick="deleteHeldOrder(' + o.id + ', event)">' +
-                '<i class="bi bi-x-circle-fill"></i></span></button>';
-        });
-        wrap.innerHTML = html;
+        const soLuong = heldOrders.length;
+        document.getElementById('tabCountBadge').textContent = '(' + soLuong + '/' + MAX_DON_CHO + ')';
+        document.getElementById('tabLimitHint').textContent = 'Giới hạn: ' + soLuong + '/' + MAX_DON_CHO + ' đơn chờ';
+        document.getElementById('btnTaoDonHang').disabled = soLuong >= MAX_DON_CHO;
     }
 
     document.getElementById('btnGiuDon').addEventListener('click', function () {
         holdCurrentOrder(false);
+    });
+
+    document.getElementById('btnTaoDonHang').addEventListener('click', newOrderTab);
+
+    // Mỗi lần mở modal "Thêm sản phẩm" thì tải lại danh sách để số lượng tồn kho luôn mới nhất
+    document.getElementById('productModal').addEventListener('shown.bs.modal', function () {
+        document.getElementById('searchInput').focus();
+        timSanPham();
     });
 
     // Khởi tạo
