@@ -78,9 +78,6 @@
         <small class="text-muted d-block mt-2">
             Dùng khi khách muốn đi lấy thêm sản phẩm hoặc bạn cần phục vụ khách khác:
             bấm "Giữ đơn" để tạm giữ giỏ hàng hiện tại, sau đó bấm lại vào đơn chờ để tiếp tục.
-            <br>
-            <i class="bi bi-exclamation-circle"></i>
-            Lưu ý: đơn chờ nếu để qua ngày hôm sau mà vẫn chưa hoàn tất thanh toán sẽ tự động chuyển sang "Đã hủy".
         </small>
     </div>
 
