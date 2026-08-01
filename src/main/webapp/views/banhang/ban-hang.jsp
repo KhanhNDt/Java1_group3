@@ -15,7 +15,7 @@
         .main-content { margin-left:260px; padding:24px; }
         @media (max-width:900px){ .main-content{ margin-left:78px!important; padding:14px!important; } }
 
-        h2 { font-weight:700; margin-bottom:20px; }
+        h2 { font-weight:700; margin-bottom:0; }
 
         .card-custom {
             background:#fff; border-radius:16px; padding:20px;
@@ -24,14 +24,41 @@
         .title-box { display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:14px; }
         .title-box i { color:#6c5ce7; }
 
-        .pos-layout { display:flex; gap:20px; align-items:flex-start; }
-        .pos-left { flex:1 1 58%; min-width:0; }
-        .pos-right { flex:1 1 42%; min-width:340px; position:sticky; top:20px; }
-        @media (max-width:1100px){ .pos-layout{ flex-direction:column; } .pos-right{ position:static; width:100%; } }
+        /* ==== Thanh tiêu đề + tab hóa đơn đang mở ==== */
+        .pos-header-row { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:4px; }
+        .pos-header-actions { display:flex; align-items:center; gap:16px; }
+        .pos-link-all { color:#6c5ce7; font-size:14px; text-decoration:none; font-weight:600; }
+        .pos-link-all:hover { text-decoration:underline; }
+        .pos-limit-hint { text-align:right; font-size:12px; color:#8a8fa3; margin-bottom:14px; }
+
+        .pos-tabs-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+        .pos-tab {
+            display:inline-flex; align-items:center; gap:8px;
+            background:#292b38; color:#fff; border:none; border-radius:8px;
+            padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer;
+        }
+        .pos-tab:hover { background:#3a3d4f; }
+        .pos-tab.active { background:#6c5ce7; }
+        .pos-tab .pos-tab-close { opacity:.65; display:inline-flex; margin-left:2px; }
+        .pos-tab .pos-tab-close:hover { opacity:1; }
+        .pos-tab-empty { color:#8a8fa3; font-size:13px; padding:9px 2px; }
+
+        /* ==== Thẻ giỏ hàng full-width ==== */
+        .cart-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px; }
+        .cart-card-header .title-box { margin-bottom:0; }
+        .cart-card-header .ma-hint { font-weight:400; color:#8a8fa3; font-size:13px; margin-left:6px; }
+
+        .cart-empty-big { text-align:center; color:#aaa; padding:46px 0; }
+        .cart-empty-big i { font-size:38px; display:block; margin-bottom:10px; color:#d7d9e3; }
+
+        /* ==== Hàng 2 cột: thông tin khách hàng | thanh toán ==== */
+        .info-payment-row { display:flex; gap:20px; align-items:flex-start; }
+        .info-payment-row > .card-custom { flex:1 1 50%; min-width:0; }
+        @media (max-width:1100px){ .info-payment-row{ flex-direction:column; } }
 
         .product-grid {
             display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
-            gap:14px; max-height:560px; overflow-y:auto; padding-right:4px;
+            gap:14px; max-height:min(60vh,520px); overflow-y:auto; padding-right:4px;
         }
         .product-card {
             border:1px solid #eef0f5; border-radius:12px; padding:14px; cursor:pointer;
@@ -64,90 +91,126 @@
 <jsp:include page="/views/layout/sidebar.jsp"/>
 
 <div class="main-content">
-    <h2><i class="bi bi-cart-check"></i> Bán hàng tại quầy</h2>
+    <div class="pos-header-row">
+        <h2><i class="bi bi-cart-check"></i> Bán hàng tại quầy</h2>
+        <div class="pos-header-actions">
+            <a href="${pageContext.request.contextPath}/quanlyhoadon" class="pos-link-all">
+                <i class="bi bi-receipt"></i> Xem tất cả hóa đơn
+            </a>
+            <button type="button" class="btn btn-primary btn-sm" id="btnTaoDonHang">
+                <i class="bi bi-plus-lg"></i> Tạo đơn hàng <span id="tabCountBadge">(0/10)</span>
+            </button>
+        </div>
+    </div>
+    <div class="pos-limit-hint" id="tabLimitHint">Giới hạn: 0/10 đơn chờ</div>
 
     <div id="alertBox"></div>
 
-    <div class="pos-layout">
-        <!-- CỘT TRÁI: TÌM & CHỌN SẢN PHẨM -->
-        <div class="pos-left">
-            <div class="card-custom">
-                <div class="title-box"><i class="bi bi-search"></i><span>Tìm sản phẩm</span></div>
-                <div class="input-group">
-                    <input type="text" id="searchInput" class="form-control"
-                           placeholder="Nhập mã hoặc tên sản phẩm...">
-                    <button class="btn btn-primary" type="button" id="btnSearch">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-                <div class="product-grid mt-3" id="productGrid">
-                    <div class="cart-empty" style="grid-column:1/-1;">Đang tải sản phẩm...</div>
-                </div>
+    <!-- TAB CÁC HÓA ĐƠN ĐANG CHỜ (liên kết bảng hoa_don, trạng thái "Chờ xử lý") -->
+    <div class="pos-tabs-bar" id="heldOrdersList"></div>
+
+    <!-- GIỎ HÀNG CỦA TAB ĐANG MỞ -->
+    <div class="card-custom">
+        <div class="cart-card-header">
+            <div class="title-box">
+                <i class="bi bi-cart3"></i><span>Sản phẩm trong giỏ<span class="ma-hint" id="cartMaHoaDon"></span></span>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm" id="btnThemSanPham" data-bs-toggle="modal" data-bs-target="#productModal">
+                <i class="bi bi-plus-lg"></i> Thêm sản phẩm
+            </button>
+        </div>
+        <table class="cart-table">
+            <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>SL</th>
+                <th>Thành tiền</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="cartBody">
+            <tr><td colspan="4" class="cart-empty-big"><i class="bi bi-bag"></i>Chưa có sản phẩm nào trong giỏ hàng</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="info-payment-row">
+        <!-- THÔNG TIN KHÁCH HÀNG -->
+        <div class="card-custom">
+            <div class="title-box"><i class="bi bi-person"></i><span>Thông tin khách hàng</span></div>
+
+            <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+            <input type="text" id="sdtInput" class="form-control" placeholder="Bắt buộc nhập số điện thoại">
+            <div id="khStatus"></div>
+
+            <div class="mt-2" id="tenKhWrap">
+                <label class="form-label">Tên khách hàng</label>
+                <input type="text" id="tenKhInput" class="form-control" placeholder="Khách lẻ">
+
+                <label class="form-label mt-2">Email <span class="text-danger">*</span></label>
+                <input type="email" id="emailKhInput" class="form-control" placeholder="Bắt buộc nhập email">
+
+                <label class="form-label mt-2">Địa chỉ <span class="text-danger">*</span></label>
+                <input type="text" id="diaChiKhInput" class="form-control" placeholder="Bắt buộc nhập địa chỉ">
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Nhân viên phụ trách</label>
+                <input type="text" class="form-control" disabled
+                       value="${sessionScope.user.nhanVien.hoTen}">
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Ghi chú</label>
+                <textarea id="ghiChuInput" class="form-control" rows="2"></textarea>
             </div>
         </div>
 
-        <!-- CỘT PHẢI: GIỎ HÀNG + THANH TOÁN -->
-        <div class="pos-right">
-            <div class="card-custom">
-                <div class="title-box"><i class="bi bi-person"></i><span>Thông tin khách hàng</span></div>
+        <!-- THANH TOÁN -->
+        <div class="card-custom">
+            <div class="title-box"><i class="bi bi-credit-card"></i><span>Thanh toán</span></div>
 
-                <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                <input type="text" id="sdtInput" class="form-control" placeholder="Bắt buộc nhập số điện thoại">
-                <div id="khStatus"></div>
+            <label class="form-label">Phiếu giảm giá</label>
+            <select id="voucherSelect" class="form-select">
+                <option value="">-- Không dùng voucher --</option>
+            </select>
 
-                <div class="mt-2" id="tenKhWrap" style="display:none;">
-                    <label class="form-label">Tên khách hàng (khách mới)</label>
-                    <input type="text" id="tenKhInput" class="form-control" placeholder="Khách lẻ">
+            <div class="mt-3">
+                <div class="summary-row"><span>Tiền hàng</span><span id="sumTienHang">0 đ</span></div>
+                <div class="summary-row"><span>Giảm giá</span><span id="sumGiam">0 đ</span></div>
+                <div class="summary-row total"><span>Khách trả</span><span id="sumTong">0 đ</span></div>
+            </div>
 
-                    <label class="form-label mt-2">Email</label>
-                    <input type="email" id="emailKhInput" class="form-control" placeholder="email@vidu.com">
+            <div class="mt-3">
+                <label class="form-label d-block">Phương thức thanh toán</label>
+                <div class="btn-group w-100" role="group" aria-label="Phương thức thanh toán">
+                    <input type="radio" class="btn-check" name="phuongThucThanhToan" id="pttTienMat" value="TIENMAT" checked>
+                    <label class="btn btn-outline-primary" for="pttTienMat"><i class="bi bi-cash"></i> Tiền mặt</label>
 
-                    <label class="form-label mt-2">Địa chỉ</label>
-                    <input type="text" id="diaChiKhInput" class="form-control" placeholder="Địa chỉ khách hàng">
+                    <input type="radio" class="btn-check" name="phuongThucThanhToan" id="pttChuyenKhoan" value="CHUYENKHOAN">
+                    <label class="btn btn-outline-primary" for="pttChuyenKhoan"><i class="bi bi-qr-code"></i> Chuyển khoản (QR)</label>
                 </div>
 
-                <div class="mt-3">
-                    <label class="form-label">Nhân viên phụ trách</label>
-                    <input type="text" class="form-control" disabled
-                           value="${sessionScope.user.nhanVien.hoTen}">
+                <div id="tienMatWrap" class="mt-3">
+                    <label class="form-label">Tiền khách đưa</label>
+                    <input type="number" min="0" step="1000" id="tienKhachDuaInput" class="form-control" placeholder="Nhập số tiền khách đưa">
+                    <div class="summary-row total mt-2">
+                        <span>Tiền thừa trả khách</span>
+                        <span id="sumTienThua">0 đ</span>
+                    </div>
                 </div>
 
-                <div class="mt-3">
-                    <label class="form-label">Phiếu giảm giá</label>
-                    <select id="voucherSelect" class="form-select">
-                        <option value="">-- Không dùng voucher --</option>
-                    </select>
-                </div>
-
-                <div class="mt-3">
-                    <label class="form-label">Ghi chú</label>
-                    <textarea id="ghiChuInput" class="form-control" rows="2"></textarea>
+                <div id="qrWrap" class="text-center mt-3" style="display:none;">
+                    <img id="qrImg" src="" alt="Mã QR thanh toán" style="width:220px;height:220px;border:1px solid #eef0f5;border-radius:12px;padding:6px;background:#fff;">
+                    <div class="small text-muted mt-2">Khách quét mã để chuyển khoản đúng số tiền, sau đó bấm Thanh toán để hoàn tất đơn.</div>
                 </div>
             </div>
 
-            <div class="card-custom">
-                <div class="title-box"><i class="bi bi-cart3"></i><span>Giỏ hàng</span></div>
-                <table class="cart-table">
-                    <thead>
-                    <tr>
-                        <th>Sản phẩm</th>
-                        <th>SL</th>
-                        <th>Thành tiền</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody id="cartBody">
-                    <tr><td colspan="4" class="cart-empty">Chưa có sản phẩm nào</td></tr>
-                    </tbody>
-                </table>
-
-                <div class="mt-3">
-                    <div class="summary-row"><span>Tiền hàng</span><span id="sumTienHang">0 đ</span></div>
-                    <div class="summary-row"><span>Giảm giá</span><span id="sumGiam">0 đ</span></div>
-                    <div class="summary-row total"><span>Khách trả</span><span id="sumTong">0 đ</span></div>
-                </div>
-
-                <button type="button" class="btn btn-success w-100 mt-3 btn-thanh-toan" id="btnThanhToan">
+            <div class="d-flex gap-2 mt-3">
+                <button type="button" class="btn btn-outline-secondary btn-thanh-toan flex-shrink-0" id="btnGiuDon">
+                    <i class="bi bi-hourglass-split"></i> Giữ đơn
+                </button>
+                <button type="button" class="btn btn-success w-100 btn-thanh-toan" id="btnThanhToan">
                     <i class="bi bi-cash-coin"></i> Thanh toán
                 </button>
             </div>
@@ -155,11 +218,92 @@
     </div>
 </div>
 
+<!-- MODAL: THÊM SẢN PHẨM VÀO GIỎ (chỉ hiển thị danh sách/tìm sản phẩm khi được mở) -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-search"></i> Thêm sản phẩm vào giỏ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" id="searchInput" class="form-control"
+                           placeholder="Nhập mã hoặc tên sản phẩm...">
+                    <button class="btn btn-primary" type="button" id="btnSearch">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <div class="product-grid" id="productGrid">
+                    <div class="cart-empty" style="grid-column:1/-1;">Đang tải sản phẩm...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Xong</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     const ctx = "${pageContext.request.contextPath}";
+    const MAX_DON_CHO = 10; // Giới hạn số hóa đơn "Chờ xử lý" (tab) được mở cùng lúc tại quầy
     let cart = [];       // {id, ma, tenSanPham, mauSac, kichThuoc, giaBan, soLuongTon, soLuong}
     let vouchers = [];
     let productCache = {};
+
+    // ============== CẤU HÌNH QR CHUYỂN KHOẢN (VietQR) ==============
+    // TODO: đổi lại đúng thông tin tài khoản ngân hàng của cửa hàng trước khi dùng thật.
+    const BANK_CONFIG = {
+        bin: '970422',            // Mã ngân hàng (BIN) - vd 970422 = MB Bank
+        accountNo: '0000000000',  // Số tài khoản nhận tiền của cửa hàng
+        accountName: 'SCOTT FASHION' // Tên chủ tài khoản (không dấu)
+    };
+
+    function xayDungQrUrl(soTien, noiDung) {
+        const bin = encodeURIComponent(BANK_CONFIG.bin);
+        const stk = encodeURIComponent(BANK_CONFIG.accountNo);
+        return 'https://img.vietqr.io/image/' + bin + '-' + stk + '-compact2.png' +
+            '?amount=' + Math.round(soTien || 0) +
+            '&addInfo=' + encodeURIComponent(noiDung || 'Thanh toan don hang') +
+            '&accountName=' + encodeURIComponent(BANK_CONFIG.accountName);
+    }
+
+    function tinhTongThanhToan() {
+        const tienHang = tinhTienHang();
+        return tienHang - tinhTienGiam(tienHang);
+    }
+
+    function capNhatQr() {
+        const isChuyenKhoan = document.getElementById('pttChuyenKhoan').checked;
+        const qrWrap = document.getElementById('qrWrap');
+        const tienMatWrap = document.getElementById('tienMatWrap');
+        tienMatWrap.style.display = isChuyenKhoan ? 'none' : 'block';
+        if (!isChuyenKhoan) {
+            qrWrap.style.display = 'none';
+            capNhatTienThua();
+            return;
+        }
+        const tongTien = tinhTongThanhToan();
+        const sdt = document.getElementById('sdtInput').value.trim();
+        const noiDung = 'TT ' + (sdt || 'khach le');
+        document.getElementById('qrImg').src = xayDungQrUrl(tongTien, noiDung);
+        qrWrap.style.display = 'block';
+    }
+    document.getElementById('pttTienMat').addEventListener('change', capNhatQr);
+    document.getElementById('pttChuyenKhoan').addEventListener('change', capNhatQr);
+
+    function capNhatTienThua() {
+        const tongTien = tinhTongThanhToan();
+        const tienDua = parseFloat(document.getElementById('tienKhachDuaInput').value) || 0;
+        const tienThua = tienDua - tongTien;
+        const el = document.getElementById('sumTienThua');
+        el.textContent = formatTien(Math.max(tienThua, 0));
+        el.parentElement.querySelector('span:last-child').style.color = tienThua < 0 ? '#e14b4b' : '#2ecc71';
+    }
+    document.getElementById('tienKhachDuaInput').addEventListener('input', capNhatTienThua);
 
     function formatTien(n) {
         return Math.round(n || 0).toLocaleString('vi-VN') + ' đ';
@@ -271,7 +415,7 @@
     function renderCart() {
         const body = document.getElementById('cartBody');
         if (!cart.length) {
-            body.innerHTML = '<tr><td colspan="4" class="cart-empty">Chưa có sản phẩm nào</td></tr>';
+            body.innerHTML = '<tr><td colspan="4" class="cart-empty-big"><i class="bi bi-bag"></i>Chưa có sản phẩm nào trong giỏ hàng</td></tr>';
         } else {
             body.innerHTML = cart.map((c, i) => {
                 return '<tr>' +
@@ -288,11 +432,13 @@
                     '</tr>';
             }).join('');
         }
+        renderVoucherOptions();
         const tienHang = tinhTienHang();
         const tienGiam = tinhTienGiam(tienHang);
         document.getElementById('sumTienHang').textContent = formatTien(tienHang);
         document.getElementById('sumGiam').textContent = '- ' + formatTien(tienGiam);
         document.getElementById('sumTong').textContent = formatTien(tienHang - tienGiam);
+        capNhatQr();
     }
 
     // ============== KHÁCH HÀNG ==============
@@ -300,7 +446,7 @@
     document.getElementById('sdtInput').addEventListener('input', function () {
         clearTimeout(sdtTimer);
         const sdt = this.value.trim();
-        document.getElementById('tenKhWrap').style.display = 'none';
+        capNhatQr();
         if (!/^\d{9,11}$/.test(sdt)) {
             document.getElementById('khStatus').innerHTML = sdt ? '<span class="text-danger">Số điện thoại chưa hợp lệ (9-11 số)</span>' : '';
             return;
@@ -313,11 +459,13 @@
                         document.getElementById('khStatus').innerHTML =
                             '<span class="text-success"><i class="bi bi-check-circle"></i> Khách quen: ' +
                             data.khachHang.hoTen + ' (' + data.khachHang.ma + ')</span>';
-                        document.getElementById('tenKhWrap').style.display = 'none';
+                        // Điền sẵn thông tin đã có, nhân viên vẫn có thể sửa/bổ sung
+                        if (data.khachHang.hoTen) document.getElementById('tenKhInput').value = data.khachHang.hoTen;
+                        if (data.khachHang.email) document.getElementById('emailKhInput').value = data.khachHang.email;
+                        if (data.khachHang.diaChi) document.getElementById('diaChiKhInput').value = data.khachHang.diaChi;
                     } else {
                         document.getElementById('khStatus').innerHTML =
                             '<span class="text-primary"><i class="bi bi-person-plus"></i> Khách mới, sẽ tạo hồ sơ khi thanh toán</span>';
-                        document.getElementById('tenKhWrap').style.display = 'block';
                     }
                 });
         }, 400);
@@ -329,15 +477,57 @@
             .then(r => r.json())
             .then(data => {
                 vouchers = data.items || [];
-                const select = document.getElementById('voucherSelect');
-                select.innerHTML = '<option value="">-- Không dùng voucher --</option>' +
-                    vouchers.map(v => {
-                        const mo = v.loaiGiamGia === '%'
-                            ? (v.giaTriGiamGia + '%')
-                            : formatTien(v.giaTriGiamGia);
-                        return '<option value="' + v.id + '">' + v.maVoucher + ' - ' + v.tenVoucher + ' (' + mo + ')</option>';
-                    }).join('');
+                renderVoucherOptions();
             });
+    }
+
+    // Liệt kê TẤT CẢ voucher còn hiệu lực; voucher nào đơn hàng hiện tại CHƯA đủ điều kiện
+    // (chưa đạt giá trị tối thiểu) sẽ hiển thị mờ, không chọn được, kèm số tiền còn thiếu -
+    // để nhân viên biết rõ lý do thay vì voucher "biến mất" không rõ nguyên nhân.
+    // Tự động cập nhật lại mỗi khi giỏ hàng thay đổi.
+    function renderVoucherOptions() {
+        const select = document.getElementById('voucherSelect');
+        const dangChon = select.value;
+        const tienHang = tinhTienHang();
+
+        const dsDuDieuKien = [];
+        const options = ['<option value="">-- Không dùng voucher --</option>'];
+        vouchers.forEach(v => {
+            const donToiThieu = Number(v.donToiThieu) || 0;
+            const duDieuKien = tienHang >= donToiThieu;
+            const mo = v.loaiGiamGia === '%'
+                ? (v.giaTriGiamGia + '%')
+                : formatTien(v.giaTriGiamGia);
+            let nhan = v.maVoucher + ' - ' + v.tenVoucher + ' (' + mo + ')';
+            if (duDieuKien) {
+                dsDuDieuKien.push(v);
+            } else {
+                nhan += ' — cần thêm đơn tối thiểu ' + formatTien(donToiThieu);
+            }
+            options.push('<option value="' + v.id + '"' + (duDieuKien ? '' : ' disabled') + '>' + nhan + '</option>');
+        });
+        select.innerHTML = options.join('');
+
+        if (dangChon && dsDuDieuKien.some(v => String(v.id) === String(dangChon))) {
+            select.value = dangChon;
+        } else if (dangChon) {
+            showAlert('warning', 'Giỏ hàng không còn đủ điều kiện áp dụng voucher đã chọn nên đã được bỏ chọn.');
+        }
+
+        let hint = document.getElementById('voucherHint');
+        if (!hint) {
+            hint = document.createElement('div');
+            hint.id = 'voucherHint';
+            hint.className = 'small text-muted mt-1';
+            select.insertAdjacentElement('afterend', hint);
+        }
+        if (!vouchers.length) {
+            hint.textContent = 'Hiện chưa có phiếu giảm giá nào còn hiệu lực trong hệ thống.';
+        } else if (!dsDuDieuKien.length) {
+            hint.textContent = 'Giỏ hàng hiện tại chưa đủ điều kiện áp dụng voucher nào (xem số tiền còn thiếu trong danh sách phía trên).';
+        } else {
+            hint.textContent = '';
+        }
     }
     document.getElementById('voucherSelect').addEventListener('change', renderCart);
 
@@ -354,19 +544,44 @@
         }
 
         const email = document.getElementById('emailKhInput').value.trim();
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (!email) {
+            showAlert('danger', 'Vui lòng nhập email khách hàng, đây là thông tin bắt buộc.');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             showAlert('danger', 'Email khách hàng không hợp lệ.');
             return;
+        }
+
+        const diaChi = document.getElementById('diaChiKhInput').value.trim();
+        if (!diaChi) {
+            showAlert('danger', 'Vui lòng nhập địa chỉ khách hàng, đây là thông tin bắt buộc.');
+            return;
+        }
+
+        const phuongThucThanhToan = document.querySelector('input[name="phuongThucThanhToan"]:checked').value;
+
+        let tienKhachDua = null;
+        if (phuongThucThanhToan === 'TIENMAT') {
+            const tongTien = tinhTongThanhToan();
+            tienKhachDua = parseFloat(document.getElementById('tienKhachDuaInput').value) || 0;
+            if (tienKhachDua < tongTien) {
+                showAlert('danger', 'Số tiền khách đưa (' + formatTien(tienKhachDua) + ') nhỏ hơn tổng tiền cần thanh toán (' + formatTien(tongTien) + ').');
+                return;
+            }
         }
 
         const payload = {
             sdtKhachHang: sdt,
             tenKhachHang: document.getElementById('tenKhInput').value.trim(),
             emailKhachHang: email,
-            diaChiKhachHang: document.getElementById('diaChiKhInput').value.trim(),
+            diaChiKhachHang: diaChi,
             idPhieuGiamGia: document.getElementById('voucherSelect').value || null,
             ghiChu: document.getElementById('ghiChuInput').value.trim(),
-            gioHang: cart.map(c => ({ idSanPhamChiTiet: c.id, soLuong: c.soLuong }))
+            gioHang: cart.map(c => ({ idSanPhamChiTiet: c.id, soLuong: c.soLuong })),
+            idHoaDonCho: currentHeldId || null,
+            phuongThucThanhToan: phuongThucThanhToan,
+            tienKhachDua: tienKhachDua
         };
 
         const btn = this;
@@ -381,21 +596,16 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    showAlert('success', 'Thanh toán thành công! Mã hóa đơn <strong>' + data.maHoaDon +
-                        '</strong> - Tổng tiền: ' + formatTien(data.tongTienThanhToan) +
-                        ' &nbsp; <a href="' + ctx + '/quanlyhoadon?action=detail&id=' + data.idHoaDon +
-                        '" class="alert-link">Xem hóa đơn</a>');
-                    cart = [];
-                    document.getElementById('sdtInput').value = '';
-                    document.getElementById('tenKhInput').value = '';
-                    document.getElementById('emailKhInput').value = '';
-                    document.getElementById('diaChiKhInput').value = '';
-                    document.getElementById('ghiChuInput').value = '';
-                    document.getElementById('khStatus').innerHTML = '';
-                    document.getElementById('tenKhWrap').style.display = 'none';
-                    document.getElementById('voucherSelect').value = '';
-                    renderCart();
-                    timSanPham();
+                    let msg = 'Thanh toán thành công! Mã hóa đơn <strong>' + data.maHoaDon +
+                        '</strong> - Tổng tiền: ' + formatTien(data.tongTienThanhToan);
+                    if (phuongThucThanhToan === 'TIENMAT' && tienKhachDua !== null) {
+                        msg += ' - Khách đưa: ' + formatTien(tienKhachDua) +
+                            ' - Trả lại: ' + formatTien(tienKhachDua - data.tongTienThanhToan);
+                    }
+                    msg += ' &nbsp; <a href="' + ctx + '/quanlyhoadon?action=detail&id=' + data.idHoaDon +
+                        '" class="alert-link">Xem hóa đơn</a>';
+                    showAlert('success', msg);
+                    resetWorkingOrder();
                     taiVoucher();
                 } else {
                     showAlert('danger', data.message || 'Thanh toán thất bại.');
@@ -413,10 +623,201 @@
         if (e.key === 'Enter') timSanPham();
     });
 
+    // ============== HÓA ĐƠN CHỜ (liên kết bảng hoa_don thật, trạng thái "Chờ xử lý") ==============
+    let heldOrders = [];        // danh sách lấy từ server: {id, maHoaDon, tenKhachHang, sdtKhachHang, tongTienThanhToan, soLuongSanPham}
+    let currentHeldId = null;   // id hóa đơn chờ đang mở để làm việc, null nếu là đơn mới chưa lưu
+
+    function resetWorkingOrder() {
+        cart = [];
+        document.getElementById('sdtInput').value = '';
+        document.getElementById('tenKhInput').value = '';
+        document.getElementById('emailKhInput').value = '';
+        document.getElementById('diaChiKhInput').value = '';
+        document.getElementById('ghiChuInput').value = '';
+        document.getElementById('khStatus').innerHTML = '';
+        document.getElementById('voucherSelect').value = '';
+        document.getElementById('pttTienMat').checked = true;
+        document.getElementById('tienKhachDuaInput').value = '';
+        document.getElementById('qrWrap').style.display = 'none';
+        document.getElementById('cartMaHoaDon').textContent = '';
+        currentHeldId = null;
+        renderCart();
+        timSanPham();
+        taiHoaDonCho();
+    }
+
+    function taiHoaDonCho() {
+        fetch(ctx + '/ban-hang-tai-quay?action=hoaDonCho')
+            .then(r => r.json())
+            .then(data => {
+                heldOrders = (data && data.success && data.items) ? data.items : [];
+                renderHeldOrdersBar();
+            })
+            .catch(() => { heldOrders = []; renderHeldOrdersBar(); });
+    }
+
+    // Lưu đơn đang làm dở thành 1 hóa đơn "Chờ xử lý" thật trong CSDL
+    function holdCurrentOrder(silent) {
+        if (!cart.length) {
+            if (!silent) showAlert('warning', 'Giỏ hàng đang trống, không có gì để giữ.');
+            return;
+        }
+        const payload = {
+            sdtKhachHang: document.getElementById('sdtInput').value.trim(),
+            tenKhachHang: document.getElementById('tenKhInput').value.trim(),
+            emailKhachHang: document.getElementById('emailKhInput').value.trim(),
+            diaChiKhachHang: document.getElementById('diaChiKhInput').value.trim(),
+            idPhieuGiamGia: document.getElementById('voucherSelect').value || null,
+            ghiChu: document.getElementById('ghiChuInput').value.trim(),
+            gioHang: cart.map(c => ({ idSanPhamChiTiet: c.id, soLuong: c.soLuong })),
+            idHoaDonCho: currentHeldId || null
+        };
+        return fetch(ctx + '/ban-hang-tai-quay?action=giuDon', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.success) {
+                    if (!silent) {
+                        showAlert('success', 'Đã giữ đơn hàng (Mã: ' + data.maHoaDon + '). Bạn có thể tiếp tục bán cho khách khác, sau đó chọn lại đơn chờ này để tiếp tục.');
+                        resetWorkingOrder();
+                    } else {
+                        currentHeldId = data.idHoaDonCho;
+                        taiHoaDonCho();
+                    }
+                } else if (!silent) {
+                    showAlert('danger', (data && data.message) || 'Không thể giữ đơn.');
+                }
+                return data;
+            })
+            .catch(() => {
+                if (!silent) showAlert('danger', 'Lỗi kết nối tới máy chủ, vui lòng thử lại.');
+            });
+    }
+
+    window.switchToHeldOrder = function (id) {
+        if (id === currentHeldId) return;
+        const proceed = function () {
+            fetch(ctx + '/ban-hang-tai-quay?action=chiTietHoaDonCho&id=' + id)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data || !data.success) {
+                        showAlert('danger', (data && data.message) || 'Không tải được hóa đơn chờ.');
+                        return;
+                    }
+                    const hd = data.hoaDon;
+                    cart = (hd.gioHang || []).map(function (it) {
+                        productCache[it.id] = it;
+                        return {
+                            id: it.id, ma: it.ma, tenSanPham: it.tenSanPham,
+                            mauSac: it.mauSac, kichThuoc: it.kichThuoc,
+                            giaBan: it.giaBan, soLuongTon: it.soLuongTon, soLuong: it.soLuong
+                        };
+                    });
+                    document.getElementById('sdtInput').value = hd.sdtKhachHang || '';
+                    document.getElementById('tenKhInput').value = hd.tenKhachHang || '';
+                    document.getElementById('emailKhInput').value = hd.emailKhachHang || '';
+                    document.getElementById('diaChiKhInput').value = hd.diaChiKhachHang || '';
+                    document.getElementById('ghiChuInput').value = hd.ghiChu || '';
+                    document.getElementById('khStatus').innerHTML = '';
+                    document.getElementById('cartMaHoaDon').textContent = ' (' + hd.maHoaDon + ')';
+                    currentHeldId = hd.id;
+
+                    renderCart();
+                    timSanPham();
+                    taiVoucher();
+                    const voucherId = hd.idPhieuGiamGia || '';
+                    if (voucherId) {
+                        setTimeout(function () {
+                            document.getElementById('voucherSelect').value = voucherId;
+                            renderCart();
+                        }, 300);
+                    }
+                    taiHoaDonCho();
+                })
+                .catch(() => showAlert('danger', 'Lỗi kết nối tới máy chủ, vui lòng thử lại.'));
+        };
+
+        if (cart.length && !currentHeldId) {
+            if (confirm('Đơn đang làm dở chưa được giữ, chuyển sang đơn chờ khác sẽ mất giỏ hàng hiện tại. Tiếp tục?')) proceed();
+        } else if (cart.length) {
+            holdCurrentOrder(true).then(proceed);
+        } else {
+            proceed();
+        }
+    };
+
+    window.deleteHeldOrder = function (id, ev) {
+        if (ev) ev.stopPropagation();
+        if (!confirm('Hủy đơn chờ này? Đơn sẽ được đánh dấu Đã hủy.')) return;
+        fetch(ctx + '/ban-hang-tai-quay?action=huyHoaDonCho&id=' + id, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.success) {
+                    if (currentHeldId === id) resetWorkingOrder();
+                    taiHoaDonCho();
+                } else {
+                    showAlert('danger', (data && data.message) || 'Không thể hủy đơn chờ này.');
+                }
+            })
+            .catch(() => showAlert('danger', 'Lỗi kết nối tới máy chủ, vui lòng thử lại.'));
+    };
+
+    // Tạo một tab đơn hàng mới: nếu đơn đang làm dở có sản phẩm (kể cả đang sửa 1 đơn chờ có
+    // sẵn) thì tự động "giữ đơn" (lặng lẽ, không hỏi lại) trước khi chuyển sang giỏ trống,
+    // tránh mất dữ liệu mà không làm gián đoạn thao tác - tương tự cách switchToHeldOrder xử lý.
+    window.newOrderTab = function () {
+        if (heldOrders.length >= MAX_DON_CHO) {
+            showAlert('warning', 'Đã đạt giới hạn ' + MAX_DON_CHO + ' đơn chờ. Vui lòng hoàn tất hoặc hủy bớt đơn trước khi tạo đơn hàng mới.');
+            return;
+        }
+        if (cart.length) {
+            holdCurrentOrder(true).then(function () { resetWorkingOrder(); });
+        } else {
+            resetWorkingOrder();
+        }
+    };
+
+    // Render dãy tab hóa đơn "Chờ xử lý" ở đầu trang + cập nhật số đếm/giới hạn 10 đơn chờ
+    function renderHeldOrdersBar() {
+        const wrap = document.getElementById('heldOrdersList');
+        if (!heldOrders.length) {
+            wrap.innerHTML = '<span class="pos-tab-empty">Chưa có hóa đơn nào đang mở, bấm "Tạo đơn hàng" để bắt đầu.</span>';
+        } else {
+            wrap.innerHTML = heldOrders.map(function (o) {
+                const active = (o.id === currentHeldId) ? ' active' : '';
+                const goiY = (o.tenKhachHang || o.sdtKhachHang || 'Khách lẻ') + ' • ' + (o.soLuongSanPham || 0) + ' SP • ' + formatTien(o.tongTienThanhToan);
+                return '<button type="button" class="pos-tab' + active + '" title="' + goiY.replace(/"/g, '') + '" onclick="switchToHeldOrder(' + o.id + ')">' +
+                    '<i class="bi bi-receipt"></i> Hóa đơn - ' + o.maHoaDon +
+                    '<span class="pos-tab-close" onclick="deleteHeldOrder(' + o.id + ', event)"><i class="bi bi-x-lg"></i></span>' +
+                    '</button>';
+            }).join('');
+        }
+        const soLuong = heldOrders.length;
+        document.getElementById('tabCountBadge').textContent = '(' + soLuong + '/' + MAX_DON_CHO + ')';
+        document.getElementById('tabLimitHint').textContent = 'Giới hạn: ' + soLuong + '/' + MAX_DON_CHO + ' đơn chờ';
+        document.getElementById('btnTaoDonHang').disabled = soLuong >= MAX_DON_CHO;
+    }
+
+    document.getElementById('btnGiuDon').addEventListener('click', function () {
+        holdCurrentOrder(false);
+    });
+
+    document.getElementById('btnTaoDonHang').addEventListener('click', newOrderTab);
+
+    // Mỗi lần mở modal "Thêm sản phẩm" thì tải lại danh sách để số lượng tồn kho luôn mới nhất
+    document.getElementById('productModal').addEventListener('shown.bs.modal', function () {
+        document.getElementById('searchInput').focus();
+        timSanPham();
+    });
+
     // Khởi tạo
     timSanPham();
     taiVoucher();
     renderCart();
+    taiHoaDonCho();
 </script>
 
 <script src="${pageContext.request.contextPath}/assets/js/main.js?v=mono3" defer></script>

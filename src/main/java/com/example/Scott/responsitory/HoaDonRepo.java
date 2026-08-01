@@ -58,10 +58,14 @@ public class HoaDonRepo {
                         "WHERE 1=1 "
         );
 
+        // Màn "Quản lý hóa đơn" không còn hiển thị hóa đơn "Chờ xử lý" (trạng thái 0) nữa;
+        // hóa đơn chờ chỉ được quản lý bên màn hình Bán hàng tại quầy (mục Hóa đơn chờ).
+        sql.append("AND hd.trang_thai IN (1, 2) "); // chỉ Đã thanh toán / Đã hủy
+
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append("AND (hd.ma_hoa_don LIKE :keyword OR kh.ho_ten LIKE :keyword OR kh.sdt LIKE :keyword) ");
         }
-        if (status != null) {
+        if (status != null && (status == 1 || status == 2)) {
             sql.append("AND hd.trang_thai = :status ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) >= CAST(:fromDate AS DATE) ");
@@ -74,7 +78,7 @@ public class HoaDonRepo {
             if (keyword != null && !keyword.trim().isEmpty()) {
                 query.setParameter("keyword", "%" + keyword.trim() + "%");
             }
-            if (status != null) {
+            if (status != null && (status == 1 || status == 2)) {
                 query.setParameter("status", status);
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) query.setParameter("fromDate", fromDate);
@@ -121,10 +125,13 @@ public class HoaDonRepo {
                         "WHERE 1=1 "
         );
 
+        // Đồng bộ với getFullInvoiceListPage(): không đếm hóa đơn "Chờ xử lý" (trạng thái 0).
+        sql.append("AND hd.trang_thai IN (1, 2) "); // chỉ Đã thanh toán / Đã hủy
+
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append("AND (hd.ma_hoa_don LIKE :keyword OR kh.ho_ten LIKE :keyword OR kh.sdt LIKE :keyword) ");
         }
-        if (status != null) {
+        if (status != null && (status == 1 || status == 2)) {
             sql.append("AND hd.trang_thai = :status ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) >= CAST(:fromDate AS DATE) ");
@@ -135,7 +142,7 @@ public class HoaDonRepo {
             if (keyword != null && !keyword.trim().isEmpty()) {
                 query.setParameter("keyword", "%" + keyword.trim() + "%");
             }
-            if (status != null) {
+            if (status != null && (status == 1 || status == 2)) {
                 query.setParameter("status", status);
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) query.setParameter("fromDate", fromDate);
@@ -361,10 +368,12 @@ public class HoaDonRepo {
                         "LEFT JOIN phieu_giam_gia pgg ON hd.id_phieu_giam_gia = pgg.id " +
                         "WHERE 1=1 "
         );
+        // Xuất Excel đồng bộ với danh sách hiển thị: không xuất hóa đơn "Chờ xử lý" (trạng thái 0).
+        sql.append("AND hd.trang_thai IN (1, 2) "); // chỉ Đã thanh toán / Đã hủy
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append("AND (hd.ma_hoa_don LIKE :keyword OR kh.ho_ten LIKE :keyword OR kh.sdt LIKE :keyword) ");
         }
-        if (status != null) {
+        if (status != null && (status == 1 || status == 2)) {
             sql.append("AND hd.trang_thai = :status ");
         }
         if (fromDate != null && !fromDate.trim().isEmpty()) sql.append("AND CAST(hd.ngay_tao AS DATE) >= CAST(:fromDate AS DATE) ");
@@ -377,7 +386,7 @@ public class HoaDonRepo {
             if (keyword != null && !keyword.trim().isEmpty()) {
                 query.setParameter("keyword", "%" + keyword.trim() + "%");
             }
-            if (status != null) {
+            if (status != null && (status == 1 || status == 2)) {
                 query.setParameter("status", status);
             }
             if (fromDate != null && !fromDate.trim().isEmpty()) query.setParameter("fromDate", fromDate);
@@ -611,6 +620,22 @@ public class HoaDonRepo {
      */
     public HoaDon taoHoaDonBanHang(Integer idKhachHang, Integer idNhanVien, Integer idPhieuGiamGia,
                                    List<HoaDonChiTiet> gioHang, String ghiChu) {
+        return taoHoaDonBanHang(idKhachHang, idNhanVien, idPhieuGiamGia, gioHang, ghiChu, null, "TIENMAT", null);
+    }
+
+    /**
+     * Tạo (hoặc hoàn tất) hóa đơn cho chức năng Bán hàng tại quầy.
+     * Nếu idHoaDonChoCoSan khác null: đây là một hóa đơn CHỜ XỬ LÝ (trạng thái 0) đã tồn tại
+     * trong bảng hoa_don (được tạo trước đó bằng nút "Giữ đơn"), hàm sẽ hoàn tất hóa đơn này
+     * (cập nhật thay vì tạo mới) để tránh trùng lặp dữ liệu.
+     *
+     * @param maPhuongThucThanhToan "TIENMAT" (tiền mặt) hoặc "CHUYENKHOAN" (chuyển khoản/QR)
+     * @param tienKhachDua          số tiền khách đưa khi thanh toán bằng tiền mặt (bỏ qua nếu chuyển khoản)
+     */
+    public HoaDon taoHoaDonBanHang(Integer idKhachHang, Integer idNhanVien, Integer idPhieuGiamGia,
+                                   List<HoaDonChiTiet> gioHang, String ghiChu,
+                                   Integer idHoaDonChoCoSan, String maPhuongThucThanhToan,
+                                   Double tienKhachDua) {
         if (gioHang == null || gioHang.isEmpty()) {
             throw new IllegalArgumentException("Giỏ hàng đang trống, không thể tạo hóa đơn.");
         }
@@ -675,17 +700,42 @@ public class HoaDonRepo {
 
             double tongThanhToan = tongTienHang - tienGiam;
 
-            HoaDon hd = new HoaDon();
+            boolean laTienMat = maPhuongThucThanhToan == null || "TIENMAT".equalsIgnoreCase(maPhuongThucThanhToan);
+            if (laTienMat && tienKhachDua != null && tienKhachDua < tongThanhToan) {
+                throw new IllegalStateException("Số tiền khách đưa (" + tienKhachDua +
+                        ") nhỏ hơn tổng tiền cần thanh toán (" + tongThanhToan + ").");
+            }
+
+            HoaDon hd;
+            boolean laHoaDonChoCoSan = idHoaDonChoCoSan != null;
+            if (laHoaDonChoCoSan) {
+                hd = session.get(HoaDon.class, idHoaDonChoCoSan);
+                if (hd == null) {
+                    throw new IllegalStateException("Hóa đơn chờ không tồn tại hoặc đã bị xử lý.");
+                }
+                if (hd.getTrangThai() == null || hd.getTrangThai() != 0) {
+                    throw new IllegalStateException("Hóa đơn chờ này đã được xử lý trước đó, vui lòng tải lại danh sách.");
+                }
+                session.createNativeQuery("DELETE FROM chi_tiet_hoa_don WHERE id_hoa_don = :id")
+                        .setParameter("id", hd.getId())
+                        .executeUpdate();
+            } else {
+                hd = new HoaDon();
+                hd.setMaHoaDon(sinhMaHoaDonTiepTheo(session));
+                hd.setNgayTao(new Date());
+            }
             hd.setIdKhachHang(idKhachHang);
             hd.setIdNhanVien(idNhanVien);
             hd.setIdPhieuGiamGia(idPhieuGiamGia);
-            hd.setMaHoaDon(sinhMaHoaDonTiepTheo(session));
-            hd.setNgayTao(new Date());
             hd.setNgayThanhToan(new Date());
             hd.setTongTienThanhToan(tongThanhToan);
             hd.setTrangThai(1); // Đã thanh toán ngay tại quầy
             hd.setGhiChu(ghiChu);
-            session.persist(hd);
+            if (laHoaDonChoCoSan) {
+                session.merge(hd);
+            } else {
+                session.persist(hd);
+            }
             session.flush();
 
             for (HoaDonChiTiet ct : gioHang) {
@@ -699,8 +749,30 @@ public class HoaDonRepo {
                             "VALUES (:id, :ma, GETDATE(), :ghiChu, :status)")
                     .setParameter("id", hd.getId())
                     .setParameter("ma", "LS-" + hd.getId() + "-" + System.currentTimeMillis())
-                    .setParameter("ghiChu", "Tạo đơn qua Bán hàng tại quầy, thanh toán thành công")
+                    .setParameter("ghiChu", laHoaDonChoCoSan
+                            ? "Hoàn tất thanh toán từ hóa đơn chờ tại quầy"
+                            : "Tạo đơn qua Bán hàng tại quầy, thanh toán thành công")
                     .setParameter("status", 1)
+                    .executeUpdate();
+
+            Integer idPttt = layHoacTaoIdPhuongThucThanhToan(session, maPhuongThucThanhToan);
+            String ghiChuThanhToan;
+            if (laTienMat && tienKhachDua != null) {
+                double tienThua = tienKhachDua - tongThanhToan;
+                ghiChuThanhToan = "Thanh toán tiền mặt. Khách đưa: " + tienKhachDua + " - Trả lại: " + tienThua;
+            } else if (laTienMat) {
+                ghiChuThanhToan = "Thanh toán tiền mặt";
+            } else {
+                ghiChuThanhToan = "Thanh toán chuyển khoản (QR)";
+            }
+            session.createNativeQuery(
+                    "INSERT INTO thanh_toan_hoa_don (id_hoa_don, id_pttt, ma_giao_dich, so_tien, thoi_gian, trang_thai, gho_chu) " +
+                            "VALUES (:idHoaDon, :idPttt, :maGiaoDich, :soTien, GETDATE(), 1, :ghiChu)")
+                    .setParameter("idHoaDon", hd.getId())
+                    .setParameter("idPttt", idPttt)
+                    .setParameter("maGiaoDich", "GD" + hd.getId() + "-" + System.currentTimeMillis())
+                    .setParameter("soTien", tongThanhToan)
+                    .setParameter("ghiChu", ghiChuThanhToan)
                     .executeUpdate();
 
             tx.commit();
@@ -708,6 +780,224 @@ public class HoaDonRepo {
         } catch (Exception e) {
             if (tx != null && tx.isActive()) tx.rollback();
             throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    private Integer layHoacTaoIdPhuongThucThanhToan(Session session, String maPhuongThucThanhToan) {
+        boolean laChuyenKhoan = "CHUYENKHOAN".equalsIgnoreCase(maPhuongThucThanhToan);
+        String tenCanTim = laChuyenKhoan ? "%chuyển khoản%" : "%tiền mặt%";
+        String tenMacDinh = laChuyenKhoan ? "Chuyển khoản (QR)" : "Tiền mặt";
+
+        NativeQuery<Object[]> timQuery = session.createNativeQuery(
+                "SELECT id, ten_pttt FROM phuong_thuc_thanh_toan WHERE ten_pttt LIKE :ten");
+        timQuery.setParameter("ten", tenCanTim);
+        List<Object[]> found = timQuery.getResultList();
+        if (!found.isEmpty()) {
+            return toInteger(found.get(0)[0]);
+        }
+
+        NativeQuery<Object> insertQuery = session.createNativeQuery(
+                "INSERT INTO phuong_thuc_thanh_toan (ten_pttt) OUTPUT INSERTED.id VALUES (:ten)");
+        insertQuery.setParameter("ten", tenMacDinh);
+        Object newId = insertQuery.getSingleResult();
+        return toInteger(newId);
+    }
+
+    // ================== HÓA ĐƠN CHỜ (giữ đơn tại quầy - liên kết bảng hoa_don, trạng thái 0) ==================
+
+    public List<HoaDon> layDanhSachHoaDonCho() {
+        String sql = "SELECT hd.id, hd.ma_hoa_don, hd.ngay_tao, hd.tong_tien_thanh_toan, hd.ghi_chu, " +
+                "kh.ho_ten, kh.sdt, " +
+                "(SELECT COUNT(*) FROM chi_tiet_hoa_don c WHERE c.id_hoa_don = hd.id) AS so_luong_mat_hang " +
+                "FROM hoa_don hd " +
+                "LEFT JOIN khach_hang kh ON hd.id_khach_hang = kh.id " +
+                "WHERE hd.trang_thai = 0 " +
+                "ORDER BY hd.ngay_tao ASC";
+        List<HoaDon> list = new ArrayList<>();
+        try (Session session = getSession()) {
+            NativeQuery<Object[]> query = session.createNativeQuery(sql);
+            for (Object[] row : query.getResultList()) {
+                HoaDon hd = new HoaDon();
+                hd.setId(toInteger(row[0]));
+                hd.setMaHoaDon((String) row[1]);
+                hd.setNgayTao(toDate(row[2]));
+                hd.setTongTienThanhToan(toDouble(row[3]));
+                hd.setGhiChu((String) row[4]);
+                hd.setTenKhachHang((String) row[5]);
+                hd.setSdtKhachHang((String) row[6]);
+                hd.setSoLuongSanPham(toInteger(row[7]));
+                list.add(hd);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public HoaDon giuHoaDonCho(Integer idHoaDonChoCoSan, Integer idKhachHang, Integer idNhanVien,
+                               Integer idPhieuGiamGia, List<HoaDonChiTiet> gioHang, String ghiChu) {
+        if (gioHang == null || gioHang.isEmpty()) {
+            throw new IllegalArgumentException("Giỏ hàng đang trống, không có gì để giữ.");
+        }
+        Transaction tx = null;
+        try (Session session = getSession()) {
+            tx = session.beginTransaction();
+
+            double tongTienHang = 0;
+            List<HoaDonChiTiet> chiTietHopLe = new ArrayList<>();
+            for (HoaDonChiTiet ct : gioHang) {
+                if (ct.getIdSanPhamChiTiet() == null || ct.getSoLuong() == null || ct.getSoLuong() <= 0) continue;
+                ChiTietSanPham sp = session.get(ChiTietSanPham.class, ct.getIdSanPhamChiTiet());
+                if (sp == null) continue;
+                double gia = sp.getGiaBan() == null ? 0 : sp.getGiaBan().doubleValue();
+                ct.setDonGia(gia);
+                ct.setGiaBanRa(gia);
+                ct.setTongTien(gia * ct.getSoLuong());
+                ct.setTrangThai(0);
+                tongTienHang += ct.getTongTien();
+                chiTietHopLe.add(ct);
+            }
+            if (chiTietHopLe.isEmpty()) {
+                throw new IllegalStateException("Giỏ hàng không hợp lệ.");
+            }
+
+            double tienGiam = 0;
+            if (idPhieuGiamGia != null) {
+                PhieuGiamGia pgg = session.get(PhieuGiamGia.class, idPhieuGiamGia);
+                if (pgg != null) {
+                    double donToiThieu = pgg.getDonToiThieu() == null ? 0 : pgg.getDonToiThieu().doubleValue();
+                    if (tongTienHang >= donToiThieu) {
+                        double giaTri = pgg.getGiaTriGiamGia() == null ? 0 : pgg.getGiaTriGiamGia().doubleValue();
+                        if ("%".equals(pgg.getLoaiGiamGia())) {
+                            tienGiam = tongTienHang * giaTri / 100.0;
+                            if (pgg.getGiamToiDa() != null && tienGiam > pgg.getGiamToiDa().doubleValue()) {
+                                tienGiam = pgg.getGiamToiDa().doubleValue();
+                            }
+                        } else {
+                            tienGiam = giaTri;
+                        }
+                        if (tienGiam > tongTienHang) tienGiam = tongTienHang;
+                    }
+                }
+            }
+
+            HoaDon hd;
+            boolean capNhat = idHoaDonChoCoSan != null;
+            if (capNhat) {
+                hd = session.get(HoaDon.class, idHoaDonChoCoSan);
+                if (hd == null || hd.getTrangThai() == null || hd.getTrangThai() != 0) {
+                    throw new IllegalStateException("Hóa đơn chờ không còn tồn tại để cập nhật.");
+                }
+                session.createNativeQuery("DELETE FROM chi_tiet_hoa_don WHERE id_hoa_don = :id")
+                        .setParameter("id", hd.getId())
+                        .executeUpdate();
+            } else {
+                hd = new HoaDon();
+                hd.setMaHoaDon(sinhMaHoaDonTiepTheo(session));
+                hd.setNgayTao(new Date());
+            }
+            hd.setIdKhachHang(idKhachHang);
+            hd.setIdNhanVien(idNhanVien);
+            hd.setIdPhieuGiamGia(idPhieuGiamGia);
+            hd.setTongTienThanhToan(tongTienHang - tienGiam);
+            hd.setTrangThai(0); // Chờ xử lý
+            hd.setGhiChu(ghiChu);
+            if (capNhat) session.merge(hd); else session.persist(hd);
+            session.flush();
+
+            for (HoaDonChiTiet ct : chiTietHopLe) {
+                ct.setId(null);
+                ct.setIdHoaDon(hd.getId());
+                session.persist(ct);
+            }
+
+            session.createNativeQuery(
+                    "INSERT INTO lich_su_hoa_don (id_hoa_don, ma, thoi_gian, ghi_chu, trang_thai) " +
+                            "VALUES (:id, :ma, GETDATE(), :ghiChu, :status)")
+                    .setParameter("id", hd.getId())
+                    .setParameter("ma", "LS-" + hd.getId() + "-" + System.currentTimeMillis())
+                    .setParameter("ghiChu", capNhat ? "Cập nhật hóa đơn chờ tại quầy" : "Giữ đơn tại quầy, chờ xử lý")
+                    .setParameter("status", 0)
+                    .executeUpdate();
+
+            tx.commit();
+            return hd;
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    public boolean huyHoaDonCho(Integer id) {
+        Transaction tx = null;
+        try (Session session = getSession()) {
+            tx = session.beginTransaction();
+            HoaDon hd = session.get(HoaDon.class, id);
+            if (hd == null || hd.getTrangThai() == null || hd.getTrangThai() != 0) {
+                tx.rollback();
+                return false;
+            }
+            hd.setTrangThai(2); // Đã hủy
+            session.merge(hd);
+            session.createNativeQuery(
+                    "INSERT INTO lich_su_hoa_don (id_hoa_don, ma, thoi_gian, ghi_chu, trang_thai) " +
+                            "VALUES (:id, :ma, GETDATE(), :ghiChu, :status)")
+                    .setParameter("id", id)
+                    .setParameter("ma", "LS-" + id + "-" + System.currentTimeMillis())
+                    .setParameter("ghiChu", "Hủy hóa đơn chờ tại quầy")
+                    .setParameter("status", 2)
+                    .executeUpdate();
+            tx.commit();
+            return true;
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            throw new IllegalStateException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Tự động hủy các hóa đơn "Chờ xử lý" (trạng thái 0 - được giữ đơn tại quầy) có
+     * ngày tạo KHÁC ngày hôm nay (tức đã sang ngày hôm sau) mà vẫn chưa được nhân viên
+     * hoàn tất thanh toán hoặc hủy thủ công. Được gọi:
+     * - Mỗi khi màn "Quản lý hóa đơn" (HoaDonServlet) hoặc danh sách "Hóa đơn chờ" bên
+     *   Bán hàng tại quầy (BanHangServlet) được tải, và
+     * - Định kỳ dưới nền bởi HoaDonChoScheduler,
+     * để đảm bảo hóa đơn chờ quá hạn luôn tự động chuyển thành "Đã hủy".
+     *
+     * @return số lượng hóa đơn chờ đã bị tự động chuyển sang trạng thái "Đã hủy"
+     */
+    public int huyCacHoaDonChoQuaHan() {
+        Transaction tx = null;
+        try (Session session = getSession()) {
+            tx = session.beginTransaction();
+
+            NativeQuery<?> idQuery = session.createNativeQuery(
+                    "SELECT id FROM hoa_don WHERE trang_thai = 0 AND CAST(ngay_tao AS DATE) < CAST(GETDATE() AS DATE)");
+            List<?> dsId = idQuery.getResultList();
+
+            int soLuong = 0;
+            for (Object rawId : dsId) {
+                Integer id = toInteger(rawId);
+                session.createNativeQuery("UPDATE hoa_don SET trang_thai = 2 WHERE id = :id AND trang_thai = 0")
+                        .setParameter("id", id)
+                        .executeUpdate();
+                session.createNativeQuery(
+                        "INSERT INTO lich_su_hoa_don (id_hoa_don, ma, thoi_gian, ghi_chu, trang_thai) " +
+                                "VALUES (:id, :ma, GETDATE(), :ghiChu, :status)")
+                        .setParameter("id", id)
+                        .setParameter("ma", "LS-" + id + "-" + System.currentTimeMillis())
+                        .setParameter("ghiChu", "Tự động hủy: hóa đơn chờ xử lý đã quá hạn sang ngày hôm sau")
+                        .setParameter("status", 2)
+                        .executeUpdate();
+                soLuong++;
+            }
+
+            tx.commit();
+            return soLuong;
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) tx.rollback();
+            e.printStackTrace();
+            return 0;
         }
     }
 }

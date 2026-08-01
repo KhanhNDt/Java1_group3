@@ -92,4 +92,7 @@ public class HoaDon {
 
     @Transient
     private String tenPhuongThucThanhToan;
+
+    @Transient
+    private Integer soLuongSanPham;
 }

@@ -1,6 +1,15 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%--
+    Chuẩn hoá chức vụ trước khi so sánh (bỏ khoảng trắng thừa + đưa về chữ hoa),
+    để đồng bộ với logic isAdmin() (dùng equalsIgnoreCase) trong AuthFilter.java.
+    Nếu so sánh cứng "== 'Admin'" như cũ, tài khoản có chucVu là "admin", "ADMIN"
+    hoặc có khoảng trắng thừa vẫn được AuthFilter cho phép truy cập /dashboard và
+    /nhan-vien/* nhưng lại bị sidebar ẩn mất 2 mục này, gây ra hiện tượng
+    "có quyền quản lý nhưng mất phần Nhân viên/Thống kê trên sidebar".
+--%>
+<c:set var="chucVuChuan" value="${fn:toUpperCase(fn:trim(sessionScope.user.nhanVien.chucVu))}" />
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link href="${pageContext.request.contextPath}/assets/css/style.css?v=mono3" rel="stylesheet">
@@ -29,7 +38,7 @@
             <span class="admin-sidebar__label">Bán hàng tại quầy</span>
         </a>
 
-        <c:if test="${fn:toLowerCase(sessionScope.user.nhanVien.chucVu) == 'admin'}">
+        <c:if test="${chucVuChuan == 'ADMIN'}">
             <a href="${pageContext.request.contextPath}/dashboard"
                class="admin-sidebar__item ${menu == 'dashboard' ? 'active' : ''}"
                data-sidebar-tooltip="Thống kê">
@@ -96,7 +105,7 @@
             <span class="admin-sidebar__label">Khách hàng</span>
         </a>
 
-        <c:if test="${fn:toLowerCase(sessionScope.user.nhanVien.chucVu) == 'admin'}">
+        <c:if test="${chucVuChuan == 'ADMIN'}">
             <a href="${pageContext.request.contextPath}/nhan-vien/hien-thi"
                class="admin-sidebar__item ${menu == 'nhanvien' ? 'active' : ''}"
                data-sidebar-tooltip="Nhân viên">

@@ -22,7 +22,7 @@
 
         /* ---- Bộ lọc ---- */
         .filter-card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 15px rgba(0,0,0,.06); margin-bottom: 18px; }
-        .filter-header { background: #eaeaea; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+        .filter-header { background: #ededed; color: #000000; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
         .filter-header .title { font-weight: 700; }
         .filter-header .hint { font-size: 13px; opacity: .85; }
         .filter-body { padding: 24px; }

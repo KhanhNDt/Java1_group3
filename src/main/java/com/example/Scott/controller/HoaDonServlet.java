@@ -55,6 +55,10 @@ public class HoaDonServlet extends HttpServlet {
     }
 
     private void listInvoices(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // Tự động hủy các hóa đơn "Chờ xử lý" đã giữ từ hôm trước, trước khi tải danh sách,
+        // để đảm bảo màn hình luôn phản ánh đúng quy tắc: hóa đơn chờ quá hạn -> Đã hủy.
+        hoaDonRepo.huyCacHoaDonChoQuaHan();
+
         String keyword = req.getParameter("keyword");
         String fromDate = req.getParameter("fromDate");
         String toDate = req.getParameter("toDate");
@@ -116,6 +120,12 @@ public class HoaDonServlet extends HttpServlet {
             HoaDon hd = hoaDonRepo.getById(id);
             if (hd == null) {
                 req.setAttribute("error", "Không tìm thấy thông tin chi tiết hóa đơn!");
+                listInvoices(req, resp);
+                return;
+            }
+            if (hd.getTrangThai() != null && hd.getTrangThai() == 0) {
+                // Hóa đơn đang "Chờ xử lý" chỉ được quản lý bên màn Bán hàng tại quầy.
+                req.setAttribute("error", "Hóa đơn " + hd.getMaHoaDon() + " đang ở trạng thái Chờ xử lý tại quầy, vui lòng quản lý tại màn hình Bán hàng tại quầy.");
                 listInvoices(req, resp);
                 return;
             }
