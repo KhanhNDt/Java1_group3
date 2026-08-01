@@ -66,13 +66,25 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     // Auto update status by expiration date
     private void autoUpdateStatus(PhieuGiamGia pgg) {
         if (pgg != null && pgg.getNgayKetThuc() != null) {
-            java.util.Date today = new java.util.Date();
-            if (pgg.getNgayKetThuc().before(today)) {
-                pgg.setTrangThai(0);
-            } else {
-                pgg.setTrangThai(1);
-            }
+            pgg.setTrangThai(daHetHan(pgg.getNgayKetThuc()) ? 0 : 1);
         }
+    }
+
+    /**
+     * Kiểm tra phiếu giảm giá đã hết hạn hay chưa, so sánh theo NGÀY (không theo giờ phút giây).
+     * Tránh bug: ngayKetThuc luôn có giờ là 00:00:00, nếu so trực tiếp với "new Date()" (đang có
+     * giờ hiện tại) thì phiếu có "Ngày kết thúc" = hôm nay sẽ bị coi là hết hạn ngay từ sáng sớm,
+     * dù đáng lẽ phải còn hiệu lực đến hết ngày hôm đó.
+     */
+    private boolean daHetHan(java.util.Date ngayKetThuc) {
+        if (ngayKetThuc == null) return false;
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        cal.set(java.util.Calendar.MINUTE, 0);
+        cal.set(java.util.Calendar.SECOND, 0);
+        cal.set(java.util.Calendar.MILLISECOND, 0);
+        java.util.Date dauHomNay = cal.getTime();
+        return ngayKetThuc.before(dauHomNay);
     }
 
     // Hiển thị danh sách
@@ -187,12 +199,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             pgg.setNgayKetThuc(ngayKetThuc);
             pgg.setNgayTao(new java.util.Date());
 
-            java.util.Date today = new java.util.Date();
-            if (ngayKetThuc != null && ngayKetThuc.before(today)) {
-                pgg.setTrangThai(0);
-            } else {
-                pgg.setTrangThai(1);
-            }
+            pgg.setTrangThai(daHetHan(ngayKetThuc) ? 0 : 1);
 
             repo.addPhieuGiamGia(pgg);
             request.getSession().setAttribute("success", "Thêm phiếu giảm giá thành công!");
