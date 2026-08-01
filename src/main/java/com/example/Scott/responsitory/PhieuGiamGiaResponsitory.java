@@ -30,16 +30,47 @@ public class PhieuGiamGiaResponsitory {
      */
     public List<PhieuGiamGia> getValidVouchers() {
         List<PhieuGiamGia> list = new ArrayList<>();
+
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
-            session.clear();
-            String hql = "FROM PhieuGiamGia p WHERE p.trangThai = 1 " +
-                    "AND (p.soLuong IS NULL OR p.soLuongDaDung IS NULL OR p.soLuongDaDung < p.soLuong) " +
-                    "AND (p.ngayKetThuc IS NULL OR p.ngayKetThuc >= CURRENT_DATE) " +
-                    "ORDER BY p.id DESC";
-            list = session.createQuery(hql, PhieuGiamGia.class).list();
+
+            String hql =
+                    "FROM PhieuGiamGia p " +
+                            "WHERE p.trangThai = 1 " +
+
+                            // Đã đến ngày bắt đầu
+                            "AND (p.ngayBatDau IS NULL OR p.ngayBatDau <= CURRENT_DATE) " +
+
+                            // Chưa hết hạn
+                            "AND (p.ngayKetThuc IS NULL OR p.ngayKetThuc >= CURRENT_DATE) " +
+
+                            // Còn lượt sử dụng
+                            "AND (p.soLuong IS NULL " +
+                            "     OR COALESCE(p.soLuongDaDung, 0) < p.soLuong) " +
+
+                            "ORDER BY p.id DESC";
+
+            list = session
+                    .createQuery(hql, PhieuGiamGia.class)
+                    .getResultList();
+
+            System.out.println("Số voucher hợp lệ: " + list.size());
+
+            for (PhieuGiamGia p : list) {
+                System.out.println(
+                        "Voucher: " + p.getMaVoucher()
+                                + " | Trạng thái: " + p.getTrangThai()
+                                + " | Bắt đầu: " + p.getNgayBatDau()
+                                + " | Kết thúc: " + p.getNgayKetThuc()
+                                + " | Số lượng: " + p.getSoLuong()
+                                + " | Đã dùng: " + p.getSoLuongDaDung()
+                );
+            }
+
         } catch (Exception e) {
+            System.out.println("Lỗi lấy voucher hợp lệ:");
             e.printStackTrace();
         }
+
         return list;
     }
 
