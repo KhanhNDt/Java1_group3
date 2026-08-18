@@ -2,6 +2,7 @@ package com.example.Scott.controller;
 
 import com.example.Scott.entity.HoaDon;
 import com.example.Scott.entity.HoaDonChiTiet;
+import com.example.Scott.entity.ThanhToanHoaDon;
 import com.example.Scott.responsitory.HoaDonRepo;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -31,6 +32,10 @@ public class HoaDonServlet extends HttpServlet {
             case "list":
                 listInvoices(req, resp);
                 break;
+            case "search":
+                // Live search (AJAX): trả về fragment bảng, không render lại cả trang.
+                liveSearchInvoices(req, resp);
+                break;
             case "detail":
                 showDetail(req, resp);
                 break;
@@ -55,10 +60,27 @@ public class HoaDonServlet extends HttpServlet {
     }
 
     private void listInvoices(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Tự động hủy các hóa đơn "Chờ xử lý" đã giữ từ hôm trước, trước khi tải danh sách,
+        // Tự động hủy các hóa đơn "Chờ xử lý" đã bị giữ quá 24h, trước khi tải danh sách,
         // để đảm bảo màn hình luôn phản ánh đúng quy tắc: hóa đơn chờ quá hạn -> Đã hủy.
         hoaDonRepo.huyCacHoaDonChoQuaHan();
+        naplDuLieuDanhSach(req, resp);
+        req.getRequestDispatcher("/views/hoadon/hoa-don.jsp").forward(req, resp);
+    }
 
+    /**
+     * Live search (gọi bằng AJAX từ ô tìm kiếm/ngày trên màn Quản lý hóa đơn): nạp lại danh sách
+     * theo đúng bộ lọc hiện tại nhưng chỉ trả về fragment bảng + phân trang, không render lại cả trang.
+     */
+    private void liveSearchInvoices(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        naplDuLieuDanhSach(req, resp);
+        req.getRequestDispatcher("/views/hoadon/hoa-don-table-fragment.jsp").forward(req, resp);
+    }
+
+    /**
+     * Nạp dữ liệu danh sách hóa đơn theo bộ lọc (keyword/status/fromDate/toDate/page) vào request,
+     * dùng chung cho cả tải trang thông thường và live search AJAX.
+     */
+    private void naplDuLieuDanhSach(HttpServletRequest req, HttpServletResponse resp) {
         String keyword = req.getParameter("keyword");
         String fromDate = req.getParameter("fromDate");
         String toDate = req.getParameter("toDate");
@@ -69,6 +91,15 @@ public class HoaDonServlet extends HttpServlet {
             try {
                 status = Integer.parseInt(statusParam);
             } catch (NumberFormatException ignored) {}
+        }
+
+        // Ngày bắt đầu luôn phải nhỏ hơn ngày kết thúc: nếu dữ liệu gửi lên không hợp lệ
+        // (vượt qua được kiểm tra live phía trình duyệt) thì bỏ qua bộ lọc ngày thay vì trả kết quả sai.
+        if (fromDate != null && !fromDate.trim().isEmpty() && toDate != null && !toDate.trim().isEmpty()
+                && fromDate.compareTo(toDate) >= 0) {
+            req.setAttribute("error", "Ngày bắt đầu phải nhỏ hơn ngày kết thúc. Bộ lọc ngày đã được bỏ qua.");
+            fromDate = null;
+            toDate = null;
         }
 
         int page = 1;
@@ -105,7 +136,6 @@ public class HoaDonServlet extends HttpServlet {
             req.setAttribute("error", "Lỗi hệ thống khi tải dữ liệu: " + e.getMessage());
         }
         req.setAttribute("menu", "quanlyhoadon");
-        req.getRequestDispatcher("/views/hoadon/hoa-don.jsp").forward(req, resp);
     }
 
     private void showDetail(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -130,11 +160,44 @@ public class HoaDonServlet extends HttpServlet {
                 return;
             }
             List<HoaDonChiTiet> details = hoaDonRepo.getChiTietByHoaDonId(id);
+            List<ThanhToanHoaDon> payments = hoaDonRepo.getThanhToanByHoaDonId(id);
+
+            // Tính tổng tiền hàng gốc (trước giảm) từ chi tiết, và số tiền đã giảm so với hóa đơn,
+            // để hiển thị đầy đủ trên form in hóa đơn (giống hóa đơn giấy: Tổng tiền / Tiền giảm / Phải thu).
+            double tienHangGoc = 0;
+            int tongSoLuong = 0;
+            for (HoaDonChiTiet ct : details) {
+                if (ct.getTongTien() != null) tienHangGoc += ct.getTongTien();
+                if (ct.getSoLuong() != null) tongSoLuong += ct.getSoLuong();
+            }
+            hd.setSoLuongSanPham(tongSoLuong);
+            double tongThanhToan = hd.getTongTienThanhToan() == null ? 0 : hd.getTongTienThanhToan();
+            hd.setTienHangGoc(tienHangGoc);
+            hd.setTienGiam(Math.max(0, tienHangGoc - tongThanhToan));
+
+            // Tiền khách đưa/thối lại (chỉ có khi thanh toán tiền mặt) được ghi kèm trong ghi chú
+            // của bản ghi thanh toán dạng "Thanh toán tiền mặt. Khách đưa: X - Trả lại: Y"
+            // (xem HoaDonRepo#taoHoaDonBanHang) — không có cột riêng trong DB nên phải đọc lại từ đây.
+            for (ThanhToanHoaDon p : payments) {
+                if (p.getGhiChu() != null && p.getGhiChu().contains("Khách đưa:")) {
+                    java.util.regex.Matcher m = java.util.regex.Pattern
+                            .compile("Khách đưa:\\s*([-\\d.]+)\\s*-\\s*Trả lại:\\s*([-\\d.]+)")
+                            .matcher(p.getGhiChu());
+                    if (m.find()) {
+                        try {
+                            hd.setTienKhachDua(Double.parseDouble(m.group(1)));
+                            hd.setTienThua(Double.parseDouble(m.group(2)));
+                        } catch (NumberFormatException ignored) { }
+                    }
+                    break;
+                }
+            }
+
             req.setAttribute("invoice", hd);
             req.setAttribute("menu", "quanlyhoadon");
             req.setAttribute("details", details);
             req.setAttribute("histories", hoaDonRepo.getLichSuByHoaDonId(id));
-            req.setAttribute("payments", hoaDonRepo.getThanhToanByHoaDonId(id));
+            req.setAttribute("payments", payments);
             req.getRequestDispatcher("/views/hoadon/hoa-don-detail.jsp").forward(req, resp);
         } catch (NumberFormatException e) {
             req.setAttribute("error", "Mã hóa đơn yêu cầu định dạng số bất hợp lệ!");

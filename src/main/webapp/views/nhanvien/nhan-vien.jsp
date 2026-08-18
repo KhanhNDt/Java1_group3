@@ -67,19 +67,19 @@
         .gender-radio-group .form-check { display: flex; align-items: center; gap: 6px; }
     </style>
 
-<style>
-:root{--mono:#111;--line:#dedede;--soft:#f5f5f5}
-body{background:#f4f4f4!important;color:#171717!important}
-.main-content{margin-left:242px!important;padding:28px!important}
-.card,.table-container,.filter-card,.stat-card{border-color:var(--line)!important;box-shadow:0 4px 14px rgba(0,0,0,.045)!important}
-.btn-primary,.btn-success,.btn-warning,.btn-info,.btn-danger{background:#171717!important;border-color:#171717!important;color:#fff!important}
-.btn-outline-primary,.btn-outline-success,.btn-outline-danger,.btn-outline-warning{color:#171717!important;border-color:#aaa!important}
-.btn-outline-primary:hover,.btn-outline-success:hover,.btn-outline-danger:hover,.btn-outline-warning:hover{background:#171717!important;color:#fff!important;border-color:#171717!important}
-.badge,.status-badge{filter:grayscale(1)}
-.form-control:focus,.form-select:focus{border-color:#333!important;box-shadow:0 0 0 .18rem rgba(0,0,0,.10)!important}
-.table thead th{background:#f4f4f4!important;color:#222!important}
-@media(max-width:900px){.main-content{margin-left:78px!important;padding:18px!important}}
-</style>
+    <style>
+        :root{--mono:#111;--line:#dedede;--soft:#f5f5f5}
+        body{background:#f4f4f4!important;color:#171717!important}
+        .main-content{margin-left:242px!important;padding:28px!important}
+        .card,.table-container,.filter-card,.stat-card{border-color:var(--line)!important;box-shadow:0 4px 14px rgba(0,0,0,.045)!important}
+        .btn-primary,.btn-success,.btn-warning,.btn-info,.btn-danger{background:#171717!important;border-color:#171717!important;color:#fff!important}
+        .btn-outline-primary,.btn-outline-success,.btn-outline-danger,.btn-outline-warning{color:#171717!important;border-color:#aaa!important}
+        .btn-outline-primary:hover,.btn-outline-success:hover,.btn-outline-danger:hover,.btn-outline-warning:hover{background:#171717!important;color:#fff!important;border-color:#171717!important}
+        .badge,.status-badge{filter:grayscale(1)}
+        .form-control:focus,.form-select:focus{border-color:#333!important;box-shadow:0 0 0 .18rem rgba(0,0,0,.10)!important}
+        .table thead th{background:#f4f4f4!important;color:#222!important}
+        @media(max-width:900px){.main-content{margin-left:78px!important;padding:18px!important}}
+    </style>
 </head>
 <body>
 <jsp:include page="/views/layout/sidebar.jsp"/>
@@ -220,7 +220,7 @@ body{background:#f4f4f4!important;color:#171717!important}
                                     <div class="avatar-circle">
                                         <c:choose>
                                             <c:when test="${not empty nv.anhDaiDien}">
-                                                <img src="${nv.anhDaiDien}" alt="${nv.hoTen}">
+                                                <img src="${pageContext.request.contextPath}/${nv.anhDaiDien}" alt="${nv.hoTen}">
                                             </c:when>
                                             <c:when test="${empty nv.hoTen}">
                                                 <i class="bi bi-person"></i>
@@ -336,11 +336,7 @@ body{background:#f4f4f4!important;color:#171717!important}
                         </ul>
                     </nav>
 
-                    <select class="form-select" style="width: auto;" onchange="changePageSize(this.value)">
-                        <option value="10" ${size == 10 ? 'selected' : ''}>10 / trang</option>
-                        <option value="20" ${size == 20 ? 'selected' : ''}>20 / trang</option>
-                        <option value="50" ${size == 50 ? 'selected' : ''}>50 / trang</option>
-                    </select>
+                    <span class="text-muted">5 / trang</span>
                 </div>
             </div>
         </c:when>
@@ -373,12 +369,30 @@ body{background:#f4f4f4!important;color:#171717!important}
                 </div>
             </div>
 
-            <form action="${pageContext.request.contextPath}/nhan-vien/${nv.id == 0 ? 'add' : 'update'}"
-                  method="post" class="card p-4"
-                  onsubmit="return confirm('Bạn có chắc chắn thông tin đã nhập là chính xác?\n${nv.id == 0 ? 'Xác nhận THÊM MỚI nhân viên này?' : 'Xác nhận CẬP NHẬT thông tin nhân viên này?'}')">
+            <c:if test="${qrFilled}">
+                <div class="alert alert-success">
+                    <i class="bi bi-qr-code-scan me-1"></i>
+                    Đã tự động điền thông tin từ mã QR CCCD vừa quét. Vui lòng kiểm tra lại trước khi lưu.
+                </div>
+            </c:if>
+
+            <form id="formNhanVien" action="${pageContext.request.contextPath}/nhan-vien/${nv.id == 0 ? 'add' : 'update'}"
+                  method="post" class="card p-4" enctype="multipart/form-data" novalidate
+                  onsubmit="return validateFormNhanVien(this) &amp;&amp; confirm('Bạn có chắc chắn thông tin đã nhập là chính xác?\n${nv.id == 0 ? 'Xác nhận THÊM MỚI nhân viên này?' : 'Xác nhận CẬP NHẬT thông tin nhân viên này?'}')">
                 <input type="hidden" name="id" value="${nv.id}">
 
                 <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Ảnh đại diện</label>
+                        <c:if test="${not empty nv.anhDaiDien}">
+                            <div class="mb-2">
+                                <img src="${pageContext.request.contextPath}/${nv.anhDaiDien}" alt="${nv.hoTen}"
+                                     style="width:72px;height:72px;object-fit:cover;border-radius:50%;border:1px solid #e2e8f0">
+                            </div>
+                        </c:if>
+                        <input type="file" name="anhDaiDienFile" class="form-control" accept="image/jpeg,image/png,image/webp">
+                        <div class="form-text">JPG, PNG hoặc WEBP, tối đa 5 MB.<c:if test="${not empty nv.anhDaiDien}"> Để trống nếu không muốn đổi ảnh.</c:if></div>
+                    </div>
                     <div class="col-md-6 mb-3">
                         <label>Mã nhân viên</label>
                         <c:choose>
@@ -394,20 +408,24 @@ body{background:#f4f4f4!important;color:#171717!important}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Họ tên</label>
-                        <input type="text" name="hoTen" class="form-control" value="${nv.hoTen}" required>
+                        <input type="text" id="nvHoTen" name="hoTen" class="form-control" value="${nv.hoTen}" required minlength="2">
+                        <div class="invalid-feedback">Họ tên phải có ít nhất 2 ký tự.</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Email</label>
-                        <input type="email" name="email" class="form-control" value="${nv.email}" required>
+                        <input type="email" id="nvEmail" name="email" class="form-control" value="${nv.email}" required>
+                        <div class="invalid-feedback">Email không đúng định dạng (vd: ten@vidu.com).</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Số điện thoại</label>
-                        <input type="text" name="soDienThoai" class="form-control" value="${nv.soDienThoai}">
+                        <input type="text" id="nvSoDienThoai" name="soDienThoai" class="form-control" value="${nv.soDienThoai}">
+                        <div class="invalid-feedback">Số điện thoại không hợp lệ (VD: 09xxxxxxxx, 10 số).</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Ngày sinh</label>
-                        <input type="date" name="ngaySinh" class="form-control"
+                        <input type="date" id="nvNgaySinh" name="ngaySinh" class="form-control"
                                value="<fmt:formatDate value='${nv.ngaySinh}' pattern='yyyy-MM-dd'/>">
+                        <div class="invalid-feedback">Ngày sinh không được lớn hơn ngày hôm nay.</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Chức vụ</label>
@@ -433,36 +451,20 @@ body{background:#f4f4f4!important;color:#171717!important}
                     </div>
 
                     <div class="col-12"><hr class="my-2"></div>
-                    <div class="col-12 mb-2"><label class="mb-0">Địa chỉ</label></div>
-
-                    <div class="col-md-4 mb-3">
-                        <label class="fw-normal">Tỉnh/Thành phố</label>
-                        <select class="form-select" id="tinhThanh" name="tinhThanh">
-                            <option value="">-- Chọn Tỉnh/Thành phố --</option>
-                        </select>
+                    <div class="col-12 mb-2 d-flex justify-content-between align-items-center">
+                        <label class="mb-0">Địa chỉ</label>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="btnMoModalDiaChiNV">
+                            <i class="bi bi-plus-circle"></i> Thêm địa chỉ
+                        </button>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="fw-normal">Quận/Huyện</label>
-                        <select class="form-select" id="quanHuyen" name="quanHuyen" disabled>
-                            <option value="">-- Chọn Quận/Huyện --</option>
-                        </select>
+                    <div class="col-12 mb-1">
+                        <small class="text-muted">Mỗi nhân viên chỉ có 1 địa chỉ.</small>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="fw-normal">Xã/Phường</label>
-                        <select class="form-select" id="xaPhuong" name="xaPhuong" disabled>
-                            <option value="">-- Chọn Xã/Phường --</option>
-                        </select>
-                    </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="fw-normal">Địa chỉ cụ thể (số nhà, tên đường...)</label>
-                        <input type="text" name="diaChiCuThe" id="diaChiCuThe" class="form-control"
-                               value="${nv.diaChi}" placeholder="Ví dụ: Số 12, ngõ 34, đường Láng">
-                        <c:if test="${nv.id != 0}">
-                            <div class="form-text">
-                                Đang hiển thị địa chỉ cũ. Nếu chọn lại Tỉnh/Huyện/Xã ở trên, địa chỉ mới sẽ được nối
-                                thêm phía trước trường này khi lưu.
-                            </div>
-                        </c:if>
+                    <div class="col-12 mb-3">
+                        <div id="danhSachDiaChiNV">
+                            <div class="text-center text-muted py-3 border rounded">Chưa có địa chỉ nào.</div>
+                        </div>
+                        <input type="hidden" name="diaChi" id="hiddenDiaChiNV" value="${nv.diaChi}">
                     </div>
                 </div>
                 <div class="d-flex gap-2">
@@ -470,12 +472,63 @@ body{background:#f4f4f4!important;color:#171717!important}
                     <a href="${pageContext.request.contextPath}/nhan-vien/hien-thi" class="btn btn-secondary">Hủy</a>
                 </div>
             </form>
+
+            <!-- ================= MODAL ĐỊA CHỈ NHÂN VIÊN ================= -->
+            <div class="modal fade" id="modalDiaChiNV" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Địa chỉ nhân viên</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Tỉnh / Thành phố</label>
+                                    <select id="mTinhNV" class="form-select">
+                                        <option value="">-- Chọn tỉnh --</option>
+                                        <c:forEach items="${listTinh}" var="t">
+                                            <option value="${t.id}">${t.ten}</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Phường / Xã</label>
+                                    <select id="mXaNV" class="form-select" disabled>
+                                        <option value="">-- Chọn phường/xã --</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Địa chỉ chi tiết</label>
+                                    <input id="mChiTietNV" class="form-control" placeholder="Ví dụ: Số nhà 12, đường ABC">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="button" class="btn btn-primary" id="btnSaveDiaChiNV">Lưu địa chỉ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </c:when>
 
         <%-- =================== XEM CHI TIẾT =================== --%>
         <c:when test="${viewType == 'view'}">
             <h3 class="mb-4">Chi tiết nhân viên</h3>
             <div class="card p-4" style="max-width: 700px;">
+                <div class="view-item">
+                    <div class="label">Ảnh đại diện</div>
+                    <div>
+                        <c:choose>
+                            <c:when test="${not empty nv.anhDaiDien}">
+                                <img src="${pageContext.request.contextPath}/${nv.anhDaiDien}" alt="${nv.hoTen}"
+                                     style="width:88px;height:88px;object-fit:cover;border-radius:50%;border:1px solid #e2e8f0">
+                            </c:when>
+                            <c:otherwise><span class="text-muted">Chưa có ảnh</span></c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
                 <div class="view-item"><div class="label">Mã nhân viên</div><div>${nv.maNhanVien}</div></div>
                 <div class="view-item"><div class="label">Họ tên</div><div>${nv.hoTen}</div></div>
                 <div class="view-item"><div class="label">Email</div><div>${nv.email}</div></div>
@@ -510,6 +563,81 @@ body{background:#f4f4f4!important;color:#171717!important}
 
     </c:choose>
 </div>
+
+<!-- Live-validate form thêm/sửa nhân viên -->
+<script>
+    (function () {
+        const form = document.getElementById('formNhanVien');
+        if (!form) return; // không ở trang form thì bỏ qua
+
+        const hoTenEl = document.getElementById('nvHoTen');
+        const emailEl = document.getElementById('nvEmail');
+        const sdtEl = document.getElementById('nvSoDienThoai');
+        const ngaySinhEl = document.getElementById('nvNgaySinh');
+
+        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const PHONE_RE = /^(0|\+84)\d{9,10}$/;
+
+        function setValidity(el, isValid) {
+            if (!el) return;
+            el.classList.remove('is-invalid', 'is-valid');
+            el.classList.add(isValid ? 'is-valid' : 'is-invalid');
+        }
+
+        function validateHoTen() {
+            const ok = hoTenEl.value.trim().length >= 2;
+            setValidity(hoTenEl, ok);
+            return ok;
+        }
+
+        function validateEmail() {
+            const ok = EMAIL_RE.test(emailEl.value.trim());
+            setValidity(emailEl, ok);
+            return ok;
+        }
+
+        function validateSdt() {
+            const v = sdtEl.value.trim();
+            if (v === '') { sdtEl.classList.remove('is-invalid', 'is-valid'); return true; } // không bắt buộc
+            const ok = PHONE_RE.test(v);
+            setValidity(sdtEl, ok);
+            return ok;
+        }
+
+        function validateNgaySinh() {
+            const v = ngaySinhEl.value;
+            if (!v) { ngaySinhEl.classList.remove('is-invalid', 'is-valid'); return true; } // không bắt buộc
+            const today = new Date().toISOString().slice(0, 10);
+            const ok = v <= today;
+            setValidity(ngaySinhEl, ok);
+            return ok;
+        }
+
+        hoTenEl.addEventListener('input', validateHoTen);
+        emailEl.addEventListener('input', validateEmail);
+        sdtEl.addEventListener('input', validateSdt);
+        ngaySinhEl.addEventListener('change', validateNgaySinh);
+
+        // Chạy kiểm tra ngay khi tải trang để phản ánh dữ liệu đã điền sẵn (VD: từ QR)
+        if (hoTenEl.value.trim()) validateHoTen();
+        if (emailEl.value.trim()) validateEmail();
+        if (sdtEl.value.trim()) validateSdt();
+        if (ngaySinhEl.value) validateNgaySinh();
+
+        // Hàm được gọi khi submit form: chặn lưu nếu có trường không hợp lệ
+        window.validateFormNhanVien = function () {
+            const okHoTen = validateHoTen();
+            const okEmail = validateEmail();
+            const okSdt = validateSdt();
+            const okNgaySinh = validateNgaySinh();
+            const hopLe = okHoTen && okEmail && okSdt && okNgaySinh;
+            if (!hopLe) {
+                alert('Vui lòng kiểm tra lại các trường đang báo lỗi (viền đỏ) trước khi lưu.');
+            }
+            return hopLe;
+        };
+    })();
+</script>
 
 <!-- Đoạn script tích hợp quét mã QR CCCD/VNeID -->
 <script>
@@ -576,71 +704,102 @@ body{background:#f4f4f4!important;color:#171717!important}
         window.location.href = url.toString();
     }
 
-    // ---- Cascading Tỉnh/Thành - Quận/Huyện - Xã/Phường (dữ liệu hành chính VN, API công khai) ----
+    // ---- Modal chọn địa chỉ nhân viên (Tỉnh/Phường nội bộ, giống form thêm khách hàng) ----
     (function () {
-        const tinhSelect = document.getElementById('tinhThanh');
-        const huyenSelect = document.getElementById('quanHuyen');
-        const xaSelect = document.getElementById('xaPhuong');
-        if (!tinhSelect) return; // không ở trang form thì bỏ qua
+        const modalEl = document.getElementById('modalDiaChiNV');
+        if (!modalEl) return; // không ở trang form thì bỏ qua
 
-        fetch('https://provinces.open-api.vn/api/p/')
-            .then(res => res.json())
-            .then(data => {
-                data.forEach(tinh => {
-                    const opt = document.createElement('option');
-                    opt.value = tinh.name;
-                    opt.dataset.code = tinh.code;
-                    opt.textContent = tinh.name;
-                    tinhSelect.appendChild(opt);
+        const modal = new bootstrap.Modal(modalEl);
+        const btnMoModal = document.getElementById('btnMoModalDiaChiNV');
+        const btnSaveDiaChi = document.getElementById('btnSaveDiaChiNV');
+        const mTinh = document.getElementById('mTinhNV');
+        const mXa = document.getElementById('mXaNV');
+        const mChiTiet = document.getElementById('mChiTietNV');
+        const hiddenDiaChi = document.getElementById('hiddenDiaChiNV');
+        const box = document.getElementById('danhSachDiaChiNV');
+
+        const allPhuong = [
+            <c:forEach items="${listPhuong}" var="p" varStatus="st">
+            { id: ${p.id}, provinceId: ${p.provinceId}, ten: "${p.ten}" }<c:if test="${!st.last}">,</c:if>
+            </c:forEach>
+        ];
+
+        btnMoModal.onclick = function () {
+            // Nhân viên chỉ được phép có DUY NHẤT 1 địa chỉ
+            if (hiddenDiaChi.value && hiddenDiaChi.value.trim() !== "") {
+                alert("Mỗi nhân viên chỉ được thêm 1 địa chỉ. Vui lòng xóa địa chỉ hiện tại trước khi thêm địa chỉ mới.");
+                return;
+            }
+            modal.show();
+        };
+
+        mTinh.onchange = function () {
+            mXa.innerHTML = "<option value=''>-- Chọn phường/xã --</option>";
+            mXa.disabled = true;
+            if (mTinh.value === "") return;
+
+            const provinceId = parseInt(mTinh.value);
+            allPhuong.filter(function (p) { return p.provinceId === provinceId; })
+                .forEach(function (p) {
+                    mXa.innerHTML += "<option value='" + p.id + "'>" + p.ten + "</option>";
                 });
-            })
-            .catch(() => {
-                tinhSelect.innerHTML = '<option value="">Không tải được danh sách (kiểm tra kết nối mạng)</option>';
-            });
+            mXa.disabled = false;
+        };
 
-        tinhSelect.addEventListener('change', function () {
-            huyenSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
-            xaSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
-            huyenSelect.disabled = true;
-            xaSelect.disabled = true;
+        function capNhatTrangThaiNut() {
+            const coDiaChi = hiddenDiaChi.value && hiddenDiaChi.value.trim() !== "";
+            btnMoModal.disabled = coDiaChi;
+            btnMoModal.classList.toggle('disabled', coDiaChi);
+            btnMoModal.title = coDiaChi ? 'Mỗi nhân viên chỉ được thêm 1 địa chỉ. Xóa địa chỉ hiện tại để thêm mới.' : '';
+        }
 
-            const selectedOption = tinhSelect.options[tinhSelect.selectedIndex];
-            const code = selectedOption ? selectedOption.dataset.code : null;
-            if (!code) return;
+        function renderDiaChi(text) {
+            if (!text) {
+                box.innerHTML = '<div class="text-center text-muted py-3 border rounded">Chưa có địa chỉ nào.</div>';
+                capNhatTrangThaiNut();
+                return;
+            }
+            box.innerHTML =
+                '<div class="border rounded p-3 d-flex justify-content-between align-items-start">' +
+                '<div>' + text + '</div>' +
+                '<button type="button" class="btn btn-outline-danger btn-sm ms-3" id="btnXoaDiaChiNV">Xóa</button>' +
+                '</div>';
 
-            fetch('https://provinces.open-api.vn/api/p/' + code + '?depth=2')
-                .then(res => res.json())
-                .then(data => {
-                    (data.districts || []).forEach(huyen => {
-                        const opt = document.createElement('option');
-                        opt.value = huyen.name;
-                        opt.dataset.code = huyen.code;
-                        opt.textContent = huyen.name;
-                        huyenSelect.appendChild(opt);
-                    });
-                    huyenSelect.disabled = false;
-                });
-        });
+            const btnXoa = document.getElementById('btnXoaDiaChiNV');
+            if (btnXoa) {
+                btnXoa.onclick = function () {
+                    if (!confirm("Bạn có chắc muốn xóa địa chỉ này?")) return;
+                    hiddenDiaChi.value = "";
+                    renderDiaChi("");
+                };
+            }
+            capNhatTrangThaiNut();
+        }
 
-        huyenSelect.addEventListener('change', function () {
-            xaSelect.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
-            xaSelect.disabled = true;
+        // Hiển thị địa chỉ hiện có khi vào trang sửa
+        renderDiaChi(hiddenDiaChi.value);
 
-            const selectedOption = huyenSelect.options[huyenSelect.selectedIndex];
-            const code = selectedOption ? selectedOption.dataset.code : null;
-            if (!code) return;
+        btnSaveDiaChi.onclick = function () {
+            if (mTinh.value === "" || mXa.value === "" || mChiTiet.value.trim() === "") {
+                alert("Vui lòng nhập đầy đủ địa chỉ.");
+                return;
+            }
 
-            fetch('https://provinces.open-api.vn/api/d/' + code + '?depth=2')
-                .then(res => res.json())
-                .then(data => {
-                    (data.wards || []).forEach(xa => {
-                        const opt = document.createElement('option');
-                        opt.value = xa.name;
-                        opt.textContent = xa.name;
-                        xaSelect.appendChild(opt);
-                    });
-                    xaSelect.disabled = false;
-                });
+            const diaChiCuThe = mChiTiet.value.trim();
+            const phuongXa = mXa.options[mXa.selectedIndex].text;
+            const tinhThanh = mTinh.options[mTinh.selectedIndex].text;
+            const fullText = diaChiCuThe + ", " + phuongXa + ", " + tinhThanh;
+
+            hiddenDiaChi.value = fullText;
+            renderDiaChi(fullText);
+            modal.hide();
+        };
+
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            mTinh.selectedIndex = 0;
+            mXa.innerHTML = "<option value=''>-- Chọn phường/xã --</option>";
+            mXa.disabled = true;
+            mChiTiet.value = "";
         });
     })();
 </script>

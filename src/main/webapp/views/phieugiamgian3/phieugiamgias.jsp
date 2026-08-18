@@ -121,6 +121,7 @@
                         <select class="form-select" name="trangThai">
                             <option value="">Tất cả</option>
                             <option value="1" ${param.trangThai == '1' ? 'selected' : ''}>Đang hoạt động</option>
+                            <option value="2" ${param.trangThai == '2' ? 'selected' : ''}>Sắp diễn ra</option>
                             <option value="0" ${param.trangThai == '0' ? 'selected' : ''}>Ngừng hoạt động</option>
                         </select>
                     </div>
@@ -208,9 +209,17 @@
                             <td><fmt:formatDate value="${pgg.ngayBatDau}" pattern="dd/MM/yyyy"/></td>
                             <td><fmt:formatDate value="${pgg.ngayKetThuc}" pattern="dd/MM/yyyy"/></td>
                             <td>
-                                    <span class="badge ${pgg.trangThai == 1 ? 'bg-light text-dark border' : 'bg-secondary'}">
-                                            ${pgg.trangThai == 1 ? 'Đang hoạt động' : 'Ngừng hoạt động'}
-                                    </span>
+                                <c:choose>
+                                    <c:when test="${pgg.trangThai == 1}">
+                                        <span class="badge bg-light text-dark border">Đang hoạt động</span>
+                                    </c:when>
+                                    <c:when test="${pgg.trangThai == 2}">
+                                        <span class="badge bg-warning text-dark">Sắp diễn ra</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge bg-secondary">Ngừng hoạt động</span>
+                                    </c:otherwise>
+                                </c:choose>
                             </td>
                             <td class="text-center pe-3">
                                 <a href="${pageContext.request.contextPath}/phieugiamgia/view-update?id=${pgg.id}"

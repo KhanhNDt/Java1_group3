@@ -90,7 +90,10 @@ public class ChiTietSanPhamResponsitory {
             StringBuilder hql = new StringBuilder(
                     "SELECT ct FROM ChiTietSanPham ct " +
                             "JOIN FETCH ct.sanPham sp JOIN FETCH ct.mauSac ms JOIN FETCH ct.size sz " +
-                            "WHERE ct.trangThai = 1 AND ct.soLuongTon > 0");
+                            // sp.trangThai = 1: sản phẩm (cấp cha) phải đang bán — nếu sản phẩm đã bị
+                            // ngừng bán (thủ công hoặc tự động do hết hàng) thì KHÔNG được tìm thấy ở
+                            // màn hình Bán hàng tại quầy dù 1 biến thể lẻ nào đó vẫn còn bật trạng thái.
+                            "WHERE ct.trangThai = 1 AND ct.soLuongTon > 0 AND sp.trangThai = 1");
             String kw = keyword == null ? "" : keyword.trim().toLowerCase();
             if (!kw.isEmpty()) {
                 hql.append(" AND (LOWER(ct.ma) LIKE :kw OR LOWER(sp.maSanPham) LIKE :kw " +
@@ -104,10 +107,127 @@ public class ChiTietSanPhamResponsitory {
         }
     }
 
+    /**
+     * Tìm CHÍNH XÁC 1 biến thể theo mã (dùng cho quét QR ở Bán hàng tại quầy).
+     * Chỉ trả về nếu biến thể còn bán và sản phẩm cha còn bán; trả về null nếu
+     * không tìm thấy hoặc đã ngừng bán, để servlet phân biệt được "không có mã"
+     * với "có mã nhưng không thể bán".
+     */
+    public ChiTietSanPham timTheoMaChinhXac(String ma){
+        if (ma == null || ma.trim().isEmpty()) return null;
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            String hql = "SELECT ct FROM ChiTietSanPham ct " +
+                    "JOIN FETCH ct.sanPham sp JOIN FETCH ct.mauSac ms JOIN FETCH ct.size sz " +
+                    "WHERE ct.ma = :ma AND ct.trangThai = 1 AND sp.trangThai = 1";
+            List<ChiTietSanPham> list = s.createQuery(hql, ChiTietSanPham.class)
+                    .setParameter("ma", ma.trim())
+                    .setMaxResults(1)
+                    .list();
+            return list.isEmpty() ? null : list.get(0);
+        }
+    }
+
     public BigDecimal getMaxGiaBan(){
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
             BigDecimal value = s.createQuery("SELECT MAX(ct.giaBan) FROM ChiTietSanPham ct", BigDecimal.class).uniqueResult();
             return value == null ? BigDecimal.ZERO : value;
+        }
+    }
+
+    // ================= Bán hàng tại quầy: tìm kiếm có lọc + phân trang =================
+
+    private static final String BAN_HANG_BASE_WHERE =
+            " WHERE ct.trangThai = 1 AND sp.trangThai = 1";
+
+    private void appendBanHangFilter(StringBuilder hql, String keyword, Integer idMauSac, Integer idSize,
+                                     BigDecimal giaMin, BigDecimal giaMax, String tonKho) {
+        String kw = keyword == null ? "" : keyword.trim().toLowerCase();
+        if (!kw.isEmpty()) {
+            hql.append(" AND (LOWER(ct.ma) LIKE :kw OR LOWER(sp.maSanPham) LIKE :kw " +
+                    "OR LOWER(sp.tenSanPham) LIKE :kw)");
+        }
+        if (idMauSac != null) hql.append(" AND ms.id = :idMauSac");
+        if (idSize != null) hql.append(" AND sz.id = :idSize");
+        if (giaMin != null) hql.append(" AND ct.giaBan >= :giaMin");
+        if (giaMax != null) hql.append(" AND ct.giaBan <= :giaMax");
+        if ("con-hang".equals(tonKho)) hql.append(" AND ct.soLuongTon > 0");
+        if ("het-hang".equals(tonKho)) hql.append(" AND (ct.soLuongTon IS NULL OR ct.soLuongTon <= 0)");
+    }
+
+    private void bindBanHangFilter(Query<?> q, String keyword, Integer idMauSac, Integer idSize,
+                                   BigDecimal giaMin, BigDecimal giaMax) {
+        String kw = keyword == null ? "" : keyword.trim().toLowerCase();
+        if (!kw.isEmpty()) q.setParameter("kw", "%" + kw + "%");
+        if (idMauSac != null) q.setParameter("idMauSac", idMauSac);
+        if (idSize != null) q.setParameter("idSize", idSize);
+        if (giaMin != null) q.setParameter("giaMin", giaMin);
+        if (giaMax != null) q.setParameter("giaMax", giaMax);
+    }
+
+    /**
+     * Tìm biến thể sản phẩm đang bán cho màn hình Bán hàng tại quầy, có lọc theo
+     * từ khóa / màu / size / khoảng giá / tình trạng tồn kho, và phân trang.
+     */
+    public List<ChiTietSanPham> searchForBanHangPage(String keyword, Integer idMauSac, Integer idSize,
+                                                     BigDecimal giaMin, BigDecimal giaMax, String tonKho,
+                                                     int page, int pageSize) {
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            StringBuilder hql = new StringBuilder(
+                    "SELECT ct FROM ChiTietSanPham ct " +
+                            "JOIN FETCH ct.sanPham sp JOIN FETCH ct.mauSac ms JOIN FETCH ct.size sz" +
+                            BAN_HANG_BASE_WHERE);
+            appendBanHangFilter(hql, keyword, idMauSac, idSize, giaMin, giaMax, tonKho);
+            hql.append(" ORDER BY sp.tenSanPham ASC, ms.ten ASC, sz.ten ASC");
+            Query<ChiTietSanPham> q = s.createQuery(hql.toString(), ChiTietSanPham.class);
+            bindBanHangFilter(q, keyword, idMauSac, idSize, giaMin, giaMax);
+            q.setFirstResult((Math.max(1, page) - 1) * Math.max(1, pageSize));
+            q.setMaxResults(Math.max(1, pageSize));
+            return q.list();
+        }
+    }
+
+    public long countForBanHang(String keyword, Integer idMauSac, Integer idSize,
+                                BigDecimal giaMin, BigDecimal giaMax, String tonKho) {
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            StringBuilder hql = new StringBuilder(
+                    "SELECT COUNT(ct.id) FROM ChiTietSanPham ct " +
+                            "JOIN ct.sanPham sp JOIN ct.mauSac ms JOIN ct.size sz" +
+                            BAN_HANG_BASE_WHERE);
+            appendBanHangFilter(hql, keyword, idMauSac, idSize, giaMin, giaMax, tonKho);
+            Query<Long> q = s.createQuery(hql.toString(), Long.class);
+            bindBanHangFilter(q, keyword, idMauSac, idSize, giaMin, giaMax);
+            Long result = q.uniqueResult();
+            return result == null ? 0L : result;
+        }
+    }
+
+    /** Khoảng giá [min, max] của các biến thể đang bán, dùng để khởi tạo thanh trượt khoảng giá. */
+    public BigDecimal[] getKhoangGiaBanHang() {
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            String hql = "SELECT MIN(ct.giaBan), MAX(ct.giaBan) FROM ChiTietSanPham ct " +
+                    "JOIN ct.sanPham sp" + BAN_HANG_BASE_WHERE;
+            Object[] row = s.createQuery(hql, Object[].class).uniqueResult();
+            BigDecimal min = (row != null && row[0] != null) ? (BigDecimal) row[0] : BigDecimal.ZERO;
+            BigDecimal max = (row != null && row[1] != null) ? (BigDecimal) row[1] : BigDecimal.ZERO;
+            return new BigDecimal[]{min, max};
+        }
+    }
+
+    /** Danh sách màu sắc đang thực sự có biến thể đang bán, dùng cho dropdown lọc. */
+    public List<MauSac> getMauSacDangBan() {
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            String hql = "SELECT DISTINCT ms FROM ChiTietSanPham ct JOIN ct.mauSac ms JOIN ct.sanPham sp" +
+                    BAN_HANG_BASE_WHERE + " ORDER BY ms.ten ASC";
+            return s.createQuery(hql, MauSac.class).list();
+        }
+    }
+
+    /** Danh sách size đang thực sự có biến thể đang bán, dùng cho dropdown lọc. */
+    public List<Size> getSizeDangBan() {
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            String hql = "SELECT DISTINCT sz FROM ChiTietSanPham ct JOIN ct.size sz JOIN ct.sanPham sp" +
+                    BAN_HANG_BASE_WHERE + " ORDER BY sz.ten ASC";
+            return s.createQuery(hql, Size.class).list();
         }
     }
 

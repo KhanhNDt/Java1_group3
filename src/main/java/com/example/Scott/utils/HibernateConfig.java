@@ -33,7 +33,6 @@ public class HibernateConfig {
         conf.setProperties(properties);
         conf.addAnnotatedClass(KhachHang.class);
         conf.addAnnotatedClass(DiaChiKhachHang.class);
-
         conf.addAnnotatedClass(PhieuGiamGia.class);
         conf.addAnnotatedClass(ThuongHieu.class);
         conf.addAnnotatedClass(DanhMuc.class);
@@ -50,7 +49,7 @@ public class HibernateConfig {
         conf.addAnnotatedClass(HoaDonChiTiet.class);
         conf.addAnnotatedClass(LichSuHoaDon.class);
         conf.addAnnotatedClass(ThanhToanHoaDon.class);
-
+        conf.addAnnotatedClass(AnhMauSac.class);
 
         ServiceRegistry registry = new StandardServiceRegistryBuilder()
                 .applySettings(conf.getProperties()).build();

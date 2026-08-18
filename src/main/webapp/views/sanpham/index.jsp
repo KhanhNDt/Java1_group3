@@ -83,18 +83,20 @@
         <div class="px-3 pt-3 pb-2 fw-bold">Tổng số sản phẩm: ${tongSoSanPham}</div>
         <div class="table-responsive">
             <table class="table table-hover align-middle text-center">
-                <thead><tr><th>STT</th><th>Mã sản phẩm</th><th class="text-start">Tên sản phẩm</th><th>Loại sản phẩm</th><th>Thương hiệu</th><th>Hàng tồn</th><th>Khoảng giá</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
+                <thead><tr><th>STT</th><th>Ảnh</th><th>Mã sản phẩm</th><th class="text-start">Tên sản phẩm</th><th>Loại sản phẩm</th><th>Thương hiệu</th><th>Hàng tồn</th><th>Khoảng giá</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
                 <tbody>
                 <c:forEach items="${listSanPhamView}" var="sp" varStatus="st">
                     <tr>
-                        <td>${(currentPage-1)*pageSize+st.count}</td><td class="fw-semibold">${sp.maSanPham}</td><td class="text-start fw-semibold">${sp.tenSanPham}</td><td>${sp.tenDanhMuc}</td><td>${sp.tenThuongHieu}</td>
+                        <td>${(currentPage-1)*pageSize+st.count}</td>
+                        <td><c:choose><c:when test="${not empty sp.hinhAnh}"><img src="${pageContext.request.contextPath}/${sp.hinhAnh}" alt="Ảnh ${sp.tenSanPham}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #ddd"></c:when><c:otherwise><div style="width:44px;height:44px;margin:auto;display:grid;place-items:center;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;color:#999"><i class="bi bi-image"></i></div></c:otherwise></c:choose></td>
+                        <td class="fw-semibold">${sp.maSanPham}</td><td class="text-start fw-semibold">${sp.tenSanPham}</td><td>${sp.tenDanhMuc}</td><td>${sp.tenThuongHieu}</td>
                         <td><span class="stock-badge">${empty sp.tongTon ? 0 : sp.tongTon}</span></td>
                         <td><c:choose><c:when test="${empty sp.giaMin}">Chưa có giá</c:when><c:when test="${sp.giaMin == sp.giaMax}"><fmt:formatNumber value="${sp.giaMin}" pattern="#,#00"/> ₫</c:when><c:otherwise><fmt:formatNumber value="${sp.giaMin}" pattern="#,#00"/> – <fmt:formatNumber value="${sp.giaMax}" pattern="#,#00"/> ₫</c:otherwise></c:choose></td>
                         <td><div class="product-status"><span id="product-status-label-${sp.id}" class="status-badge ${sp.trangThai == 1 ? 'on' : 'off'}">${sp.trangThai == 1 ? 'Đang bán' : 'Ngừng bán'}</span><label class="status-switch" title="Đổi trạng thái sản phẩm"><input class="product-status-toggle" type="checkbox" data-id="${sp.id}" aria-label="Đổi trạng thái ${sp.tenSanPham}" ${sp.trangThai == 1 ? 'checked' : ''}><span class="status-switch__track"></span></label></div></td>
-                        <td><a class="action-eye" title="Xem biến thể" href="${pageContext.request.contextPath}/san-pham/chi-tiet/hien-thi?idSanPham=${sp.id}"><i class="bi bi-eye"></i></a></td>
+                        <td><a class="action-eye" title="Xem biến thể" href="${pageContext.request.contextPath}/san-pham/chi-tiet/hien-thi?idSanPham=${sp.id}"><i class="bi bi-eye"></i></a> <a class="action-eye" title="Thêm biến thể mới" href="${pageContext.request.contextPath}/san-pham/chi-tiet/hien-thi?idSanPham=${sp.id}#addVariantModal" data-open-add-variant><i class="bi bi-plus-circle"></i></a> <a class="action-eye" title="Chỉnh sửa sản phẩm" href="${pageContext.request.contextPath}/san-pham/view-update?id=${sp.id}"><i class="bi bi-pencil-square"></i></a></td>
                     </tr>
                 </c:forEach>
-                <c:if test="${empty listSanPhamView}"><tr><td colspan="9" class="py-5 text-secondary"><i class="bi bi-inbox fs-2 d-block mb-2"></i>Không tìm thấy sản phẩm phù hợp.</td></tr></c:if>
+                <c:if test="${empty listSanPhamView}"><tr><td colspan="10" class="py-5 text-secondary"><i class="bi bi-inbox fs-2 d-block mb-2"></i>Không tìm thấy sản phẩm phù hợp.</td></tr></c:if>
                 </tbody>
             </table>
         </div>
@@ -106,112 +108,139 @@
     </section>
 </main>
 
+
+<c:if test="${not empty sanPhamForm}">
+    <div class="modal fade" id="editProductModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Chỉnh sửa sản phẩm ${sanPhamForm.maSanPham}</h5><a class="btn-close" href="${pageContext.request.contextPath}/san-pham/hien-thi"></a></div>
+        <form method="post" enctype="multipart/form-data" action="${pageContext.request.contextPath}/san-pham/update">
+            <div class="modal-body"><input type="hidden" name="id" value="${sanPhamForm.id}">
+                <input type="hidden" name="idThuongHieu" value="${sanPhamForm.thuongHieu.id}"><input type="hidden" name="idDanhMuc" value="${sanPhamForm.danhMuc.id}"><input type="hidden" name="idChatLieu" value="${sanPhamForm.chatLieu.id}"><input type="hidden" name="idKieuDang" value="${sanPhamForm.kieuDang.id}"><input type="hidden" name="gioiTinh" value="${sanPhamForm.gioiTinh ? '1':'0'}"><input type="hidden" name="trangThai" value="${sanPhamForm.trangThai}"><input type="hidden" name="moTa" value="${fn:escapeXml(sanPhamForm.moTa)}">
+                <div class="mb-3"><label class="form-label">Tên sản phẩm</label><input class="form-control" name="tenSanPham" minlength="3" maxlength="100" required value="${fn:escapeXml(sanPhamForm.tenSanPham)}"></div>
+                <c:if test="${not empty sanPhamForm.hinhAnh}"><div class="mb-3"><img src="${pageContext.request.contextPath}/${sanPhamForm.hinhAnh}" alt="Ảnh sản phẩm" style="width:110px;height:110px;object-fit:cover;border-radius:12px;border:1px solid #ddd"></div></c:if>
+                <div class="mb-2"><label class="form-label">Thay ảnh sản phẩm</label><input class="form-control" type="file" name="hinhAnhFile" accept="image/jpeg,image/png,image/webp"><div class="form-text">Để trống nếu giữ nguyên ảnh hiện tại.</div></div>
+            </div><div class="modal-footer"><a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/san-pham/hien-thi">Hủy</a><button class="btn btn-primary" type="submit">Lưu thay đổi</button></div></form></div></div></div>
+</c:if>
+
 <div class="modal fade" id="statusConfirmModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-arrow-repeat me-2 text-primary"></i>Đổi trạng thái</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="statusConfirmText"></div><div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary" id="confirmStatusButton"><i class="bi bi-check2 me-1"></i>Xác nhận</button></div></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const ctx='${pageContext.request.contextPath}';
-const filterBox=document.getElementById('productFilterBox');
-document.getElementById('productFilterToggle').addEventListener('click',()=>filterBox.classList.toggle('collapsed'));
+    const ctx='${pageContext.request.contextPath}';
+    <c:if test="${not empty sanPhamForm}">new bootstrap.Modal(document.getElementById('editProductModal')).show();</c:if>
+    const filterBox=document.getElementById('productFilterBox');
+    document.getElementById('productFilterToggle').addEventListener('click',()=>filterBox.classList.toggle('collapsed'));
 
-const liveForm=document.getElementById('productLiveFilterForm');
-const keywordInput=document.getElementById('productKeyword');
-let liveFilterTimer=null;
-let liveFilterController=null;
+    const liveForm=document.getElementById('productLiveFilterForm');
+    const keywordInput=document.getElementById('productKeyword');
+    let liveFilterTimer=null;
+    let liveFilterController=null;
 
-function buildFilterUrl(page){
-    const params=new URLSearchParams(new FormData(liveForm));
-    params.set('page',page||'1');
-    return liveForm.action+'?'+params.toString();
-}
+    function buildFilterUrl(page){
+        const params=new URLSearchParams(new FormData(liveForm));
+        params.set('page',page||'1');
+        return liveForm.action+'?'+params.toString();
+    }
 
-async function loadProductResults(url, pushHistory=true){
-    const current=document.getElementById('productResults');
-    if(!current)return;
-    if(liveFilterController)liveFilterController.abort();
-    liveFilterController=new AbortController();
-    current.classList.add('is-loading');
-    try{
-        const response=await fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'},signal:liveFilterController.signal});
-        if(!response.ok)throw new Error('Không thể tải dữ liệu lọc.');
-        const html=await response.text();
-        const doc=new DOMParser().parseFromString(html,'text/html');
-        const next=doc.getElementById('productResults');
-        if(!next)throw new Error('Không tìm thấy vùng kết quả sản phẩm.');
-        current.replaceWith(next);
-        if(pushHistory)history.replaceState({},'',url);
-    }catch(error){
-        if(error.name!=='AbortError'){
-            current.classList.remove('is-loading');
-            alert(error.message||'Lọc sản phẩm thất bại.');
+    async function loadProductResults(url, pushHistory=true){
+        const current=document.getElementById('productResults');
+        if(!current)return;
+        if(liveFilterController)liveFilterController.abort();
+        liveFilterController=new AbortController();
+        current.classList.add('is-loading');
+        try{
+            const response=await fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'},signal:liveFilterController.signal});
+            if(!response.ok)throw new Error('Không thể tải dữ liệu lọc.');
+            const html=await response.text();
+            const doc=new DOMParser().parseFromString(html,'text/html');
+            const next=doc.getElementById('productResults');
+            if(!next)throw new Error('Không tìm thấy vùng kết quả sản phẩm.');
+            current.replaceWith(next);
+            if(pushHistory)history.replaceState({},'',url);
+        }catch(error){
+            if(error.name!=='AbortError'){
+                current.classList.remove('is-loading');
+                alert(error.message||'Lọc sản phẩm thất bại.');
+            }
         }
     }
-}
 
-function scheduleLiveFilter(){
-    clearTimeout(liveFilterTimer);
-    liveFilterTimer=setTimeout(()=>loadProductResults(buildFilterUrl('1')),350);
-}
-
-keywordInput.addEventListener('input',scheduleLiveFilter);
-liveForm.querySelectorAll('select,input[type="radio"]').forEach(el=>el.addEventListener('change',()=>loadProductResults(buildFilterUrl('1'))));
-liveForm.addEventListener('submit',event=>{event.preventDefault();loadProductResults(buildFilterUrl('1'));});
-
-document.getElementById('resetProductFilter').addEventListener('click',()=>{
-    keywordInput.value='';
-    liveForm.querySelector('[name="locThuongHieu"]').value='';
-    liveForm.querySelector('[name="locDanhMuc"]').value='';
-    liveForm.querySelector('[name="sapXep"]').value='mac-dinh';
-    const allStatus=liveForm.querySelector('[name="locTrangThai"][value=""]');
-    if(allStatus)allStatus.checked=true;
-    liveForm.querySelector('[name="page"]').value='1';
-    loadProductResults(buildFilterUrl('1'));
-});
-
-document.addEventListener('click',event=>{
-    const pageLink=event.target.closest('#productResults .pagination a.page-link');
-    if(pageLink){event.preventDefault();loadProductResults(pageLink.href);return;}
-});
-document.addEventListener('change',event=>{
-    const sizeSelect=event.target.closest('#productResults select[data-page-size]');
-    if(sizeSelect){
-        const params=new URLSearchParams(new FormData(liveForm));
-        params.set('page','1');params.set('size',sizeSelect.value);
-        liveForm.querySelector('[name="size"]').value=sizeSelect.value;
-        loadProductResults(liveForm.action+'?'+params.toString());
-        return;
+    function scheduleLiveFilter(){
+        clearTimeout(liveFilterTimer);
+        liveFilterTimer=setTimeout(()=>loadProductResults(buildFilterUrl('1')),350);
     }
-    const toggle=event.target.closest('.product-status-toggle');
-    if(toggle){
-        pendingToggle=toggle;
-        pendingToggle.dataset.requestedState=toggle.checked?'1':'0';
-        const action=toggle.checked?'Đang bán':'Ngừng bán';
-        document.getElementById('statusConfirmText').innerHTML='<div class="text-center py-2"><div class="fs-2 mb-2">'+(toggle.checked?'🟢':'⚪')+'</div><div>Bạn có chắc muốn chuyển sản phẩm sang <strong>'+action+'</strong>?</div><small class="text-secondary d-block mt-2">Thao tác chỉ thay đổi khả năng bán, không xóa dữ liệu sản phẩm.</small></div>';
-        toggle.checked=!toggle.checked;
-        confirmModal.show();
-    }
-});
 
-let pendingToggle=null;
-const confirmModal=new bootstrap.Modal(document.getElementById('statusConfirmModal'));
-document.getElementById('confirmStatusButton').addEventListener('click',function(){
-    if(!pendingToggle)return;
-    const el=pendingToggle;
-    const button=this;
-    button.disabled=true;
-    button.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu';
-    fetch(ctx+'/san-pham/toggle-trang-thai?id='+encodeURIComponent(el.dataset.id),{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'}})
-        .then(r=>r.json())
-        .then(data=>{
-            if(!data.success)throw new Error(data.message);
-            el.checked=data.trangThai===1;
-            const label=document.getElementById('product-status-label-'+el.dataset.id);
-            if(label){label.textContent=data.message;label.className='status-badge '+(data.trangThai===1?'on':'off');}
-            confirmModal.hide();pendingToggle=null;
-        })
-        .catch(e=>alert(e.message||'Đổi trạng thái thất bại.'))
-        .finally(()=>{button.disabled=false;button.innerHTML='<i class="bi bi-check2 me-1"></i>Xác nhận';});
-});
-document.getElementById('statusConfirmModal').addEventListener('hidden.bs.modal',()=>{pendingToggle=null;});
+    keywordInput.addEventListener('input',scheduleLiveFilter);
+    liveForm.querySelectorAll('select,input[type="radio"]').forEach(el=>el.addEventListener('change',()=>loadProductResults(buildFilterUrl('1'))));
+    liveForm.addEventListener('submit',event=>{event.preventDefault();loadProductResults(buildFilterUrl('1'));});
+
+    document.getElementById('resetProductFilter').addEventListener('click',()=>{
+        keywordInput.value='';
+        liveForm.querySelector('[name="locThuongHieu"]').value='';
+        liveForm.querySelector('[name="locDanhMuc"]').value='';
+        liveForm.querySelector('[name="sapXep"]').value='mac-dinh';
+        const allStatus=liveForm.querySelector('[name="locTrangThai"][value=""]');
+        if(allStatus)allStatus.checked=true;
+        liveForm.querySelector('[name="page"]').value='1';
+        loadProductResults(buildFilterUrl('1'));
+    });
+
+    document.addEventListener('click',event=>{
+        const pageLink=event.target.closest('#productResults .pagination a.page-link');
+        if(pageLink){event.preventDefault();loadProductResults(pageLink.href);return;}
+    });
+    document.addEventListener('change',event=>{
+        const sizeSelect=event.target.closest('#productResults select[data-page-size]');
+        if(sizeSelect){
+            const params=new URLSearchParams(new FormData(liveForm));
+            params.set('page','1');params.set('size',sizeSelect.value);
+            liveForm.querySelector('[name="size"]').value=sizeSelect.value;
+            loadProductResults(liveForm.action+'?'+params.toString());
+            return;
+        }
+        const toggle=event.target.closest('.product-status-toggle');
+        if(toggle){
+            pendingToggle=toggle;
+            pendingToggle.dataset.requestedState=toggle.checked?'1':'0';
+            const action=toggle.checked?'Đang bán':'Ngừng bán';
+            document.getElementById('statusConfirmText').innerHTML='<div class="text-center py-2"><div class="fs-2 mb-2">'+(toggle.checked?'🟢':'⚪')+'</div><div>Bạn có chắc muốn chuyển sản phẩm sang <strong>'+action+'</strong>?</div><small class="text-secondary d-block mt-2">Thao tác chỉ thay đổi khả năng bán, không xóa dữ liệu sản phẩm.</small></div>';
+            toggle.checked=!toggle.checked;
+            confirmModal.show();
+        }
+    });
+
+    let pendingToggle=null;
+    const confirmModal=new bootstrap.Modal(document.getElementById('statusConfirmModal'));
+    document.getElementById('confirmStatusButton').addEventListener('click',function(){
+        if(!pendingToggle)return;
+        const el=pendingToggle;
+        const button=this;
+        button.disabled=true;
+        button.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu';
+        fetch(ctx+'/san-pham/toggle-trang-thai?id='+encodeURIComponent(el.dataset.id),{method:'POST',headers:{'X-Requested-With':'XMLHttpRequest'}})
+            .then(r=>r.json())
+            .then(data=>{
+                if(!data.success)throw new Error(data.message);
+                el.checked=data.trangThai===1;
+                const label=document.getElementById('product-status-label-'+el.dataset.id);
+                if(label){label.textContent=data.message;label.className='status-badge '+(data.trangThai===1?'on':'off');}
+                confirmModal.hide();pendingToggle=null;
+            })
+            .catch(e=>alert(e.message||'Đổi trạng thái thất bại.'))
+            .finally(()=>{button.disabled=false;button.innerHTML='<i class="bi bi-check2 me-1"></i>Xác nhận';});
+    });
+    document.getElementById('statusConfirmModal').addEventListener('hidden.bs.modal',()=>{pendingToggle=null;});
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<c:if test="${not empty error}">
+    <c:set var="isDuplicateError" value="${fn:contains(error, 'đã tồn tại') || fn:contains(error, 'trùng')}" />
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: '<c:choose><c:when test="${isDuplicateError}">Dữ liệu bị trùng</c:when><c:otherwise>Không thể thực hiện</c:otherwise></c:choose>',
+            html: '<c:out value="${error}" />',
+            confirmButtonText: 'Đã hiểu',
+            confirmButtonColor: '#111111'
+        });
+    </script>
+</c:if>
 <%@ include file="/views/layout/footer.jsp" %>
 </body></html>

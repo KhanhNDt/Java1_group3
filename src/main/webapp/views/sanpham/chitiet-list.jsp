@@ -18,6 +18,22 @@
         .live-filter-note{display:flex;align-items:center;gap:7px;min-height:43px;color:#666;font-size:12px}.live-filter-note i{color:#111}
         .variant-card.is-loading{position:relative;min-height:220px}.variant-card.is-loading:after{content:"Đang lọc dữ liệu...";position:absolute;inset:0;z-index:5;display:grid;place-items:center;color:#111;font-weight:700;background:rgba(255,255,255,.82);backdrop-filter:blur(1px)}
         @media(max-width:992px){.table-footer{align-items:stretch;flex-direction:column}}
+        .selector-box{border:1px solid #c9c9c9;border-radius:11px;background:#fff;min-height:46px;max-height:150px;overflow-y:auto;padding:8px;display:flex;gap:7px;flex-wrap:wrap}.selector-chip{position:relative}.selector-chip input{position:absolute;opacity:0}.selector-chip label{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;background:#f1f1f1;border:1px solid #dedede;font-weight:700;font-size:12px;cursor:pointer}.selector-chip input:checked+label{color:#fff;background:#111;border-color:#111}.selector-chip input:disabled+label{opacity:.45;cursor:not-allowed}
+        .selector-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.selector-head button{border:0;background:transparent;color:#1746a2;font-size:12px;font-weight:700;padding:0;cursor:pointer}
+        #variantMatrixContainer{border:1px solid #dedede;border-radius:11px;overflow:auto;max-height:340px}
+        .variant-matrix{width:100%;border-collapse:collapse;font-size:13px}
+        .variant-matrix th,.variant-matrix td{border:1px solid #eee;padding:0;text-align:center}
+        .variant-matrix thead th{background:#f8f8f8;color:#475569;font-size:11.5px;font-weight:800;padding:9px 8px;position:sticky;top:0;z-index:2}
+        .variant-matrix tbody th{background:#f8f8f8;color:#111;font-weight:700;font-size:12.5px;padding:9px 10px;text-align:left;white-space:nowrap;position:sticky;left:0;z-index:1}
+        .variant-matrix tbody tr.row-full tbody th, .variant-matrix tbody tr.row-full th{color:#aaa}
+        .matrix-cell{display:block;width:100%;height:100%;min-height:38px;cursor:pointer;position:relative}
+        .matrix-cell input{position:absolute;opacity:0}
+        .matrix-cell span{display:flex;align-items:center;justify-content:center;height:38px;font-size:15px;color:#c9c9c9}
+        .matrix-cell input:checked+span{background:#111;color:#fff}
+        .matrix-cell input:checked+span:after{content:"\2713"}
+        .matrix-cell.taken{cursor:not-allowed;background:#f1f1f1}.matrix-cell.taken span{color:#c9c9c9}.matrix-cell.taken span:after{content:"\2715";font-size:12px}
+        .matrix-cell.inactive{cursor:not-allowed;background:#fafafa}.matrix-cell.inactive span{color:#e2e2e2}
+        .legend-chip{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:2px;vertical-align:middle}.legend-taken{background:#f1f1f1;border:1px solid #dedede}.legend-off{background:#fafafa;border:1px solid #eee}
     </style>
 </head>
 <body>
@@ -25,7 +41,7 @@
 <main class="main-content">
     <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
         <div><div class="small text-secondary mb-1">Scott Admin / Quản lý sản phẩm / Danh sách biến thể</div><h2 class="fw-bold mb-1">Danh sách biến thể</h2><div class="text-secondary">Tra cứu biến thể theo sản phẩm, màu sắc, kích thước, tồn kho, giá bán và trạng thái.</div></div>
-        <div class="d-flex flex-wrap gap-2"><a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/san-pham/hien-thi"><i class="bi bi-arrow-left me-1"></i>Danh sách sản phẩm</a><a class="btn btn-primary" href="${pageContext.request.contextPath}/san-pham/them-moi"><i class="bi bi-plus-lg me-1"></i>Thêm sản phẩm</a></div>
+        <div class="d-flex flex-wrap gap-2"><a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/san-pham/hien-thi"><i class="bi bi-arrow-left me-1"></i>Danh sách sản phẩm</a><button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#addVariantModal"><i class="bi bi-plus-circle me-1"></i>Thêm biến thể mới</button><a class="btn btn-primary" href="${pageContext.request.contextPath}/san-pham/them-moi"><i class="bi bi-plus-lg me-1"></i>Thêm sản phẩm</a></div>
     </div>
     <c:if test="${not empty success}"><div class="alert alert-success alert-dismissible fade show">${success}<button class="btn-close" data-bs-dismiss="alert"></button></div></c:if>
     <c:if test="${not empty error}"><div class="alert alert-danger alert-dismissible fade show">${error}<button class="btn-close" data-bs-dismiss="alert"></button></div></c:if>
@@ -50,18 +66,143 @@
     <section class="variant-card" id="variantResults">
         <div class="px-3 pt-3 pb-2 fw-bold">Tổng số biến thể: ${tongSoBienThe}</div>
         <div class="table-responsive"><table class="table table-hover align-middle text-center mb-0"><thead><tr><th>STT</th><th>Ảnh</th><th>Mã sản phẩm</th><th class="text-start">Tên sản phẩm</th><th>Mã SP chi tiết</th><th>Màu sắc</th><th>Kích cỡ</th><th>Số lượng tồn</th><th>Giá bán</th><th>Trạng thái</th><th>Hành động</th></tr></thead><tbody>
-        <c:forEach items="${listAllChiTiet}" var="ct" varStatus="st"><tr>
-            <td>${(currentPage-1)*pageSize+st.count}</td><td><div class="product-thumb"><i class="bi bi-image"></i></div></td><td class="fw-semibold">${ct.sanPham.maSanPham}</td><td class="text-start fw-semibold">${ct.sanPham.tenSanPham}</td><td>${ct.ma}</td><td><span class="color-dot"></span>${ct.mauSac.ten}</td><td>${ct.size.ten}</td><td class="fw-semibold">${ct.soLuongTon}</td><td class="fw-bold"><fmt:formatNumber value="${ct.giaBan}" pattern="#,#00"/> ₫</td>
-            <td><span id="variant-label-${ct.id}" class="status-pill ${ct.trangThai==1?'on':'off'}">${ct.trangThai==1?'Còn bán':'Ngừng bán'}</span></td>
-            <td><div class="d-flex justify-content-center gap-2"><a class="btn btn-sm btn-outline-warning" title="Sửa" href="${pageContext.request.contextPath}/san-pham/chi-tiet/view-update?id=${ct.id}"><i class="bi bi-pencil-square"></i></a><div class="form-check form-switch m-0 pt-1"><input class="form-check-input variant-switch" type="checkbox" data-id="${ct.id}" ${ct.trangThai==1?'checked':''}></div></div></td>
-        </tr></c:forEach>
+        <c:forEach items="${listAllChiTiet}" var="ct" varStatus="st">
+            <c:set var="anhKey" value="${ct.sanPham.id}_${ct.mauSac.id}"/>
+            <c:set var="anhBienThe" value="${anhTheoMauMap[anhKey]}"/>
+            <tr>
+                <td>${(currentPage-1)*pageSize+st.count}</td><td><c:choose><c:when test="${not empty anhBienThe}"><img src="${pageContext.request.contextPath}/${anhBienThe}" alt="Ảnh ${ct.sanPham.tenSanPham} - ${ct.mauSac.ten}" style="width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid #dedede"></c:when><c:when test="${not empty ct.sanPham.hinhAnh}"><img src="${pageContext.request.contextPath}/${ct.sanPham.hinhAnh}" alt="Ảnh ${ct.sanPham.tenSanPham}" style="width:56px;height:56px;object-fit:cover;border-radius:10px;border:1px solid #dedede"></c:when><c:otherwise><div class="product-thumb"><i class="bi bi-image"></i></div></c:otherwise></c:choose></td><td class="fw-semibold">${ct.sanPham.maSanPham}</td><td class="text-start fw-semibold">${ct.sanPham.tenSanPham}</td><td>${ct.ma}</td><td><span class="color-dot"></span>${ct.mauSac.ten}</td><td>${ct.size.ten}</td><td class="fw-semibold">${ct.soLuongTon}</td><td class="fw-bold"><fmt:formatNumber value="${ct.giaBan}" pattern="#,#00"/> ₫</td>
+                <td><span id="variant-label-${ct.id}" class="status-pill ${ct.trangThai==1?'on':'off'}">${ct.trangThai==1?'Còn bán':'Ngừng bán'}</span></td>
+                <td><div class="d-flex justify-content-center gap-2"><button type="button" class="btn btn-sm btn-outline-dark btn-show-qr" title="Mã QR biến thể" data-ma="${ct.ma}" data-ten="${fn:escapeXml(ct.sanPham.tenSanPham)}" data-mau="${ct.mauSac.ten}" data-size="${ct.size.ten}"><i class="bi bi-qr-code"></i></button><a class="btn btn-sm btn-outline-warning" title="Sửa" href="${pageContext.request.contextPath}/san-pham/chi-tiet/view-update?id=${ct.id}"><i class="bi bi-pencil-square"></i></a><div class="form-check form-switch m-0 pt-1"><input class="form-check-input variant-switch" type="checkbox" data-id="${ct.id}" ${ct.trangThai==1?'checked':''}></div></div></td>
+            </tr></c:forEach>
         <c:if test="${empty listAllChiTiet}"><tr><td colspan="11" class="py-5 text-secondary"><i class="bi bi-inbox fs-2 d-block mb-2"></i>Không có biến thể phù hợp.</td></tr></c:if>
         </tbody></table></div>
         <div class="table-footer"><span>Hiển thị ${empty listAllChiTiet?0:fn:length(listAllChiTiet)} / tổng ${tongSoBienThe} bản ghi</span><nav><ul class="pagination pagination-sm mb-0"><c:forEach begin="1" end="${tongSoTrang}" var="p"><li class="page-item ${p==currentPage?'active':''}"><a class="page-link" href="?keyword=${fn:escapeXml(keyword)}&idSanPham=${idSanPham}&idMauSac=${idMauSac}&idSize=${idSize}&tonKho=${tonKho}&trangThai=${trangThai}&giaToiDa=${giaToiDa}&page=${p}&size=${pageSize}">${p}</a></li></c:forEach></ul></nav><select class="form-select form-select-sm" data-page-size style="width:auto"><option value="10" ${pageSize==10?'selected':''}>10 bản ghi / trang</option><option value="20" ${pageSize==20?'selected':''}>20 bản ghi / trang</option><option value="50" ${pageSize==50?'selected':''}>50 bản ghi / trang</option></select></div>
     </section>
 </main>
+<div class="modal fade" id="qrVariantModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-qr-code me-2"></i>Mã QR biến thể</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="qrVariantCanvasBox" style="display:inline-block;padding:12px;background:#fff;border:1px solid #e2e2e2;border-radius:12px;"></div>
+                <div class="fw-bold mt-3" id="qrVariantTen"></div>
+                <div class="text-secondary small" id="qrVariantMauSize"></div>
+                <div class="text-secondary small">Mã: <span class="fw-semibold" id="qrVariantMa"></span></div>
+                <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i>Dùng chức năng "Quét mã QR" ở màn hình Bán hàng tại quầy để thêm nhanh biến thể này vào giỏ hàng.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-dark" id="btnTaiQrVariant"><i class="bi bi-download me-1"></i>Tải QR về máy</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addVariantModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form method="post" action="${pageContext.request.contextPath}/san-pham/chi-tiet/add">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Thêm biến thể mới cho sản phẩm đã tồn tại</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Sản phẩm <span class="text-danger">*</span></label>
+                        <select class="form-select" name="idSanPham" required>
+                            <option value="">-- Chọn sản phẩm --</option>
+                            <c:forEach items="${listSanPham}" var="sp">
+                                <option value="${sp.id}" ${idSanPham==sp.id?'selected':''}>${sp.maSanPham} - ${sp.tenSanPham}</option>
+                            </c:forEach>
+                        </select>
+                        <div class="form-text">Chọn sản phẩm đã có sẵn (ví dụ: áo đã có màu Đỏ/Đen) để thêm màu hoặc size mới, không tạo lại cả sản phẩm.</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="selector-head"><label class="form-label mb-0">Chọn ô màu × size để tạo biến thể mới <span class="text-danger">*</span></label><button type="button" id="matrixSelectAll">Chọn tất cả ô còn trống</button></div>
+                        <div id="variantMatrixContainer">
+                            <div class="text-secondary small py-3 text-center" id="matrixEmptyHint"><i class="bi bi-info-circle me-1"></i>Chọn sản phẩm ở trên để hiển thị bảng màu × size.</div>
+                        </div>
+                        <div class="form-text mt-1"><span class="legend-chip legend-taken"></span> Đã có biến thể (không thể chọn) &nbsp; <span class="legend-chip legend-off"></span> Màu/size đang ngừng hoạt động</div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4"><label class="form-label">Số lượng tồn</label><input class="form-control" type="number" min="0" name="soLuongTon" value="0" required></div>
+                        <div class="col-md-4"><label class="form-label">Giá nhập</label><input class="form-control" type="number" min="0" step="1000" name="giaNhap" value="0" required></div>
+                        <div class="col-md-4"><label class="form-label">Giá bán</label><input class="form-control" type="number" min="0" step="1000" name="giaBan" value="0" required></div>
+                    </div>
+                    <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i>Mỗi ô đã tick sẽ tạo thành 1 biến thể mới, dùng chung số lượng tồn/giá nhập/giá bán nhập ở trên.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-dark"><i class="bi bi-check2-circle me-1"></i>Thêm biến thể</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="variantConfirmModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Xác nhận đổi trạng thái</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="variantConfirmText"></div><div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary" id="variantConfirmButton">Xác nhận</button></div></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/sanpham-variant-list.js?v=live1"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="${pageContext.request.contextPath}/assets/js/vendor/qrcode.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/sanpham-variant-list.js?v=live3"></script>
+<script>
+    // ================= QR CODE cho từng biến thể (xem + tải về) =================
+    (function initVariantQr() {
+        const modalEl = document.getElementById('qrVariantModal');
+        const box = document.getElementById('qrVariantCanvasBox');
+        let qrInstance = null;
+        let maHienTai = '';
+
+        document.querySelectorAll('.btn-show-qr').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const ma = btn.dataset.ma || '';
+                maHienTai = ma;
+                document.getElementById('qrVariantMa').textContent = ma;
+                document.getElementById('qrVariantTen').textContent = btn.dataset.ten || '';
+                document.getElementById('qrVariantMauSize').textContent =
+                    (btn.dataset.mau || '') + ' / ' + (btn.dataset.size || '');
+
+                box.innerHTML = '';
+                qrInstance = new QRCode(box, {
+                    text: ma,
+                    width: 220,
+                    height: 220,
+                    colorDark: '#111111',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+
+                new bootstrap.Modal(modalEl).show();
+            });
+        });
+
+        document.getElementById('btnTaiQrVariant').addEventListener('click', function () {
+            // Thư viện qrcodejs vẽ ra <canvas> (hoặc <img> tùy trình duyệt) bên trong box.
+            const canvas = box.querySelector('canvas');
+            const img = box.querySelector('img');
+            const dataUrl = canvas ? canvas.toDataURL('image/png') : (img ? img.src : null);
+            if (!dataUrl) return;
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = 'qr-bien-the-' + (maHienTai || 'sanpham') + '.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
+    })();
+</script>
+<c:if test="${not empty error}">
+    <c:set var="isDuplicateError" value="${fn:contains(error, 'đã tồn tại') || fn:contains(error, 'trùng')}" />
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: '<c:choose><c:when test="${isDuplicateError}">Dữ liệu bị trùng</c:when><c:otherwise>Không thể thực hiện</c:otherwise></c:choose>',
+            html: '<c:out value="${error}" />',
+            confirmButtonText: 'Đã hiểu',
+            confirmButtonColor: '#111111'
+        });
+    </script>
+</c:if>
 <%@ include file="/views/layout/footer.jsp" %>
 </body></html>

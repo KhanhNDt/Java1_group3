@@ -1,10 +1,12 @@
 package com.example.Scott.controller;
 
+import com.example.Scott.data.DiaChiData;
 import com.example.Scott.dto.CccdDTO;
 import com.example.Scott.entity.NhanVien;
 import com.example.Scott.responsitory.NhanVienRepository;
 import com.example.Scott.utils.MailUtils;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import org.apache.poi.ss.usermodel.*;
@@ -13,8 +15,15 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 5 * 1024 * 1024, maxRequestSize = 6 * 1024 * 1024)
 @WebServlet({
         "/nhan-vien/hien-thi",
         "/nhan-vien/detail",
@@ -29,7 +38,8 @@ import java.util.List;
 })
 public class NhanVienServlet extends HttpServlet {
 
-    private static final int PAGE_SIZE_DEFAULT = 10;
+    // Số nhân viên hiển thị trên mỗi trang (cố định theo yêu cầu)
+    private static final int PAGE_SIZE_DEFAULT = 5;
     private static final int TRANG_THAI_MAC_DINH_KHI_THEM = 1; // luôn "Đang làm" khi thêm mới
 
     private final NhanVienRepository repo = new NhanVienRepository();
@@ -110,8 +120,8 @@ public class NhanVienServlet extends HttpServlet {
         int page = parseIntSafe(request.getParameter("page"), 1);
         if (page < 1) page = 1;
 
-        int size = parseIntSafe(request.getParameter("size"), PAGE_SIZE_DEFAULT);
-        if (size < 1) size = PAGE_SIZE_DEFAULT;
+        // Cố định 5 nhân viên / trang (không cho phép đổi qua tham số size)
+        int size = PAGE_SIZE_DEFAULT;
 
         long totalRecords = repo.countFilter(keyword, chucVu, trangThai);
         int totalPages = (int) Math.ceil((double) totalRecords / size);
@@ -154,11 +164,62 @@ public class NhanVienServlet extends HttpServlet {
                 request.setAttribute("nv", new NhanVien());
             }
         } else {
-            request.setAttribute("nv", new NhanVien());
+            NhanVien nv = new NhanVien();
+            // Nếu vừa quét QR CCCD/VNeID và bấm "Xác nhận, điền vào form" thì tự động điền sẵn
+            // các thông tin đã quét được vào nhân viên mới (người dùng vẫn có thể sửa lại trước khi lưu).
+            applyQrDataIfPresent(request, nv);
+            request.setAttribute("nv", nv);
         }
         request.setAttribute("menu", "nhanvien");
         request.setAttribute("viewType", "form");
+        themDuLieuDiaChi(request);
         request.getRequestDispatcher("/views/nhanvien/nhan-vien.jsp").forward(request, response);
+    }
+
+    /**
+     * Điền sẵn thông tin nhân viên mới từ dữ liệu CCCD vừa quét QR (nếu có truyền lên qua query string
+     * từ trang kết quả quét QR khi người dùng bấm "Xác nhận, điền vào form").
+     */
+    private void applyQrDataIfPresent(HttpServletRequest request, NhanVien nv) {
+        String hoTen = request.getParameter("qrHoTen");
+        String ngaySinh = request.getParameter("qrNgaySinh"); // định dạng dd/MM/yyyy
+        String gioiTinh = request.getParameter("qrGioiTinh"); // "Nam" / "Nữ"
+        String diaChi = request.getParameter("qrDiaChi");
+
+        boolean coDuLieuQr = (hoTen != null && !hoTen.trim().isEmpty())
+                || (ngaySinh != null && !ngaySinh.trim().isEmpty())
+                || (gioiTinh != null && !gioiTinh.trim().isEmpty())
+                || (diaChi != null && !diaChi.trim().isEmpty());
+        if (!coDuLieuQr) return;
+
+        if (hoTen != null && !hoTen.trim().isEmpty()) nv.setHoTen(hoTen.trim());
+        if (diaChi != null && !diaChi.trim().isEmpty()) nv.setDiaChi(diaChi.trim());
+        if (gioiTinh != null && !gioiTinh.trim().isEmpty()) {
+            nv.setGioiTinh("Nam".equalsIgnoreCase(gioiTinh.trim()));
+        }
+        if (ngaySinh != null && !ngaySinh.trim().isEmpty()) {
+            try {
+                String[] p = ngaySinh.trim().split("/");
+                if (p.length == 3) {
+                    java.util.Calendar cal = java.util.Calendar.getInstance();
+                    cal.clear();
+                    cal.set(Integer.parseInt(p[2]), Integer.parseInt(p[1]) - 1, Integer.parseInt(p[0]));
+                    nv.setNgaySinh(cal.getTime());
+                }
+            } catch (Exception ignored) {
+                // Sai định dạng ngày sinh từ QR -> bỏ qua, để trống cho người dùng tự nhập
+            }
+        }
+        request.setAttribute("qrFilled", true);
+    }
+
+    /**
+     * Nạp danh sách Tỉnh/Phường (dữ liệu nội bộ, dùng chung với modal chọn địa chỉ
+     * của khách hàng) để hiển thị trong form thêm/sửa nhân viên.
+     */
+    private void themDuLieuDiaChi(HttpServletRequest request) {
+        request.setAttribute("listTinh", DiaChiData.getAllTinh());
+        request.setAttribute("listPhuong", DiaChiData.getAllPhuong());
     }
 
     /**
@@ -312,6 +373,44 @@ public class NhanVienServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Lưu file ảnh đại diện nhân viên từ Part multipart "anhDaiDienFile" (nếu có) lên đĩa
+     * và trả về đường dẫn tương đối (VD "uploads/employees/xxx.jpg") để lưu vào cột anh_dai_dien.
+     * Trả về null nếu người dùng không chọn file nào -> giữ nguyên ảnh cũ khi cập nhật.
+     */
+    private String saveEmployeeImageIfPresent(HttpServletRequest request) throws ServletException {
+        Part part;
+        try {
+            part = request.getPart("anhDaiDienFile");
+        } catch (IOException | ServletException e) {
+            return null; // không phải request multipart hoặc không có part này
+        }
+        if (part == null || part.getSize() == 0) return null;
+
+        String contentType = part.getContentType();
+        if (contentType == null || !(contentType.equals("image/jpeg") || contentType.equals("image/png") || contentType.equals("image/webp"))) {
+            throw new ServletException("Ảnh đại diện chỉ chấp nhận JPG, PNG hoặc WEBP.");
+        }
+
+        String submitted = Paths.get(part.getSubmittedFileName()).getFileName().toString();
+        String ext = submitted.contains(".") ? submitted.substring(submitted.lastIndexOf('.')).toLowerCase(Locale.ROOT) : ".jpg";
+        String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
+        String relativeDir = "uploads/employees";
+        String realDir = request.getServletContext().getRealPath("/" + relativeDir);
+        if (realDir == null) throw new ServletException("Không xác định được thư mục lưu ảnh trên máy chủ.");
+
+        try {
+            Path dir = Paths.get(realDir);
+            Files.createDirectories(dir);
+            try (java.io.InputStream input = part.getInputStream()) {
+                Files.copy(input, dir.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            throw new ServletException("Không thể lưu ảnh đại diện: " + e.getMessage(), e);
+        }
+        return relativeDir + "/" + fileName;
+    }
+
     private int parseIntSafe(String value, int defaultValue) {
         if (value == null || value.trim().isEmpty()) return defaultValue;
         try {
@@ -376,9 +475,11 @@ public class NhanVienServlet extends HttpServlet {
                 nv.setEmail(email);
                 nv.setSoDienThoai(request.getParameter("soDienThoai"));
                 nv.setChucVu(request.getParameter("chucVu"));
+                nv.setDiaChi(buildDiaChi(request));
                 request.setAttribute("nv", nv);
                 request.setAttribute("menu", "nhanvien");
                 request.setAttribute("viewType", "form");
+                themDuLieuDiaChi(request);
                 request.getRequestDispatcher("/views/nhanvien/nhan-vien.jsp").forward(request, response);
                 return;
             }
@@ -397,6 +498,33 @@ public class NhanVienServlet extends HttpServlet {
 
             // Giới tính: radio button "true"/"false"
             nv.setGioiTinh(Boolean.parseBoolean(request.getParameter("gioiTinh")));
+
+            // Ảnh đại diện: chỉ lưu file mới nếu người dùng có chọn; nếu không, giữ nguyên ảnh cũ (khi sửa).
+            String anhMoi;
+            try {
+                anhMoi = saveEmployeeImageIfPresent(request);
+            } catch (ServletException imgEx) {
+                request.setAttribute("error", imgEx.getMessage());
+                nv.setId(isAdd ? 0 : parseIntSafe(request.getParameter("id"), 0));
+                nv.setHoTen(hoTen);
+                nv.setEmail(email);
+                nv.setSoDienThoai(request.getParameter("soDienThoai"));
+                nv.setChucVu(request.getParameter("chucVu"));
+                nv.setDiaChi(buildDiaChi(request));
+                if (!isAdd) {
+                    NhanVien existingNv = repo.getOne(parseIntSafe(request.getParameter("id"), 0));
+                    if (existingNv != null) nv.setAnhDaiDien(existingNv.getAnhDaiDien());
+                }
+                request.setAttribute("nv", nv);
+                request.setAttribute("menu", "nhanvien");
+                request.setAttribute("viewType", "form");
+                themDuLieuDiaChi(request);
+                request.getRequestDispatcher("/views/nhanvien/nhan-vien.jsp").forward(request, response);
+                return;
+            }
+            if (anhMoi != null) {
+                nv.setAnhDaiDien(anhMoi);
+            }
 
             boolean success;
             if (isAdd) {
@@ -417,6 +545,10 @@ public class NhanVienServlet extends HttpServlet {
                 nv.setMaNhanVien(existing != null ? existing.getMaNhanVien() : request.getParameter("maNhanVien"));
                 // Trạng thái không nằm trong form sửa -> giữ nguyên trạng thái hiện có trong DB
                 nv.setTrangThai(existing != null ? existing.getTrangThai() : TRANG_THAI_MAC_DINH_KHI_THEM);
+                // Nếu không chọn ảnh mới, giữ nguyên ảnh cũ trong DB (tránh bị xóa ảnh khi chỉ sửa thông tin khác)
+                if (anhMoi == null) {
+                    nv.setAnhDaiDien(existing != null ? existing.getAnhDaiDien() : null);
+                }
                 nv.setId(id);
                 success = repo.update(nv);
             }
@@ -429,6 +561,7 @@ public class NhanVienServlet extends HttpServlet {
                 request.setAttribute("nv", nv);
                 request.setAttribute("menu", "nhanvien");
                 request.setAttribute("viewType", "form");
+                themDuLieuDiaChi(request);
                 request.getRequestDispatcher("/views/nhanvien/nhan-vien.jsp").forward(request, response);
             }
 
@@ -437,6 +570,7 @@ public class NhanVienServlet extends HttpServlet {
             request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
             request.setAttribute("menu", "nhanvien");
             request.setAttribute("viewType", "form");
+            themDuLieuDiaChi(request);
             request.getRequestDispatcher("/views/nhanvien/nhan-vien.jsp").forward(request, response);
         }
     }

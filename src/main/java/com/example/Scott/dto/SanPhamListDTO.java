@@ -27,10 +27,11 @@ public class SanPhamListDTO {
     private final Long tongTon;        // tổng số lượng tồn kho cộng dồn từ tất cả biến thể
     private final BigDecimal giaMin;   // giá bán thấp nhất trong các biến thể
     private final BigDecimal giaMax;   // giá bán cao nhất trong các biến thể
+    private final String hinhAnh;      // đường dẫn ảnh đại diện sản phẩm (tương đối, vd: uploads/products/xxx.jpg)
 
     public SanPhamListDTO(Integer id, String maSanPham, String tenSanPham, String tenDanhMuc,
-                           String tenThuongHieu, Integer trangThai, Long tongTon,
-                           BigDecimal giaMin, BigDecimal giaMax) {
+                          String tenThuongHieu, Integer trangThai, Long tongTon,
+                          BigDecimal giaMin, BigDecimal giaMax, String hinhAnh) {
         this.id = id;
         this.maSanPham = maSanPham;
         this.tenSanPham = tenSanPham;
@@ -40,6 +41,7 @@ public class SanPhamListDTO {
         this.tongTon = tongTon;
         this.giaMin = giaMin;
         this.giaMax = giaMax;
+        this.hinhAnh = hinhAnh;
     }
 
     /** "Còn hàng" nếu tổng tồn kho > 0, ngược lại "Hết hàng" — độc lập với trạng thái Đang/Ngừng bán. */

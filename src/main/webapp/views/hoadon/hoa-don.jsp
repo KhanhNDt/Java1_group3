@@ -246,17 +246,20 @@
             <div class="row">
                 <div class="col-md-4">
                     <label class="form-label">Tìm kiếm thông tin</label>
-                    <input type="text" class="form-control" name="keyword" value="${keyword}" placeholder="Mã HD, tên khách, SĐT...">
+                    <input type="text" class="form-control" id="fKeyword" name="keyword" value="${keyword}" placeholder="Mã HD, tên khách, SĐT...">
+                    <div id="liveSearchStatus" class="form-text"></div>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label">Ngày bắt đầu</label>
-                    <input type="date" class="form-control" name="fromDate" value="${fromDate}">
+                    <input type="date" class="form-control" id="fFromDate" name="fromDate" value="${fromDate}">
+                    <div class="invalid-feedback">Ngày bắt đầu phải nhỏ hơn ngày kết thúc.</div>
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label">Ngày kết thúc</label>
-                    <input type="date" class="form-control" name="toDate" value="${toDate}">
+                    <input type="date" class="form-control" id="fToDate" name="toDate" value="${toDate}">
+                    <div class="invalid-feedback">Ngày kết thúc phải lớn hơn ngày bắt đầu.</div>
                 </div>
             </div>
 
@@ -286,99 +289,9 @@
             <%--            <button type="button" onclick="filterByStatus('3')" class="btn status-btn ${status=='3' ? 'status-active' : ''}">Đã xóa</button>--%>
         </div>
 
-        <table class="table table-hover align-middle">
-            <thead>
-            <tr>
-                <th>STT</th>
-                <th>Mã hóa đơn</th>
-                <th>Tên nhân viên</th>
-                <th>Tên khách hàng</th>
-                <th>Ngày tạo</th>
-                <th>Tổng tiền</th>
-                <th>SĐT</th>
-                <th>Trạng thái</th>
-                <th class="text-center">Hành động</th>
-            </tr>
-            </thead>
-            <tbody>
-            <c:forEach items="${invoiceList}" var="hd" varStatus="loop">
-                <tr>
-                    <td>${loop.index + 1 + (currentPage-1)*10}</td>
-                    <td><strong>${hd.maHoaDon}</strong></td>
-                    <td>${hd.tenNhanVien}</td>
-                    <td>${empty hd.tenKhachHang ? 'Khách lẻ' : hd.tenKhachHang}</td>
-                    <td><fmt:formatDate value="${hd.ngayTao}" pattern="dd/MM/yyyy HH:mm"/></td>
-                    <td><fmt:formatNumber value="${hd.tongTienThanhToan}" type="currency" currencySymbol="₫"/></td>
-                    <td>${hd.sdtKhachHang}</td>
-                    <td>
-                        <c:choose>
-                            <c:when test="${hd.trangThai==1}">
-                                <span class="badge-success">Đã thanh toán</span>
-                            </c:when>
-                            <%--                            Hóa đơn "Chờ xử lý" không còn xuất hiện trong danh sách này nữa --%>
-                            <%--                            <c:when test="${hd.trangThai==0}">--%>
-                            <%--                                <span class="badge-warning">Chờ xử lý</span>--%>
-                            <%--                            </c:when>--%>
-                            <c:when test="${hd.trangThai==2}">
-                                <span class="badge-danger">Đã hủy</span>
-                            </c:when>
-                            <%--                            <c:when test="${hd.trangThai==3}">--%>
-                            <%--                                <span class="badge-secondary">Đã xóa</span>--%>
-                            <%--                            </c:when>--%>
-                        </c:choose>
-                    </td>
-                    <td class="text-center">
-                        <div class="btn-group">
-                            <a href="${pageContext.request.contextPath}/quanlyhoadon?action=detail&id=${hd.id}" class="btn btn-outline-primary btn-view" title="Chi tiết">
-                                <i class="bi bi-eye"></i>
-                            </a>
-
-                                <%--                            <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown"></button>--%>
-                                <%--                            <ul class="dropdown-menu">--%>
-                                <%--                            </ul>--%>
-
-                        </div>
-                    </td>
-                </tr>
-            </c:forEach>
-
-            <c:if test="${empty invoiceList}">
-                <tr>
-                    <td colspan="9" class="text-center py-5 text-muted">Không có dữ liệu hóa đơn phù hợp.</td>
-                </tr>
-            </c:if>
-            </tbody>
-        </table>
-
-        <c:if test="${totalPages > 1}">
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    <c:if test="${currentPage > 1}">
-                        <li class="page-item">
-                            <a class="page-link" href="?page=${currentPage-1}&keyword=${keyword}&status=${empty status ? '' : status}&fromDate=${fromDate}&toDate=${toDate}">
-                                <i class="bi bi-chevron-left"></i>
-                            </a>
-                        </li>
-                    </c:if>
-
-                    <c:forEach begin="1" end="${totalPages}" var="i">
-                        <li class="page-item ${i==currentPage ? 'active' : ''}">
-                            <a class="page-link" href="?page=${i}&keyword=${keyword}&status=${empty status ? '' : status}&fromDate=${fromDate}&toDate=${toDate}">
-                                    ${i}
-                            </a>
-                        </li>
-                    </c:forEach>
-
-                    <c:if test="${currentPage < totalPages}">
-                        <li class="page-item">
-                            <a class="page-link" href="?page=${currentPage+1}&keyword=${keyword}&status=${empty status ? '' : status}&fromDate=${fromDate}&toDate=${toDate}">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </li>
-                    </c:if>
-                </ul>
-            </nav>
-        </c:if>
+        <div id="hoaDonTableWrapper">
+            <jsp:include page="/views/hoadon/hoa-don-table-fragment.jsp"/>
+        </div>
     </div>
 </div>
 
@@ -388,8 +301,83 @@
     // Hàm bấm tab trạng thái nhanh nhưng giữ lại keyword tìm kiếm
     function filterByStatus(statusValue) {
         document.getElementById('formStatus').value = statusValue;
-        document.getElementById('filterForm').submit();
+        triggerLiveSearch();
     }
+
+    // ===================== LIVE SEARCH + LIVE VALIDATE NGÀY (Quản lý hóa đơn) =====================
+    (function () {
+        const keywordEl = document.getElementById('fKeyword');
+        const fromDateEl = document.getElementById('fFromDate');
+        const toDateEl = document.getElementById('fToDate');
+        const statusEl = document.getElementById('formStatus');
+        const wrapper = document.getElementById('hoaDonTableWrapper');
+        const statusMsg = document.getElementById('liveSearchStatus');
+        if (!keywordEl || !wrapper) return;
+
+        let debounceTimer = null;
+
+        function validateKhoangNgay() {
+            const batDau = fromDateEl.value;
+            const ketThuc = toDateEl.value;
+            if (batDau && ketThuc && batDau >= ketThuc) {
+                fromDateEl.classList.add('is-invalid');
+                toDateEl.classList.add('is-invalid');
+                return false;
+            }
+            fromDateEl.classList.remove('is-invalid');
+            toDateEl.classList.remove('is-invalid');
+            if (batDau) fromDateEl.classList.add('is-valid'); else fromDateEl.classList.remove('is-valid');
+            if (ketThuc) toDateEl.classList.add('is-valid'); else toDateEl.classList.remove('is-valid');
+            return true;
+        }
+
+        window.triggerLiveSearch = function () {
+            if (!validateKhoangNgay()) {
+                if (statusMsg) statusMsg.innerHTML = '<span class="text-danger">Ngày bắt đầu phải nhỏ hơn ngày kết thúc.</span>';
+                return;
+            }
+            const params = new URLSearchParams({
+                action: 'search',
+                keyword: keywordEl.value.trim(),
+                fromDate: fromDateEl.value,
+                toDate: toDateEl.value,
+                status: statusEl.value
+            });
+
+            if (statusMsg) statusMsg.innerHTML = '<span class="text-muted"><i class="bi bi-arrow-repeat"></i> Đang tìm...</span>';
+
+            fetch(`${pageContext.request.contextPath}/quanlyhoadon?` + params.toString())
+                .then(function (res) { return res.text(); })
+                .then(function (html) {
+                    wrapper.innerHTML = html;
+                    if (statusMsg) statusMsg.innerHTML = '';
+                })
+                .catch(function () {
+                    if (statusMsg) statusMsg.innerHTML = '<span class="text-danger">Không thể tải kết quả tìm kiếm.</span>';
+                });
+        };
+
+        function debouncedSearch() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(window.triggerLiveSearch, 400);
+        }
+
+        keywordEl.addEventListener('input', debouncedSearch);
+        [fromDateEl, toDateEl].forEach(function (el) {
+            el.addEventListener('change', function () {
+                if (validateKhoangNgay()) debouncedSearch();
+            });
+        });
+
+        // Chặn submit bình thường của form bộ lọc (nút "Tìm kiếm") -> cũng chạy live search thay vì reload trang
+        const filterForm = document.getElementById('filterForm');
+        if (filterForm) {
+            filterForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                window.triggerLiveSearch();
+            });
+        }
+    })();
 
     // Hàm xuất dữ liệu Excel động theo tham số hiện tại trên ô nhập liệu
     function triggerExportExcel() {

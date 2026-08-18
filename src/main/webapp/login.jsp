@@ -94,19 +94,28 @@
                         <%= request.getAttribute("error") %>
                     </div>
                     <% } %>
-                    <form action="${pageContext.request.contextPath}/login" method="post">
+                    <form action="${pageContext.request.contextPath}/login" method="post" autocomplete="off">
                         <div class="mb-3">
                             <label class="form-label">Tên đăng nhập</label>
                             <input type="text"
+                                   id="loginUsername"
                                    name="username"
                                    class="form-control"
+                                   autocomplete="off"
+                                   autocapitalize="off"
+                                   autocorrect="off"
+                                   spellcheck="false"
+                                   value=""
                                    required>
                         </div>
                         <div class="mb-4">
                             <label class="form-label">Mật khẩu</label>
                             <input type="password"
+                                   id="loginPassword"
                                    name="password"
                                    class="form-control"
+                                   autocomplete="new-password"
+                                   value=""
                                    required>
                         </div>
                         <button class="btn btn-primary w-100">
@@ -118,6 +127,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Chống trình duyệt tự động điền sẵn tài khoản/mật khẩu đã lưu trước đó
+    // (kể cả khi vào lại trang bằng nút Back hoặc bfcache của trình duyệt).
+    function xoaTruongDangNhap() {
+        var u = document.getElementById('loginUsername');
+        var p = document.getElementById('loginPassword');
+        if (u) u.value = '';
+        if (p) p.value = '';
+    }
+    xoaTruongDangNhap();
+    window.addEventListener('pageshow', xoaTruongDangNhap);
+    setTimeout(xoaTruongDangNhap, 50);
+</script>
 
 </body>
 </html>

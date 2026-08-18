@@ -1,7 +1,9 @@
 package com.example.Scott.controller;
 
+import com.example.Scott.entity.AnhMauSac;
 import com.example.Scott.entity.ChiTietSanPham;
 import com.example.Scott.entity.SanPham;
+import com.example.Scott.responsitory.AnhMauSacResponsitory;
 import com.example.Scott.responsitory.ChiTietSanPhamResponsitory;
 import com.example.Scott.responsitory.SanPhamResponsitory;
 import com.google.gson.Gson;
@@ -10,6 +12,12 @@ import jakarta.servlet.annotation.*;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,6 +27,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Locale;
 
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 5 * 1024 * 1024, maxRequestSize = 6 * 1024 * 1024)
 @WebServlet(name = "SanPhamServlet", value = {
         "/san-pham/hien-thi",
         "/san-pham/them-moi",
@@ -31,6 +40,7 @@ import java.util.Locale;
         "/san-pham/toggle-trang-thai",
         "/san-pham/chi-tiet/toggle-trang-thai",
         "/san-pham/chi-tiet/hien-thi",
+        "/san-pham/chi-tiet/ma-tran",
         "/san-pham/chi-tiet/add",
         "/san-pham/chi-tiet/update",
         "/san-pham/chi-tiet/view-update"
@@ -39,6 +49,7 @@ public class SanPhamServlet extends HttpServlet {
 
     private SanPhamResponsitory sanPhamResponsitory = new SanPhamResponsitory();
     private ChiTietSanPhamResponsitory chiTietSanPhamResponsitory = new ChiTietSanPhamResponsitory();
+    private AnhMauSacResponsitory anhMauSacResponsitory = new AnhMauSacResponsitory();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -47,6 +58,8 @@ public class SanPhamServlet extends HttpServlet {
             this.hienThiThemMoi(request, response);
         } else if (uri.contains("goi-y")) {
             this.goiYSanPham(request, response);
+        } else if (uri.contains("chi-tiet/ma-tran")) {
+            this.layMaTranBienThe(request, response);
         } else if (uri.contains("chi-tiet/hien-thi")) {
             this.hienThiTatCaChiTiet(request, response);
         } else if (uri.contains("chi-tiet/view-update")) {
@@ -85,7 +98,10 @@ public class SanPhamServlet extends HttpServlet {
     private void hienThiThemMoi(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         request.setAttribute("menu", "sanpham");
         request.setAttribute("submenu", "danhsach");
-        loadThuocTinh(request);
+        loadThuocTinhChoThem(request);
+        // Mã sản phẩm mới được sinh sẵn để hiển thị (chỉ đọc) trên form; mã thật sự lưu vào
+        // DB vẫn được sinh lại (đảm bảo mới nhất) ngay trước khi ghi ở addSanPham().
+        request.setAttribute("goiYMaSanPham", sanPhamResponsitory.generateNextMaSanPham());
         moveFlash(request);
         request.getRequestDispatcher("/views/sanpham/add.jsp").forward(request, response);
     }
@@ -152,13 +168,16 @@ public class SanPhamServlet extends HttpServlet {
     }
 
     private void addSanPham(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        StringBuilder loi = validateSanPhamRequest(request, null);
+        StringBuilder loi = validateSanPhamRequest(request, null, true);
 
         String[] mauValues = request.getParameterValues("variantMauSac");
         String[] sizeValues = request.getParameterValues("variantSize");
         String[] giaNhapValues = request.getParameterValues("variantGiaNhap");
         String[] giaBanValues = request.getParameterValues("variantGiaBan");
         String[] soLuongValues = request.getParameterValues("variantSoLuongTon");
+        // variantMa là TÙY CHỌN: nếu người dùng để trống ô "Mã biến thể" thì hệ thống
+        // vẫn tự sinh mã như cũ; nếu điền thì dùng đúng mã đó (sau khi kiểm tra trùng).
+        String[] maValues = request.getParameterValues("variantMa");
 
         int rowCount = mauValues == null ? 0 : mauValues.length;
         if (rowCount == 0) {
@@ -167,7 +186,8 @@ public class SanPhamServlet extends HttpServlet {
             loi.append("Mỗi lần chỉ được tạo tối đa 100 biến thể. ");
         } else if (sizeValues == null || giaNhapValues == null || giaBanValues == null || soLuongValues == null
                 || sizeValues.length != rowCount || giaNhapValues.length != rowCount
-                || giaBanValues.length != rowCount || soLuongValues.length != rowCount) {
+                || giaBanValues.length != rowCount || soLuongValues.length != rowCount
+                || (maValues != null && maValues.length != rowCount)) {
             loi.append("Dữ liệu biến thể không đầy đủ hoặc số cột không khớp nhau. ");
         }
 
@@ -178,11 +198,14 @@ public class SanPhamServlet extends HttpServlet {
             return;
         }
 
-        SanPham sp = buildSanPhamFromRequest(request, new SanPham());
+        SanPham sp = buildSanPhamFromRequest(request, new SanPham(), true);
+        saveProductImage(request, sp);
         sp.setMaSanPham(sanPhamResponsitory.generateNextMaSanPham());
         List<ChiTietSanPham> bienTheList = new ArrayList<>();
         Set<String> combinations = new HashSet<>();
         Set<String> codes = new HashSet<>();
+        // Màu nào đã xuất hiện ở ít nhất 1 dòng hợp lệ -> dùng để tìm file ảnh riêng theo màu (anhMau_<idMau>).
+        java.util.LinkedHashSet<Integer> distinctColorIds = new java.util.LinkedHashSet<>();
 
         if (rowCount > 0 && loi.length() == 0) {
             for (int i = 0; i < rowCount; i++) {
@@ -191,6 +214,7 @@ public class SanPhamServlet extends HttpServlet {
                 BigDecimal giaNhap = parseMoney(giaNhapValues[i], "Giá nhập dòng " + (i + 1), loi);
                 BigDecimal giaBan = parseMoney(giaBanValues[i], "Giá bán dòng " + (i + 1), loi);
                 Integer soLuong = parseInt(soLuongValues[i], "Số lượng dòng " + (i + 1), loi);
+                String maTuyChon = maValues == null ? null : (maValues[i] == null ? null : maValues[i].trim());
 
                 com.example.Scott.entity.MauSac mau = idMau == null ? null : chiTietSanPhamResponsitory.getMauSac(idMau);
                 com.example.Scott.entity.Size size = idSize == null ? null : chiTietSanPhamResponsitory.getSize(idSize);
@@ -200,6 +224,7 @@ public class SanPhamServlet extends HttpServlet {
                 if (giaBan != null && giaBan.compareTo(BigDecimal.ZERO) < 0) loi.append("Giá bán dòng ").append(i + 1).append(" không được âm. ");
                 if (giaNhap != null && giaBan != null && giaBan.compareTo(giaNhap) < 0) loi.append("Giá bán dòng ").append(i + 1).append(" phải lớn hơn hoặc bằng giá nhập. ");
                 if (soLuong != null && soLuong < 0) loi.append("Số lượng dòng ").append(i + 1).append(" không được âm. ");
+                if (maTuyChon != null && !maTuyChon.isEmpty() && maTuyChon.length() > 50) loi.append("Mã biến thể dòng ").append(i + 1).append(" tối đa 50 ký tự. ");
 
                 if (mau != null && size != null && giaNhap != null && giaBan != null && soLuong != null) {
                     String combination = idMau + "-" + idSize;
@@ -207,14 +232,27 @@ public class SanPhamServlet extends HttpServlet {
                         loi.append("Biến thể dòng ").append(i + 1).append(" bị trùng màu và size với dòng trước. ");
                         continue;
                     }
-                    String maGoc = taoMaBienThe(sp, mau, size);
-                    String ma = maGoc;
-                    int suffix = 2;
-                    while (chiTietSanPhamResponsitory.existsMa(ma, null) || codes.contains(ma)) {
-                        String duoi = "-" + suffix++;
-                        ma = gioiHanMa(maGoc, Math.max(1, 50 - duoi.length())) + duoi;
+
+                    String ma;
+                    if (maTuyChon != null && !maTuyChon.isEmpty()) {
+                        // Người dùng tự nhập mã -> phải đúng mã đó, không tự ý đổi. Báo lỗi rõ ràng nếu trùng.
+                        if (chiTietSanPhamResponsitory.existsMa(maTuyChon, null) || codes.contains(maTuyChon)) {
+                            loi.append("Mã biến thể \"").append(maTuyChon).append("\" ở dòng ").append(i + 1).append(" đã tồn tại, vui lòng đổi mã khác. ");
+                            continue;
+                        }
+                        ma = maTuyChon;
+                    } else {
+                        // Để trống -> tự sinh mã như cũ (SP-MÀU-SIZE, tự thêm hậu tố nếu trùng).
+                        String maGoc = taoMaBienThe(sp, mau, size);
+                        ma = maGoc;
+                        int suffix = 2;
+                        while (chiTietSanPhamResponsitory.existsMa(ma, null) || codes.contains(ma)) {
+                            String duoi = "-" + suffix++;
+                            ma = gioiHanMa(maGoc, Math.max(1, 50 - duoi.length())) + duoi;
+                        }
                     }
                     codes.add(ma);
+                    distinctColorIds.add(idMau);
 
                     ChiTietSanPham ct = new ChiTietSanPham();
                     ct.setMauSac(mau);
@@ -237,6 +275,25 @@ public class SanPhamServlet extends HttpServlet {
 
         try {
             sanPhamResponsitory.addSanPhamKemBienThe(sp, bienTheList);
+
+            // Nếu ngay từ lúc tạo, tất cả biến thể đều nhập số lượng tồn = 0 thì tự động
+            // chuyển sản phẩm sang "Ngừng bán" luôn (đồng bộ với hành vi khi sửa biến thể).
+            sanPhamResponsitory.dongBoTrangThaiTheoTonKho(sp.getId());
+
+            // Ảnh riêng theo từng màu (tùy chọn): mỗi nhóm màu trong form có 1 ô file tên
+            // "anhMau_<idMauSac>". Lưu sau khi sản phẩm đã có id, không chặn việc thêm
+            // sản phẩm nếu 1 ảnh nào đó lỗi (chỉ bỏ qua, không rollback toàn bộ).
+            for (Integer idMau : distinctColorIds) {
+                try {
+                    String duongDan = saveImagePartIfPresent(request, "anhMau_" + idMau, "Ảnh màu");
+                    if (duongDan != null) {
+                        anhMauSacResponsitory.luuAnh(sp.getId(), idMau, duongDan);
+                    }
+                } catch (Exception ignored) {
+                    // Không để lỗi ảnh 1 màu làm mất công thêm cả sản phẩm đã lưu thành công.
+                }
+            }
+
             request.getSession().setAttribute("success", "Đã thêm sản phẩm " + sp.getMaSanPham() + " cùng " + bienTheList.size() + " biến thể.");
             response.sendRedirect(request.getContextPath() + "/san-pham/chi-tiet/hien-thi?idSanPham=" + sp.getId());
         } catch (Exception e) {
@@ -261,6 +318,7 @@ public class SanPhamServlet extends HttpServlet {
         }
 
         SanPham sp = buildSanPhamFromRequest(request, sanPhamResponsitory.getOne(id));
+        saveProductImage(request, sp);
         try {
             sanPhamResponsitory.updateSanPham(sp);
             request.getSession().setAttribute("success", "Đã cập nhật sản phẩm " + sp.getMaSanPham() + ".");
@@ -272,17 +330,27 @@ public class SanPhamServlet extends HttpServlet {
     }
 
     private StringBuilder validateSanPhamRequest(HttpServletRequest request, Integer excludeId) {
+        return validateSanPhamRequest(request, excludeId, false);
+    }
+
+    private StringBuilder validateSanPhamRequest(HttpServletRequest request, Integer excludeId, boolean isAdd) {
         StringBuilder loi = new StringBuilder();
         String ten = normalize(request.getParameter("tenSanPham"));
         String moTa = normalize(request.getParameter("moTa"));
 
         if (ten.length() < 3 || ten.length() > 100) loi.append("Tên sản phẩm phải từ 3 đến 100 ký tự. ");
+        else if (sanPhamResponsitory.existsTenSanPham(ten, excludeId)) loi.append("Tên sản phẩm \"").append(ten).append("\" đã tồn tại, vui lòng đặt tên khác. ");
         if (moTa.length() > 500) loi.append("Mô tả không được vượt quá 500 ký tự. ");
 
         String gioiTinh = request.getParameter("gioiTinh");
-        String trangThai = request.getParameter("trangThai");
         if (!("0".equals(gioiTinh) || "1".equals(gioiTinh))) loi.append("Giới tính không hợp lệ. ");
-        if (!("0".equals(trangThai) || "1".equals(trangThai))) loi.append("Trạng thái không hợp lệ. ");
+
+        // Khi thêm mới sản phẩm luôn mặc định "Đang bán" -> không có ô chọn trạng thái trên form,
+        // nên không kiểm tra tham số trangThai trong trường hợp này.
+        if (!isAdd) {
+            String trangThai = request.getParameter("trangThai");
+            if (!("0".equals(trangThai) || "1".equals(trangThai))) loi.append("Trạng thái không hợp lệ. ");
+        }
 
         Integer idThuongHieu = parseIntOrNull(request.getParameter("idThuongHieu"));
         Integer idDanhMuc = parseIntOrNull(request.getParameter("idDanhMuc"));
@@ -296,11 +364,16 @@ public class SanPhamServlet extends HttpServlet {
     }
 
     private SanPham buildSanPhamFromRequest(HttpServletRequest request, SanPham sp) {
+        return buildSanPhamFromRequest(request, sp, false);
+    }
+
+    private SanPham buildSanPhamFromRequest(HttpServletRequest request, SanPham sp, boolean isAdd) {
         // Khi cập nhật, giữ nguyên mã đã sinh; khi thêm mới mã được gán ngay trước khi lưu.
         sp.setTenSanPham(normalize(request.getParameter("tenSanPham")));
         sp.setMoTa(normalize(request.getParameter("moTa")));
         sp.setGioiTinh("1".equals(request.getParameter("gioiTinh")));
-        sp.setTrangThai(Integer.valueOf(request.getParameter("trangThai")));
+        // Thêm mới sản phẩm luôn mặc định "Đang bán" (1); trạng thái chỉ có thể đổi khi sửa/cập nhật.
+        sp.setTrangThai(isAdd ? 1 : Integer.valueOf(request.getParameter("trangThai")));
         sp.setThuongHieu(sanPhamResponsitory.getThuongHieu(Integer.valueOf(request.getParameter("idThuongHieu"))));
         sp.setDanhMuc(sanPhamResponsitory.getDanhMuc(Integer.valueOf(request.getParameter("idDanhMuc"))));
         sp.setChatLieu(sanPhamResponsitory.getChatLieu(Integer.valueOf(request.getParameter("idChatLieu"))));
@@ -313,7 +386,8 @@ public class SanPhamServlet extends HttpServlet {
         request.setAttribute("menu", "sanpham");
         request.setAttribute("submenu", "danhsach");
         request.setAttribute("error", message);
-        loadThuocTinh(request);
+        loadThuocTinhChoThem(request);
+        request.setAttribute("goiYMaSanPham", sanPhamResponsitory.generateNextMaSanPham());
         request.getRequestDispatcher("/views/sanpham/add.jsp").forward(request, response);
     }
 
@@ -360,8 +434,58 @@ public class SanPhamServlet extends HttpServlet {
         ChiTietSanPham CT = chiTietSanPhamResponsitory.getOne(id);
         loadThuocTinh(request);
         request.setAttribute("chiTietForm", CT);
+        if (CT != null) {
+            AnhMauSac anhHienTai = anhMauSacResponsitory.getBySanPhamVaMau(CT.getSanPham().getId(), CT.getMauSac().getId());
+            request.setAttribute("anhMauHienTai", anhHienTai == null ? null : anhHienTai.getDuongDanAnh());
+        }
         moveFlash(request);
         request.getRequestDispatcher("/views/sanpham/edit-variant.jsp").forward(request, response);
+    }
+
+    // ================= MA TRẬN MÀU x SIZE (AJAX cho modal "Thêm biến thể mới") =================
+    // Trả về JSON: danh sách màu, danh sách size (kèm trạng thái hoạt động) và danh sách
+    // tổ hợp màu+size ĐÃ TỒN TẠI của 1 sản phẩm, để front-end tô xám/khóa các ô đã có,
+    // tránh cho người dùng chọn trùng ngay từ khi tick chọn (thay vì chỉ báo lỗi sau khi bấm Lưu).
+    private void layMaTranBienThe(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        Integer idSanPham = parseIntOrNull(request.getParameter("idSanPham"));
+        Map<String, Object> data = new LinkedHashMap<>();
+        if (idSanPham == null || sanPhamResponsitory.getOne(idSanPham) == null) {
+            data.put("success", false);
+            data.put("message", "Sản phẩm không tồn tại.");
+            response.getWriter().write(new Gson().toJson(data));
+            return;
+        }
+
+        List<Map<String, Object>> mauSacJson = new ArrayList<>();
+        for (com.example.Scott.entity.MauSac x : chiTietSanPhamResponsitory.getAllMauSac()) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", x.getId());
+            m.put("ten", x.getTen());
+            m.put("active", x.getTrangThai() != null && x.getTrangThai() == 1);
+            mauSacJson.add(m);
+        }
+        List<Map<String, Object>> sizeJson = new ArrayList<>();
+        for (com.example.Scott.entity.Size x : chiTietSanPhamResponsitory.getAllSize()) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", x.getId());
+            m.put("ten", x.getTen());
+            m.put("active", x.getTrangThai() != null && x.getTrangThai() == 1);
+            sizeJson.add(m);
+        }
+
+        // Tổ hợp đã tồn tại: lấy TOÀN BỘ biến thể của sản phẩm (không phân trang) để
+        // đảm bảo không bỏ sót — khớp đúng với điều kiện existsCombination() dùng khi lưu.
+        List<String> existing = new ArrayList<>();
+        for (ChiTietSanPham ct : chiTietSanPhamResponsitory.getBySanPham(idSanPham)) {
+            existing.add(ct.getMauSac().getId() + "-" + ct.getSize().getId());
+        }
+
+        data.put("success", true);
+        data.put("mauSac", mauSacJson);
+        data.put("size", sizeJson);
+        data.put("existing", existing);
+        response.getWriter().write(new Gson().toJson(data));
     }
 
     private void addChiTietSanPham(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -373,10 +497,15 @@ public class SanPhamServlet extends HttpServlet {
             return;
         }
 
-        String[] mauValues = request.getParameterValues("idMauSac");
-        String[] sizeValues = request.getParameterValues("idSize");
-        if (mauValues == null || mauValues.length == 0) loi.append("Phải chọn ít nhất một màu sắc. ");
-        if (sizeValues == null || sizeValues.length == 0) loi.append("Phải chọn ít nhất một size. ");
+        // Mỗi ô được tick trong ma trận màu x size gửi lên dưới dạng "idMau-idSize"
+        // (tham số "combo", có thể lặp lại nhiều lần) — đây là các TỔ HỢP CHÍNH XÁC
+        // người dùng chọn, không còn suy ra bằng tích chéo (cross-join) giữa danh sách
+        // màu và danh sách size như trước, nên không còn tình trạng vô tình chọn phải
+        // tổ hợp đã tồn tại của 1 màu trong khi các màu khác vẫn còn size trống.
+        String[] comboValues = request.getParameterValues("combo");
+        if (comboValues == null || comboValues.length == 0) {
+            loi.append("Phải chọn ít nhất một ô màu × size trong bảng. ");
+        }
 
         Integer soLuongTon = parseInt(request.getParameter("soLuongTon"), "Tồn kho", loi);
         BigDecimal giaNhap = parseMoney(request.getParameter("giaNhap"), "Giá nhập", loi);
@@ -389,86 +518,81 @@ public class SanPhamServlet extends HttpServlet {
             loi.append("Giá bán không được nhỏ hơn giá nhập. ");
         }
 
-        List<Integer> mauIds = parseDistinctIds(mauValues, "Màu sắc", loi);
-        List<Integer> sizeIds = parseDistinctIds(sizeValues, "Size", loi);
-        int soToHop = mauIds.size() * sizeIds.size();
-        if (soToHop > 100) loi.append("Mỗi lần chỉ được tạo tối đa 100 biến thể. ");
-
         if (loi.length() > 0) {
             request.getSession().setAttribute("error", "Thêm biến thể thất bại: " + loi);
             response.sendRedirect(request.getContextPath() + "/san-pham/hien-thi?selectedId=" + idSanPham);
             return;
         }
 
+        // Phân tích + kiểm tra từng ô đã chọn. Nếu có BẤT KỲ ô nào không hợp lệ hoặc đã
+        // tồn tại, dừng lại và báo lỗi rõ ràng — KHÔNG lưu và cũng KHÔNG âm thầm bỏ qua
+        // như trước đây, để người dùng biết chính xác mình đang chọn trùng ô nào.
         SanPham sanPham = sanPhamResponsitory.getOne(idSanPham);
         List<ChiTietSanPham> danhSachMoi = new ArrayList<>();
-        int boQua = 0;
+        Set<String> comboTrongLo = new HashSet<>();
         Set<String> maTrongLo = new HashSet<>();
 
-        for (Integer idMau : mauIds) {
-            com.example.Scott.entity.MauSac mau = chiTietSanPhamResponsitory.getMauSac(idMau);
-            if (mau == null) {
-                loi.append("Màu sắc id ").append(idMau).append(" không tồn tại. ");
+        for (String combo : comboValues) {
+            String[] parts = combo == null ? null : combo.split("-");
+            Integer idMau = null, idSize = null;
+            if (parts != null && parts.length == 2) {
+                idMau = parseIntOrNull(parts[0]);
+                idSize = parseIntOrNull(parts[1]);
+            }
+            if (idMau == null || idSize == null) {
+                loi.append("Dữ liệu ô biến thể không hợp lệ. ");
                 continue;
             }
-            for (Integer idSize : sizeIds) {
-                com.example.Scott.entity.Size size = chiTietSanPhamResponsitory.getSize(idSize);
-                if (size == null) {
-                    loi.append("Size id ").append(idSize).append(" không tồn tại. ");
-                    continue;
-                }
-                if (chiTietSanPhamResponsitory.existsCombination(idSanPham, idMau, idSize, null)) {
-                    boQua++;
-                    continue;
-                }
 
-                String ma = taoMaBienThe(sanPham, mau, size);
-                String maGoc = ma;
-                int suffix = 2;
-                while (chiTietSanPhamResponsitory.existsMa(ma, null) || maTrongLo.contains(ma)) {
-                    ma = maGoc + "-" + suffix++;
-                }
-                maTrongLo.add(ma);
-
-                ChiTietSanPham ct = new ChiTietSanPham();
-                ct.setSanPham(sanPham);
-                ct.setMauSac(mau);
-                ct.setSize(size);
-                ct.setMa(ma);
-                ct.setGiaNhap(giaNhap);
-                ct.setGiaBan(giaBan);
-                ct.setSoLuongTon(soLuongTon);
-                ct.setTrangThai(1); // trạng thái nội bộ mặc định; không hiển thị trên giao diện
-                danhSachMoi.add(ct);
+            com.example.Scott.entity.MauSac mau = chiTietSanPhamResponsitory.getMauSac(idMau);
+            com.example.Scott.entity.Size size = chiTietSanPhamResponsitory.getSize(idSize);
+            if (mau == null || size == null) {
+                loi.append("Màu sắc hoặc size không tồn tại. ");
+                continue;
             }
+
+            String key = idMau + "-" + idSize;
+            if (!comboTrongLo.add(key)) continue; // bỏ qua nếu người dùng lỡ gửi trùng cùng 1 ô 2 lần trong 1 lượt chọn
+
+            if (chiTietSanPhamResponsitory.existsCombination(idSanPham, idMau, idSize, null)) {
+                loi.append("Biến thể ").append(mau.getTen()).append(" - ").append(size.getTen()).append(" đã tồn tại. ");
+                continue;
+            }
+
+            String ma = taoMaBienThe(sanPham, mau, size);
+            String maGoc = ma;
+            int suffix = 2;
+            while (chiTietSanPhamResponsitory.existsMa(ma, null) || maTrongLo.contains(ma)) {
+                ma = maGoc + "-" + suffix++;
+            }
+            maTrongLo.add(ma);
+
+            ChiTietSanPham ct = new ChiTietSanPham();
+            ct.setSanPham(sanPham);
+            ct.setMauSac(mau);
+            ct.setSize(size);
+            ct.setMa(ma);
+            ct.setGiaNhap(giaNhap);
+            ct.setGiaBan(giaBan);
+            ct.setSoLuongTon(soLuongTon);
+            ct.setTrangThai(1); // trạng thái nội bộ mặc định; không hiển thị trên giao diện
+            danhSachMoi.add(ct);
         }
 
         if (loi.length() > 0) {
             request.getSession().setAttribute("error", "Thêm biến thể thất bại: " + loi);
         } else if (danhSachMoi.isEmpty()) {
-            request.getSession().setAttribute("error", "Không có biến thể mới. Các tổ hợp màu và size đã tồn tại.");
+            request.getSession().setAttribute("error", "Không có biến thể mới nào được chọn.");
         } else {
             try {
                 chiTietSanPhamResponsitory.addMany(danhSachMoi);
-                String message = "Đã thêm " + danhSachMoi.size() + " biến thể thành công.";
-                if (boQua > 0) message += " Bỏ qua " + boQua + " tổ hợp đã tồn tại.";
-                request.getSession().setAttribute("success", message);
+                sanPhamResponsitory.dongBoTrangThaiTheoTonKho(idSanPham);
+                request.getSession().setAttribute("success", "Đã thêm " + danhSachMoi.size() + " biến thể thành công.");
             } catch (Exception e) {
                 request.getSession().setAttribute("error", "Thêm biến thể thất bại. Toàn bộ lô đã được hoàn tác: " + e.getMessage());
             }
         }
         response.sendRedirect(request.getContextPath() + "/san-pham/hien-thi?selectedId=" + idSanPham);
-    }
-
-    private List<Integer> parseDistinctIds(String[] values, String label, StringBuilder loi) {
-        List<Integer> result = new ArrayList<>();
-        Set<Integer> seen = new HashSet<>();
-        if (values == null) return result;
-        for (String value : values) {
-            Integer id = parseInt(value, label, loi);
-            if (id != null && seen.add(id)) result.add(id);
-        }
-        return result;
     }
 
     private String taoMaBienThe(SanPham sp, com.example.Scott.entity.MauSac mau, com.example.Scott.entity.Size size) {
@@ -540,6 +664,22 @@ public class SanPhamServlet extends HttpServlet {
 
         try {
             chiTietSanPhamResponsitory.updateChiTietSanPham(CT);
+
+            // Nếu vừa sửa số lượng tồn xuống 0 (hoặc tổng tồn các biến thể còn lại của
+            // sản phẩm này bằng 0), tự động chuyển sản phẩm sang "Ngừng bán" để không còn
+            // hiển thị/bán được ở màn hình Bán hàng tại quầy.
+            sanPhamResponsitory.dongBoTrangThaiTheoTonKho(idSanPham);
+
+            // Ảnh riêng theo màu (tùy chọn): để trống ô file thì giữ nguyên ảnh màu hiện có.
+            try {
+                String duongDan = saveImagePartIfPresent(request, "anhMauFile", "Ảnh màu");
+                if (duongDan != null) {
+                    anhMauSacResponsitory.luuAnh(idSanPham, idMauSac, duongDan);
+                }
+            } catch (Exception ignored) {
+                // Không để lỗi ảnh làm mất công cập nhật biến thể đã lưu thành công.
+            }
+
             request.getSession().setAttribute("success", "Cập nhật biến thể thành công.");
         } catch (Exception e) {
             request.getSession().setAttribute("error", "Cập nhật biến thể thất bại: " + e.getMessage());
@@ -568,8 +708,22 @@ public class SanPhamServlet extends HttpServlet {
         int totalPages = (int) Math.max(1, Math.ceil(total / (double) pageSize));
         if (page > totalPages) page = totalPages;
 
-        request.setAttribute("listAllChiTiet", chiTietSanPhamResponsitory.getPage(
-                keyword, idSanPham, idMauSac, idSize, tonKho, soLuong, trangThai, giaToiDa, page, pageSize));
+        List<ChiTietSanPham> trangHienTai = chiTietSanPhamResponsitory.getPage(
+                keyword, idSanPham, idMauSac, idSize, tonKho, soLuong, trangThai, giaToiDa, page, pageSize);
+        request.setAttribute("listAllChiTiet", trangHienTai);
+
+        // Map "idSanPham_idMauSac" -> đường dẫn ảnh riêng theo màu, chỉ tính cho các dòng
+        // đang hiển thị trên trang này. Nếu 1 màu chưa có ảnh riêng, JSP sẽ tự fallback
+        // về ảnh bìa của sản phẩm (sanPham.hinhAnh).
+        Map<String, String> anhTheoMauMap = new LinkedHashMap<>();
+        for (ChiTietSanPham ct : trangHienTai) {
+            String key = ct.getSanPham().getId() + "_" + ct.getMauSac().getId();
+            if (anhTheoMauMap.containsKey(key)) continue;
+            AnhMauSac anh = anhMauSacResponsitory.getBySanPhamVaMau(ct.getSanPham().getId(), ct.getMauSac().getId());
+            if (anh != null) anhTheoMauMap.put(key, anh.getDuongDanAnh());
+        }
+        request.setAttribute("anhTheoMauMap", anhTheoMauMap);
+
         request.setAttribute("listSanPham", sanPhamResponsitory.getAll());
         request.setAttribute("keyword", keyword);
         request.setAttribute("idSanPham", idSanPham);
@@ -648,6 +802,21 @@ public class SanPhamServlet extends HttpServlet {
         request.setAttribute("listDanhMuc", sanPhamResponsitory.getAllDanhMuc());
         request.setAttribute("listChatLieu", sanPhamResponsitory.getAllChatLieu());
         request.setAttribute("listKieuDang", sanPhamResponsitory.getAllKieuDang());
+        request.setAttribute("listMauSac", chiTietSanPhamResponsitory.getAllMauSac());
+        request.setAttribute("listSize", chiTietSanPhamResponsitory.getAllSize());
+    }
+
+    /**
+     * Chỉ dùng cho FORM THÊM SẢN PHẨM: loại bỏ những thuộc tính đã bị "Ngừng hoạt động"
+     * (trangThai != 1) khỏi danh sách để chọn, theo yêu cầu quản lý thuộc tính.
+     * Không dùng cho form sửa / bộ lọc danh sách vì sản phẩm cũ có thể đang gắn
+     * thuộc tính đã ngừng và vẫn cần hiển thị đúng giá trị hiện tại của nó.
+     */
+    private void loadThuocTinhChoThem(HttpServletRequest request) {
+        request.setAttribute("listThuongHieu", sanPhamResponsitory.getThuongHieuDangHoatDong());
+        request.setAttribute("listDanhMuc", sanPhamResponsitory.getDanhMucDangHoatDong());
+        request.setAttribute("listChatLieu", sanPhamResponsitory.getChatLieuDangHoatDong());
+        request.setAttribute("listKieuDang", sanPhamResponsitory.getKieuDangDangHoatDong());
         request.setAttribute("listMauSac", chiTietSanPhamResponsitory.getAllMauSac());
         request.setAttribute("listSize", chiTietSanPhamResponsitory.getAllSize());
     }
@@ -742,10 +911,55 @@ public class SanPhamServlet extends HttpServlet {
         }
     }
 
+    private String normalizeMoney(String raw) {
+        String value = raw == null ? "" : raw.trim().replace(" ", "");
+        if (value.matches("^\\d{1,3}([.,]\\d{3})+$")) {
+            return value.replace(".", "").replace(",", "");
+        }
+        return value.replace(",", ".");
+    }
+
+    private void saveProductImage(HttpServletRequest request, SanPham sp) throws IOException, ServletException {
+        String duongDan = saveImagePartIfPresent(request, "hinhAnhFile", "Ảnh sản phẩm");
+        if (duongDan != null) sp.setHinhAnh(duongDan);
+    }
+
+    /**
+     * Lưu file ảnh từ 1 Part multipart lên đĩa (nếu có) và trả về đường dẫn tương đối
+     * (VD "uploads/products/xxx.jpg") để lưu vào cột hinh_anh/duong_dan_anh trong DB.
+     * Trả về null nếu người dùng không chọn file nào (part rỗng) — nghĩa là giữ nguyên ảnh cũ.
+     * Dùng chung cho cả ảnh cấp sản phẩm và ảnh theo màu, tránh lặp code.
+     */
+    private String saveImagePartIfPresent(HttpServletRequest request, String tenPart, String nhan) throws IOException, ServletException {
+        Part part;
+        try {
+            part = request.getPart(tenPart);
+        } catch (IOException | ServletException e) {
+            return null; // không phải request multipart hoặc không có part này
+        }
+        if (part == null || part.getSize() == 0) return null;
+        String contentType = part.getContentType();
+        if (contentType == null || !(contentType.equals("image/jpeg") || contentType.equals("image/png") || contentType.equals("image/webp"))) {
+            throw new ServletException(nhan + " chỉ chấp nhận JPG, PNG hoặc WEBP.");
+        }
+        String submitted = Paths.get(part.getSubmittedFileName()).getFileName().toString();
+        String ext = submitted.contains(".") ? submitted.substring(submitted.lastIndexOf('.')).toLowerCase(Locale.ROOT) : ".jpg";
+        String fileName = UUID.randomUUID().toString().replace("-", "") + ext;
+        String relativeDir = "uploads/products";
+        String realDir = request.getServletContext().getRealPath("/" + relativeDir);
+        if (realDir == null) throw new ServletException("Không xác định được thư mục lưu ảnh trên máy chủ.");
+        Path dir = Paths.get(realDir);
+        Files.createDirectories(dir);
+        try (java.io.InputStream input = part.getInputStream()) {
+            Files.copy(input, dir.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+        }
+        return relativeDir + "/" + fileName;
+    }
+
     private BigDecimal parseMoneyOrNull(String raw) {
         if (raw == null || raw.trim().isEmpty()) return null;
         try {
-            BigDecimal value = new BigDecimal(raw.trim().replace(",", ""));
+            BigDecimal value = new BigDecimal(normalizeMoney(raw));
             return value.compareTo(BigDecimal.ZERO) < 0 ? null : value;
         } catch (NumberFormatException e) {
             return null;
@@ -759,7 +973,8 @@ public class SanPhamServlet extends HttpServlet {
             return null;
         }
         try {
-            BigDecimal value = new BigDecimal(raw.trim());
+            String normalized = normalizeMoney(raw);
+            BigDecimal value = new BigDecimal(normalized);
             if (value.compareTo(BigDecimal.ZERO) < 0) {
                 loi.append(tenTruong + " không được âm. ");
                 return null;

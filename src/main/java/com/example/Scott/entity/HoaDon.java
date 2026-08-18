@@ -95,4 +95,17 @@ public class HoaDon {
 
     @Transient
     private Integer soLuongSanPham;
+
+    // ==== Các giá trị chỉ dùng để hiển thị hóa đơn in (không lưu DB, được tính lại mỗi lần xem chi tiết) ====
+    @Transient
+    private Double tienHangGoc; // tổng tiền hàng trước khi giảm giá (cộng dồn từ chi tiết hóa đơn)
+
+    @Transient
+    private Double tienGiam; // số tiền đã được giảm = tienHangGoc - tongTienThanhToan
+
+    @Transient
+    private Double tienKhachDua; // chỉ có giá trị khi thanh toán tiền mặt
+
+    @Transient
+    private Double tienThua; // tiền thừa trả khách, chỉ có giá trị khi thanh toán tiền mặt
 }

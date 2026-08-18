@@ -76,6 +76,39 @@ public class ThuocTinhResponsitory {
         }
     }
 
+    /**
+     * Sinh mã tự động dạng PREFIX + 3 chữ số (VD: MS001, SZ001...), dùng chung cho mọi loại
+     * thuộc tính có mã. Ưu tiên lấp "khoảng trống nhỏ nhất": nếu 1 mã đã bị xóa thì mã đó sẽ
+     * được cấp lại cho lần thêm mới kế tiếp thay vì luôn tăng lên số lớn hơn mọi mã đã từng có.
+     * synchronized để tránh 2 request cùng lúc sinh trùng 1 mã trong cùng ứng dụng.
+     */
+    public synchronized String generateNextMa(Class<?> entityClass, String maField, String prefix) {
+        String p = prefix.toUpperCase();
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            String hql = "select x." + maField + " from " + entityClass.getSimpleName() + " x where upper(x." + maField + ") like :pattern";
+            List<String> codes = session.createQuery(hql, String.class)
+                    .setParameter("pattern", p + "%")
+                    .list();
+            java.util.Set<Integer> used = new java.util.HashSet<>();
+            for (String code : codes) {
+                if (code == null) continue;
+                String normalized = code.trim().toUpperCase();
+                if (!normalized.matches("^" + p + "\\d+$")) continue;
+                try {
+                    used.add(Integer.parseInt(normalized.substring(p.length())));
+                } catch (NumberFormatException ignored) { }
+            }
+            int next = 1;
+            while (used.contains(next)) next++;
+            String candidate = p + String.format("%03d", next);
+            while (exists(entityClass, maField, candidate, null)) {
+                next++;
+                candidate = p + String.format("%03d", next);
+            }
+            return candidate;
+        }
+    }
+
     public boolean exists(Class<?> entityClass, String field, String value, Integer excludeId) {
         if (value == null || value.trim().isEmpty()) return false;
         try (Session session = HibernateConfig.getFACTORY().openSession()) {

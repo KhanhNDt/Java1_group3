@@ -59,15 +59,15 @@ public class SanPhamResponsitory {
      */
     private static final String DTO_SELECT =
             "SELECT new com.example.Scott.dto.SanPhamListDTO(" +
-            "   sp.id, sp.maSanPham, sp.tenSanPham, dm.tenDanhMuc, th.ten, " +
-            "   sp.trangThai, COALESCE(SUM(ct.soLuongTon), 0L), MIN(ct.giaBan), MAX(ct.giaBan)" +
-            ") FROM SanPham sp " +
-            "   JOIN sp.danhMuc dm " +
-            "   JOIN sp.thuongHieu th " +
-            "   LEFT JOIN ChiTietSanPham ct ON ct.sanPham = sp AND ct.trangThai = 1 ";
+                    "   sp.id, sp.maSanPham, sp.tenSanPham, dm.tenDanhMuc, th.ten, " +
+                    "   sp.trangThai, COALESCE(SUM(ct.soLuongTon), 0L), MIN(ct.giaBan), MAX(ct.giaBan), sp.hinhAnh" +
+                    ") FROM SanPham sp " +
+                    "   JOIN sp.danhMuc dm " +
+                    "   JOIN sp.thuongHieu th " +
+                    "   LEFT JOIN ChiTietSanPham ct ON ct.sanPham = sp AND ct.trangThai = 1 ";
     private static final String DTO_GROUP_ORDER =
-            " GROUP BY sp.id, sp.maSanPham, sp.tenSanPham, dm.tenDanhMuc, th.ten, sp.trangThai " +
-            " ORDER BY sp.id";
+            " GROUP BY sp.id, sp.maSanPham, sp.tenSanPham, dm.tenDanhMuc, th.ten, sp.trangThai, sp.hinhAnh " +
+                    " ORDER BY sp.id";
 
     /**
      * Lấy 1 TRANG dữ liệu cho bảng danh sách (đã tổng hợp Hàng tồn + Khoảng giá).
@@ -79,8 +79,8 @@ public class SanPhamResponsitory {
      * nối lại bằng AND, tham số nào null thì không thêm điều kiện tương ứng.
      */
     public List<SanPhamListDTO> getPageDanhSach(String keyword, Integer idDanhMuc, Integer idThuongHieu,
-                                                 Integer trangThai, String tonKho, String soLuong,
-                                                 BigDecimal giaToiDa, String sapXep, int page, int pageSize){
+                                                Integer trangThai, String tonKho, String soLuong,
+                                                BigDecimal giaToiDa, String sapXep, int page, int pageSize){
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
             StringBuilder hql = new StringBuilder(DTO_SELECT);
             List<String> where = new ArrayList<>();
@@ -90,7 +90,7 @@ public class SanPhamResponsitory {
             if (idThuongHieu != null) where.add("th.id = :idThuongHieu");
             if (trangThai != null) where.add("sp.trangThai = :trangThai");
             if (!where.isEmpty()) hql.append(" WHERE ").append(String.join(" AND ", where));
-            hql.append(" GROUP BY sp.id, sp.maSanPham, sp.tenSanPham, dm.tenDanhMuc, th.ten, sp.trangThai ");
+            hql.append(" GROUP BY sp.id, sp.maSanPham, sp.tenSanPham, dm.tenDanhMuc, th.ten, sp.trangThai, sp.hinhAnh ");
             List<String> having = new ArrayList<>();
             if ("con-hang".equals(tonKho)) having.add("COALESCE(SUM(ct.soLuongTon), 0) > 0");
             if ("het-hang".equals(tonKho)) having.add("COALESCE(SUM(ct.soLuongTon), 0) <= 0");
@@ -130,7 +130,7 @@ public class SanPhamResponsitory {
      * Overload tương thích với servlet cũ: chưa truyền bộ lọc tồn kho, số lượng và giá tối đa.
      */
     public List<SanPhamListDTO> getPageDanhSach(String keyword, Integer idDanhMuc, Integer idThuongHieu,
-                                                 Integer trangThai, String sapXep, int page, int pageSize) {
+                                                Integer trangThai, String sapXep, int page, int pageSize) {
         return getPageDanhSach(keyword, idDanhMuc, idThuongHieu, trangThai,
                 null, null, null, sapXep, page, pageSize);
     }
@@ -192,9 +192,9 @@ public class SanPhamResponsitory {
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
             List<Object[]> products = s.createQuery(
                     "SELECT DISTINCT sp.maSanPham, sp.tenSanPham, th.ten, dm.tenDanhMuc " +
-                    "FROM SanPham sp JOIN sp.thuongHieu th JOIN sp.danhMuc dm " +
-                    "WHERE LOWER(sp.maSanPham) LIKE :kw OR LOWER(sp.tenSanPham) LIKE :kw " +
-                    "ORDER BY sp.tenSanPham", Object[].class)
+                            "FROM SanPham sp JOIN sp.thuongHieu th JOIN sp.danhMuc dm " +
+                            "WHERE LOWER(sp.maSanPham) LIKE :kw OR LOWER(sp.tenSanPham) LIKE :kw " +
+                            "ORDER BY sp.tenSanPham", Object[].class)
                     .setParameter("kw", kw).setMaxResults(max).list();
             for (Object[] row : products) {
                 String ma = String.valueOf(row[0]);
@@ -260,24 +260,42 @@ public class SanPhamResponsitory {
                     "SELECT sp.maSanPham FROM SanPham sp WHERE UPPER(sp.maSanPham) LIKE 'SP%'",
                     String.class).list();
 
-            int max = 0;
+            // Dùng "khoảng trống nhỏ nhất" thay vì max+1: khi 1 sản phẩm bị xóa, mã của nó
+            // (ví dụ SP0002) sẽ trống lại và được cấp phát lại cho sản phẩm thêm mới kế tiếp,
+            // thay vì luôn nhảy lên mã lớn hơn mọi mã đã từng tồn tại.
+            java.util.Set<Integer> used = new java.util.HashSet<>();
             for (String code : codes) {
                 if (code == null) continue;
                 String normalized = code.trim().toUpperCase();
                 if (!normalized.matches("SP\\d+")) continue;
                 try {
-                    max = Math.max(max, Integer.parseInt(normalized.substring(2)));
+                    used.add(Integer.parseInt(normalized.substring(2)));
                 } catch (NumberFormatException ignored) {
                     // Bỏ qua mã cũ không đúng định dạng hoặc vượt giới hạn số.
                 }
             }
 
-            int next = max + 1;
-            String candidate;
-            do {
-                candidate = String.format("SP%04d", next++);
-            } while (existsMaIgnoreCase(candidate, null));
+            int next = 1;
+            while (used.contains(next)) next++;
+            String candidate = String.format("SP%04d", next);
+            while (existsMaIgnoreCase(candidate, null)) {
+                next++;
+                candidate = String.format("SP%04d", next);
+            }
             return candidate;
+        }
+    }
+
+    /** Kiểm tra trùng tên sản phẩm (không phân biệt hoa/thường), dùng để chặn thêm/sửa trùng tên. */
+    public boolean existsTenSanPham(String ten, Integer excludeId) {
+        if (ten == null || ten.trim().isEmpty()) return false;
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            String hql = "SELECT COUNT(sp.id) FROM SanPham sp WHERE LOWER(sp.tenSanPham) = :ten";
+            if (excludeId != null) hql += " AND sp.id <> :id";
+            Query<Long> q = s.createQuery(hql, Long.class).setParameter("ten", ten.trim().toLowerCase());
+            if (excludeId != null) q.setParameter("id", excludeId);
+            Long count = q.uniqueResult();
+            return count != null && count > 0;
         }
     }
 
@@ -393,6 +411,51 @@ public class SanPhamResponsitory {
         }
     }
 
+    /**
+     * Đồng bộ trạng thái sản phẩm theo tổng tồn kho của TẤT CẢ biến thể.
+     * Nếu tổng tồn <= 0 và sản phẩm đang "Đang bán" (1) thì tự động chuyển
+     * sang "Ngừng bán" (0) để tránh hiển thị/bán được sản phẩm đã hết hàng
+     * (ví dụ ở màn hình Bán hàng tại quầy). Không tự động bật lại "Đang bán"
+     * khi có hàng trở lại — việc đó do người quản lý chủ động bật lại, tránh
+     * vô tình mở bán 1 sản phẩm mà quản lý đã cố ý ngừng bán trước đó.
+     * Chạy TRÊN CHÍNH session/transaction đang có (nếu được truyền vào) để đảm
+     * bảo cùng 1 giao dịch với thao tác vừa thay đổi tồn kho; nếu không truyền
+     * session (null) thì tự mở 1 session/transaction riêng.
+     */
+    public void dongBoTrangThaiTheoTonKho(Session session, Integer idSanPham) {
+        if (idSanPham == null) return;
+        if (session != null) {
+            capNhatNeuHetHang(session, idSanPham);
+            return;
+        }
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            try {
+                s.getTransaction().begin();
+                capNhatNeuHetHang(s, idSanPham);
+                s.getTransaction().commit();
+            } catch (Exception e) {
+                if (s.getTransaction().isActive()) s.getTransaction().rollback();
+                throw new RuntimeException("Loi khi dong bo trang thai theo ton kho: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    public void dongBoTrangThaiTheoTonKho(Integer idSanPham) {
+        dongBoTrangThaiTheoTonKho(null, idSanPham);
+    }
+
+    private void capNhatNeuHetHang(Session session, Integer idSanPham) {
+        Number tong = (Number) session.createQuery(
+                "SELECT COALESCE(SUM(ct.soLuongTon), 0) FROM ChiTietSanPham ct WHERE ct.sanPham.id = :id")
+                .setParameter("id", idSanPham)
+                .uniqueResult();
+        if (tong != null && tong.longValue() <= 0) {
+            session.createQuery("UPDATE SanPham SET trangThai = 0 WHERE id = :id AND trangThai = 1")
+                    .setParameter("id", idSanPham)
+                    .executeUpdate();
+        }
+    }
+
     public void DeleteSanPham(SanPham SP){
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
             try {
@@ -426,6 +489,29 @@ public class SanPhamResponsitory {
     public List<KieuDang> getAllKieuDang(){
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
             return s.createQuery(" from KieuDang ", KieuDang.class).list();
+        }
+    }
+
+    // Chỉ lấy thuộc tính đang hoạt động (trangThai = 1) — dùng cho form THÊM sản phẩm,
+    // để thuộc tính đã bị ngừng không còn xuất hiện trong danh sách lựa chọn.
+    public List<ThuongHieu> getThuongHieuDangHoatDong(){
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            return s.createQuery(" from ThuongHieu where trangThai = 1 ", ThuongHieu.class).list();
+        }
+    }
+    public List<DanhMuc> getDanhMucDangHoatDong(){
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            return s.createQuery(" from DanhMuc where trangThai = 1 ", DanhMuc.class).list();
+        }
+    }
+    public List<ChatLieu> getChatLieuDangHoatDong(){
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            return s.createQuery(" from ChatLieu where trangThai = 1 ", ChatLieu.class).list();
+        }
+    }
+    public List<KieuDang> getKieuDangDangHoatDong(){
+        try (Session s = HibernateConfig.getFACTORY().openSession()) {
+            return s.createQuery(" from KieuDang where trangThai = 1 ", KieuDang.class).list();
         }
     }
 
