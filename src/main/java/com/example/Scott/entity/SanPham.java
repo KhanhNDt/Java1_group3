@@ -36,4 +36,7 @@ public class SanPham {
     private Boolean gioiTinh;
     @Column(name = "trang_thai")
     private Integer trangThai;
+
+    @Column(name = "hinh_anh")
+    private String hinhAnh;
 }

@@ -11,11 +11,12 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Chạy nền để tự động hủy các hóa đơn "Chờ xử lý" (giữ đơn tại quầy - Bán hàng tại quầy)
- * đã sang ngày hôm sau mà vẫn chưa được nhân viên hoàn tất thanh toán hoặc hủy thủ công.
+ * đã bị giữ quá 24 giờ mà vẫn chưa được nhân viên hoàn tất thanh toán hoặc hủy thủ công.
  * <p>
- * Quy tắc nghiệp vụ: một hóa đơn chờ được tạo trong ngày hôm nay nhưng KHÔNG được hoàn
- * tất trước khi qua ngày hôm sau sẽ tự động chuyển sang trạng thái "Đã hủy" (trạng thái 2),
- * để đồng bộ với việc màn "Quản lý hóa đơn" chỉ còn hiển thị hóa đơn "Đã thanh toán" và "Đã hủy".
+ * Quy tắc nghiệp vụ: một hóa đơn chờ được giữ tại quầy nhưng KHÔNG được hoàn tất trong
+ * vòng 24 giờ kể từ lúc giữ sẽ tự động chuyển sang trạng thái "Đã hủy" (trạng thái 2) và
+ * biến mất khỏi danh sách "Đơn hàng chờ", để đồng bộ với việc màn "Quản lý hóa đơn" chỉ
+ * còn hiển thị hóa đơn "Đã thanh toán" và "Đã hủy".
  * <p>
  * Việc kiểm tra cũng được gọi lại (một cách "lười") mỗi khi HoaDonServlet hoặc
  * BanHangServlet tải danh sách hóa đơn/hóa đơn chờ, nên scheduler này chủ yếu đảm bảo

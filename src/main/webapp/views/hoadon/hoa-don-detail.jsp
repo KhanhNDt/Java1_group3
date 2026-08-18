@@ -86,12 +86,42 @@
                 border: 1px solid #ddd;
             }
         }
+        /* ===== Hóa đơn in nhiệt (khổ 80mm) — dùng cho cửa sổ in riêng, xem printInvoice() ===== */
+        #receiptPrintable { display: none; }
+        .receipt-paper {
+            width: 300px; margin: 0 auto; padding: 10px 14px 16px;
+            font-family: 'Courier New', Consolas, monospace; font-size: 12.5px; color: #111; background: #fff;
+        }
+        .receipt-shop-name { text-align: center; font-size: 18px; font-weight: 800; letter-spacing: .5px; }
+        .receipt-shop-info { text-align: center; font-size: 11px; line-height: 1.5; margin-top: 2px; }
+        .receipt-divider { border-top: 1px dashed #111; margin: 8px 0; }
+        .receipt-title { text-align: center; font-weight: 800; font-size: 13.5px; letter-spacing: 1px; margin: 4px 0; }
+        .receipt-meta { font-size: 11.5px; line-height: 1.6; }
+        .receipt-meta .row-between { display: flex; justify-content: space-between; gap: 8px; }
+        .receipt-items-head { display: flex; font-weight: 700; font-size: 11px; padding: 2px 0; }
+        .receipt-items-head span:nth-child(1), .receipt-item span:nth-child(1) { flex: 1 1 auto; }
+        .receipt-items-head span:nth-child(2), .receipt-item span:nth-child(2) { width: 26px; text-align: center; }
+        .receipt-items-head span:nth-child(3), .receipt-item span:nth-child(3) { width: 62px; text-align: right; }
+        .receipt-items-head span:nth-child(4), .receipt-item span:nth-child(4) { width: 68px; text-align: right; }
+        .receipt-item { display: flex; padding: 3px 0; font-size: 12px; }
+        .receipt-item-name { font-size: 11px; color: #333; padding-left: 2px; }
+        .receipt-totals .row-between { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; }
+        .receipt-totals .grand { font-weight: 800; font-size: 13.5px; }
+        .receipt-amount-words { font-size: 11.5px; font-style: italic; margin-top: 6px; }
+        .receipt-cashier { margin-top: 10px; font-size: 12px; }
+        .receipt-footer { text-align: center; font-size: 11px; margin-top: 12px; line-height: 1.6; }
     </style>
 </head>
 <body>
 <jsp:include page="/views/layout/sidebar.jsp"/>
 <div class="main-content">
     <div class="container-fluid">
+        <c:if test="${param.autoprint == '1'}">
+            <div class="alert alert-success d-flex align-items-center no-print" role="alert">
+                <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+                <div>Thanh toán thành công! Đang mở hộp thoại in hóa đơn...</div>
+            </div>
+        </c:if>
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
@@ -497,19 +527,104 @@
         <%--        </div>--%>
     </div>
 </div>
+
+<!-- Hóa đơn dạng phiếu in nhiệt (ẩn trên màn hình thường, chỉ dùng làm nội dung cho cửa sổ in) -->
+<div id="receiptPrintable">
+    <div class="receipt-paper" data-total="${invoice.tongTienThanhToan}">
+        <div class="receipt-shop-name">SCOTT FASHION</div>
+        <div class="receipt-shop-info">
+            FPT Polytechnic<br>
+            ĐT: 0987395826
+        </div>
+        <div class="receipt-divider"></div>
+        <div class="receipt-title">HÓA ĐƠN BÁN HÀNG</div>
+        <div class="receipt-meta">
+            <div class="row-between"><span>Ngày:</span><span><fmt:formatDate value="${invoice.ngayTao}" pattern="dd/MM/yyyy"/></span></div>
+            <div class="row-between"><span>Giờ:</span><span><fmt:formatDate value="${invoice.ngayTao}" pattern="HH:mm"/></span></div>
+            <div class="row-between"><span>Số HĐ:</span><span>${invoice.maHoaDon}</span></div>
+        </div>
+        <div class="receipt-divider"></div>
+        <div class="receipt-items-head"><span>TÊN HÀNG</span><span>SL</span><span>Đ.GIÁ</span><span>TH.TIỀN</span></div>
+        <div class="receipt-divider"></div>
+        <c:forEach items="${details}" var="ct">
+            <div class="receipt-item">
+                <span>${ct.maBienThe}</span>
+                <span>${ct.soLuong}</span>
+                <span><fmt:formatNumber value="${ct.giaBanRa}" pattern="#,##0"/></span>
+                <span><fmt:formatNumber value="${ct.tongTien}" pattern="#,##0"/></span>
+            </div>
+            <div class="receipt-item-name">${ct.tenSanPham} (${ct.mauSac}/${ct.kichThuoc})</div>
+        </c:forEach>
+        <div class="receipt-divider"></div>
+        <div class="receipt-totals">
+            <div class="row-between"><span>Tổng SL:</span><span>${invoice.soLuongSanPham}</span></div>
+            <div class="row-between"><span>Tổng tiền:</span><span><fmt:formatNumber value="${invoice.tienHangGoc}" pattern="#,##0"/></span></div>
+            <div class="row-between"><span>Tiền giảm:</span><span><fmt:formatNumber value="${invoice.tienGiam}" pattern="#,##0"/></span></div>
+            <div class="row-between grand"><span>Phải thu:</span><span><fmt:formatNumber value="${invoice.tongTienThanhToan}" pattern="#,##0"/></span></div>
+            <c:if test="${not empty invoice.tienKhachDua}">
+                <div class="row-between"><span>Khách đưa:</span><span><fmt:formatNumber value="${invoice.tienKhachDua}" pattern="#,##0"/></span></div>
+                <div class="row-between"><span>Thối lại:</span><span><fmt:formatNumber value="${invoice.tienThua}" pattern="#,##0"/></span></div>
+            </c:if>
+        </div>
+        <div class="receipt-amount-words" id="receiptAmountWords"></div>
+        <div class="receipt-cashier">Thu ngân: ${invoice.tenNhanVien}</div>
+        <div class="receipt-divider"></div>
+        <div class="receipt-footer">
+            Quý khách vui lòng kiểm tra hàng<br>
+            trước khi rời khỏi Shop.<br>
+            Giữ hóa đơn khi đổi hàng.<br>
+            Xin cảm ơn Quý khách hàng!
+        </div>
+    </div>
+</div>
+
 <script>
+    // Đọc số tiền thành chữ kiểu hóa đơn Việt Nam (VD: 9500 -> "Chín nghìn năm trăm đồng")
+    function soTienBangChu(soTien) {
+        soTien = Math.round(Math.abs(soTien || 0));
+        if (soTien === 0) return "Không đồng";
+        var CHU_SO = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+        var DON_VI = ['', ' nghìn', ' triệu', ' tỷ'];
+
+        function docBaSo(so, coTram) {
+            var tram = Math.floor(so / 100), chuc = Math.floor((so % 100) / 10), donvi = so % 10;
+            var s = '';
+            if (tram > 0 || coTram) s += CHU_SO[tram] + ' trăm ';
+            if (chuc === 0) { if (donvi > 0 && (tram > 0 || coTram)) s += 'lẻ '; }
+            else if (chuc === 1) s += 'mười ';
+            else s += CHU_SO[chuc] + ' mươi ';
+            if (donvi === 1 && chuc > 1) s += 'mốt';
+            else if (donvi === 5 && chuc >= 1) s += 'lăm';
+            else if (donvi > 0) s += CHU_SO[donvi];
+            return s.trim();
+        }
+
+        var nhom = [];
+        var n = soTien;
+        while (n > 0) { nhom.push(n % 1000); n = Math.floor(n / 1000); }
+
+        var ketQua = '';
+        for (var i = nhom.length - 1; i >= 0; i--) {
+            if (nhom[i] === 0) continue;
+            ketQua += docBaSo(nhom[i], i < nhom.length - 1) + DON_VI[i] + ' ';
+        }
+        ketQua = ketQua.trim();
+        return ketQua.charAt(0).toUpperCase() + ketQua.slice(1) + ' đồng';
+    }
+
     function printInvoice() {
-        var printContents = document.querySelector(".main-content").innerHTML;
-        var printWindow = window.open("", "", "width=1000,height=800");
+        var paper = document.querySelector('.receipt-paper');
+        var soTien = parseFloat(paper.getAttribute('data-total')) || 0;
+        document.getElementById('receiptAmountWords').textContent = soTienBangChu(soTien);
+
+        var printContents = document.getElementById('receiptPrintable').innerHTML;
+        var printWindow = window.open("", "", "width=420,height=700");
+        var styleTag = document.querySelector('style').outerHTML;
         var html = "<html><head>"
-            + "<title>Hoa don</title>"
-            + "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css\">"
-            + "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css\">"
-            + "<style>"
-            + "body{padding:20px;font-size:14px;}"
-            + ".btn{display:none;}"
-            + ".sidebar{display:none;}"
-            + "</style>"
+            + "<title>Hoa don " + "${invoice.maHoaDon}" + "</title>"
+            + "<meta charset=\"UTF-8\">"
+            + styleTag
+            + "<style>body{padding:14px 0;background:#fff;}</style>"
             + "</head><body>"
             + printContents
             + "</body></html>";
@@ -518,11 +633,26 @@
         printWindow.document.close();
 
         printWindow.onload = function () {
+            // #receiptPrintable vốn display:none để không hiện trên trang chi tiết -> hiện lại
+            // trong cửa sổ in riêng này.
+            var el = printWindow.document.getElementById('receiptPrintable');
+            if (el) el.style.display = 'block';
             printWindow.focus();
             printWindow.print();
             printWindow.close();
         };
     }
+
+    // Nếu được điều hướng tới đây từ luồng thanh toán QR ở màn Bán hàng tại quầy (autoprint=1),
+    // tự động mở hộp thoại in hóa đơn ngay khi tải xong trang, không cần bấm nút In.
+    (function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('autoprint') === '1') {
+            window.addEventListener('load', function () {
+                setTimeout(printInvoice, 400);
+            });
+        }
+    })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

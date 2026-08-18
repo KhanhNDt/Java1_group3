@@ -57,25 +57,67 @@ public class KhachHangResponsitory {
     }
 
     public List<KhachHang> filter(String keyword, String gioiTinh, Integer trangThai) {
-        String kw = keyword == null ? "" : keyword.trim().toLowerCase();
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
             StringBuilder hql = new StringBuilder("from KhachHang kh where 1=1");
-            if (!kw.isEmpty()) {
-                hql.append(" and (lower(coalesce(kh.ma,'')) like :kw")
-                        .append(" or lower(coalesce(kh.hoTen,'')) like :kw")
-                        .append(" or lower(coalesce(kh.sdt,'')) like :kw")
-                        .append(" or lower(coalesce(kh.email,'')) like :kw")
-                        .append(" or lower(coalesce(kh.diaChi,'')) like :kw)");
-            }
-            if (gioiTinh != null && !gioiTinh.trim().isEmpty()) hql.append(" and kh.gioiTinh = :gioiTinh");
-            if (trangThai != null) hql.append(" and kh.trangThai = :trangThai");
+            appendConditions(hql, keyword, gioiTinh, trangThai);
             hql.append(" order by kh.id desc");
             org.hibernate.query.Query<KhachHang> query = session.createQuery(hql.toString(), KhachHang.class);
-            if (!kw.isEmpty()) query.setParameter("kw", "%" + kw + "%");
-            if (gioiTinh != null && !gioiTinh.trim().isEmpty()) query.setParameter("gioiTinh", gioiTinh.trim());
-            if (trangThai != null) query.setParameter("trangThai", trangThai);
+            bindParameters(query, keyword, gioiTinh, trangThai);
             return query.list();
         }
+    }
+
+    /**
+     * Lọc danh sách khách hàng theo từ khóa / giới tính / trạng thái, có phân trang.
+     *
+     * @param offset vị trí bắt đầu (phân trang)
+     * @param limit  số bản ghi mỗi trang
+     */
+    public List<KhachHang> filter(String keyword, String gioiTinh, Integer trangThai, int offset, int limit) {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            StringBuilder hql = new StringBuilder("from KhachHang kh where 1=1");
+            appendConditions(hql, keyword, gioiTinh, trangThai);
+            hql.append(" order by kh.id desc");
+            org.hibernate.query.Query<KhachHang> query = session.createQuery(hql.toString(), KhachHang.class);
+            bindParameters(query, keyword, gioiTinh, trangThai);
+            query.setFirstResult(offset);
+            query.setMaxResults(limit);
+            return query.list();
+        }
+    }
+
+    /**
+     * Đếm tổng số bản ghi khớp bộ lọc (dùng để tính tổng số trang).
+     */
+    public long countFilter(String keyword, String gioiTinh, Integer trangThai) {
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            StringBuilder hql = new StringBuilder("select count(kh.id) from KhachHang kh where 1=1");
+            appendConditions(hql, keyword, gioiTinh, trangThai);
+            org.hibernate.query.Query<Long> query = session.createQuery(hql.toString(), Long.class);
+            bindParameters(query, keyword, gioiTinh, trangThai);
+            Long total = query.uniqueResult();
+            return total == null ? 0L : total;
+        }
+    }
+
+    private void appendConditions(StringBuilder hql, String keyword, String gioiTinh, Integer trangThai) {
+        String kw = keyword == null ? "" : keyword.trim().toLowerCase();
+        if (!kw.isEmpty()) {
+            hql.append(" and (lower(coalesce(kh.ma,'')) like :kw")
+                    .append(" or lower(coalesce(kh.hoTen,'')) like :kw")
+                    .append(" or lower(coalesce(kh.sdt,'')) like :kw")
+                    .append(" or lower(coalesce(kh.email,'')) like :kw")
+                    .append(" or lower(coalesce(kh.diaChi,'')) like :kw)");
+        }
+        if (gioiTinh != null && !gioiTinh.trim().isEmpty()) hql.append(" and kh.gioiTinh = :gioiTinh");
+        if (trangThai != null) hql.append(" and kh.trangThai = :trangThai");
+    }
+
+    private void bindParameters(org.hibernate.query.Query<?> query, String keyword, String gioiTinh, Integer trangThai) {
+        String kw = keyword == null ? "" : keyword.trim().toLowerCase();
+        if (!kw.isEmpty()) query.setParameter("kw", "%" + kw + "%");
+        if (gioiTinh != null && !gioiTinh.trim().isEmpty()) query.setParameter("gioiTinh", gioiTinh.trim());
+        if (trangThai != null) query.setParameter("trangThai", trangThai);
     }
 
     public boolean existsByMa(String ma, Integer excludeId) {

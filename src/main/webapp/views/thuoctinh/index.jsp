@@ -46,11 +46,11 @@
         <div id="attributeResults" class="attribute-result-area" data-total="${tongSoBanGhi}">
             <div class="table-responsive">
                 <table class="table align-middle text-center mb-0">
-                    <thead><tr><th>STT</th><c:if test="${hasCode}"><th>Mã</th></c:if><th class="text-start">Tên ${typeLabel}</th><c:if test="${hasDescription}"><th class="text-start">Mô tả</th></c:if><th>Đang sử dụng</th><th>Hành động</th></tr></thead>
+                    <thead><tr><th>STT</th><c:if test="${hasCode}"><th>Mã</th></c:if><th class="text-start">Tên ${typeLabel}</th><c:if test="${hasDescription}"><th class="text-start">Mô tả</th></c:if><th>Đang sử dụng</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
                     <tbody>
                     <c:forEach items="${listThuocTinh}" var="x" varStatus="st">
-                        <tr><td>${(currentPage-1)*pageSize+st.count}</td><c:if test="${hasCode}"><td class="fw-semibold">${x.ma}</td></c:if><td class="text-start fw-semibold">${x.ten}</td><c:if test="${hasDescription}"><td class="text-start text-secondary">${empty x.moTa ? '—' : x.moTa}</td></c:if><td>${x.soLuongSuDung}</td>
-                            <td class="text-nowrap"><a class="btn action-btn" title="Sửa" href="${pageContext.request.contextPath}/thuoc-tinh/view-update?type=${type}&id=${x.id}"><i class="bi bi-pencil-square"></i></a> <a class="btn action-btn" title="Xóa" href="${pageContext.request.contextPath}/thuoc-tinh/delete?type=${type}&id=${x.id}" onclick="return confirm('Xóa thuộc tính này? Dữ liệu đang được sử dụng sẽ không thể xóa.');"><i class="bi bi-trash"></i></a></td>
+                        <tr><td>${(currentPage-1)*pageSize+st.count}</td><c:if test="${hasCode}"><td class="fw-semibold">${x.ma}</td></c:if><td class="text-start fw-semibold">${x.ten}</td><c:if test="${hasDescription}"><td class="text-start text-secondary">${empty x.moTa ? '—' : x.moTa}</td></c:if><td>${x.soLuongSuDung}</td><td><button type="button" class="btn btn-sm ${x.trangThai == 1 ? 'btn-success' : 'btn-outline-secondary'} attribute-toggle" data-type="${type}" data-id="${x.id}">${x.trangThai == 1 ? 'Đang dùng' : 'Ngừng dùng'}</button></td>
+                            <td class="text-nowrap"><a class="btn action-btn" title="Sửa" href="${pageContext.request.contextPath}/thuoc-tinh/view-update?type=${type}&id=${x.id}"><i class="bi bi-pencil-square"></i></a></td>
                         </tr>
                     </c:forEach>
                     <c:if test="${empty listThuocTinh}"><tr><td colspan="${3 + (hasCode ? 1 : 0) + (hasDescription ? 1 : 0)}"><div class="empty"><i class="bi bi-inbox fs-2"></i><div class="fw-semibold mt-2">Không tìm thấy dữ liệu</div><small>Thử thay đổi từ khóa tìm kiếm.</small></div></td></tr></c:if>
@@ -73,21 +73,43 @@
 <div class="modal fade" id="attributeModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><div><h5 class="modal-title fw-bold">${empty thuocTinhForm.id ? 'Thêm' : 'Cập nhật'} ${typeLabel}</h5><small class="text-secondary">Nhập đúng và đủ thông tin bên dưới.</small></div><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4">
     <form id="attributeForm" method="post" action="${pageContext.request.contextPath}/thuoc-tinh/${empty thuocTinhForm.id ? 'add' : 'update'}" novalidate>
         <input type="hidden" name="type" value="${type}"><c:if test="${not empty thuocTinhForm.id}"><input type="hidden" name="id" value="${thuocTinhForm.id}"></c:if>
-        <c:if test="${hasCode}"><div class="mb-3"><label class="form-label">Mã ${typeLabel} <span class="required">*</span></label><input class="form-control text-uppercase" name="ma" value="${thuocTinhForm.ma}" minlength="2" maxlength="20" pattern="[A-Za-z0-9_-]+" required placeholder="Ví dụ: TT001"><div class="invalid-feedback">Mã gồm 2–20 ký tự, chỉ chứa chữ, số, _ hoặc -.</div></div></c:if>
+        <c:if test="${hasCode}"><div class="mb-3"><label class="form-label">Mã ${typeLabel}</label><input class="form-control text-uppercase" name="ma" value="${empty thuocTinhForm.id ? nextMa : thuocTinhForm.ma}" minlength="2" maxlength="20" pattern="[A-Za-z0-9_-]+" required readonly title="Mã được hệ thống tự động sinh, không thể chỉnh sửa."><div class="form-text">Tự động sinh, không thể sửa.</div></div></c:if>
         <div class="mb-3"><label class="form-label">Tên ${typeLabel} <span class="required">*</span></label><input class="form-control" name="ten" value="${thuocTinhForm.ten}" minlength="2" maxlength="50" required placeholder="Nhập tên ${fn:toLowerCase(typeLabel)}"><div class="invalid-feedback">Tên phải từ 2 đến 50 ký tự.</div></div>
         <c:if test="${hasDescription}"><div class="mb-3"><label class="form-label">Mô tả</label><textarea class="form-control" name="moTa" rows="3" maxlength="255" placeholder="Mô tả ngắn">${thuocTinhForm.moTa}</textarea></div></c:if>
         <div class="d-flex justify-content-end gap-2 pt-3 border-top"><a class="btn btn-outline-secondary px-4" href="${pageContext.request.contextPath}/thuoc-tinh/hien-thi?type=${type}">Hủy</a><button class="btn btn-dark px-4">${empty thuocTinhForm.id ? 'Thêm mới' : 'Cập nhật'}</button></div>
     </form>
 </div></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="${pageContext.request.contextPath}/assets/js/sanpham-attribute-list.js?v=live1"></script>
+<c:if test="${not empty error}">
+    <c:set var="isDuplicateError" value="${fn:contains(error, 'đã tồn tại') || fn:contains(error, 'trùng')}" />
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: '<c:choose><c:when test="${isDuplicateError}">Dữ liệu bị trùng</c:when><c:otherwise>Không thể thực hiện</c:otherwise></c:choose>',
+            html: '<c:out value="${error}" />',
+            confirmButtonText: 'Đã hiểu',
+            confirmButtonColor: '#111111'
+        });
+    </script>
+</c:if>
 <script>
-(function(){
- var form=document.getElementById('attributeForm');
- if(form){form.addEventListener('submit',function(e){if(!form.checkValidity()){e.preventDefault();e.stopPropagation();}form.classList.add('was-validated');});}
- document.querySelectorAll('input[name="ma"]').forEach(function(el){el.addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9_-]/g,'');});});
- <c:if test="${openAttributeModal}">new bootstrap.Modal(document.getElementById('attributeModal')).show();</c:if>
-})();
+    (function(){
+        var form=document.getElementById('attributeForm');
+        if(form){form.addEventListener('submit',function(e){if(!form.checkValidity()){e.preventDefault();e.stopPropagation();}form.classList.add('was-validated');});}
+        document.querySelectorAll('input[name="ma"]').forEach(function(el){el.addEventListener('input',function(){this.value=this.value.toUpperCase().replace(/[^A-Z0-9_-]/g,'');});});
+        <c:if test="${openAttributeModal}">new bootstrap.Modal(document.getElementById('attributeModal')).show();</c:if>
+    })();
 </script>
 <%@ include file="/views/layout/footer.jsp" %>
+
+<script>
+    document.addEventListener('click', async function(e){
+        const btn=e.target.closest('.attribute-toggle'); if(!btn)return;
+        btn.disabled=true;
+        try{const r=await fetch('${pageContext.request.contextPath}/thuoc-tinh/toggle-trang-thai?type='+encodeURIComponent(btn.dataset.type)+'&id='+encodeURIComponent(btn.dataset.id),{method:'POST'}); const d=await r.json(); if(!d.success)throw new Error(d.message||'Không đổi được trạng thái'); btn.textContent=d.trangThai===1?'Đang dùng':'Ngừng dùng'; btn.className='btn btn-sm attribute-toggle '+(d.trangThai===1?'btn-success':'btn-outline-secondary');}
+        catch(err){alert(err.message);} finally{btn.disabled=false;}
+    });
+</script>
 </body></html>

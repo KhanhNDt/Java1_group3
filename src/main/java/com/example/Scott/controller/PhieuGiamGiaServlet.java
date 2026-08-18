@@ -63,28 +63,28 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         }
     }
 
-    // Auto update status by expiration date
+    // Trạng thái phiếu giảm giá: 0 = Ngừng hoạt động, 1 = Đang hoạt động, 2 = Sắp diễn ra.
+    //
+    // Auto update status theo ngày hiện tại mỗi khi hiển thị:
+    //  - Đã quá ngày kết thúc  -> luôn chuyển về "Ngừng hoạt động" (0). Ưu tiên
+    //    cao nhất, ghi đè mọi trạng thái khác vì phiếu đã hết hạn thật sự.
+    //  - Đang ở trạng thái "Sắp diễn ra" (2) mà đã tới/qua ngày bắt đầu
+    //    -> tự động chuyển sang "Đang hoạt động" (1).
+    //  - KHÔNG tự ép về "Đang hoạt động" nếu admin đã chủ động tắt (0) trong
+    //    lúc phiếu chưa hết hạn, để không ghi đè lựa chọn thủ công của admin.
     private void autoUpdateStatus(PhieuGiamGia pgg) {
-        if (pgg != null && pgg.getNgayKetThuc() != null) {
-            pgg.setTrangThai(daHetHan(pgg.getNgayKetThuc()) ? 0 : 1);
-        }
-    }
+        if (pgg == null) return;
+        java.util.Date today = new java.util.Date();
 
-    /**
-     * Kiểm tra phiếu giảm giá đã hết hạn hay chưa, so sánh theo NGÀY (không theo giờ phút giây).
-     * Tránh bug: ngayKetThuc luôn có giờ là 00:00:00, nếu so trực tiếp với "new Date()" (đang có
-     * giờ hiện tại) thì phiếu có "Ngày kết thúc" = hôm nay sẽ bị coi là hết hạn ngay từ sáng sớm,
-     * dù đáng lẽ phải còn hiệu lực đến hết ngày hôm đó.
-     */
-    private boolean daHetHan(java.util.Date ngayKetThuc) {
-        if (ngayKetThuc == null) return false;
-        java.util.Calendar cal = java.util.Calendar.getInstance();
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-        cal.set(java.util.Calendar.MINUTE, 0);
-        cal.set(java.util.Calendar.SECOND, 0);
-        cal.set(java.util.Calendar.MILLISECOND, 0);
-        java.util.Date dauHomNay = cal.getTime();
-        return ngayKetThuc.before(dauHomNay);
+        if (pgg.getNgayKetThuc() != null && pgg.getNgayKetThuc().before(today)) {
+            pgg.setTrangThai(0);
+            return;
+        }
+
+        if (pgg.getTrangThai() != null && pgg.getTrangThai() == 2
+                && pgg.getNgayBatDau() != null && !pgg.getNgayBatDau().after(today)) {
+            pgg.setTrangThai(1);
+        }
     }
 
     // Hiển thị danh sách
@@ -108,6 +108,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     private void viewAdd(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        moveFlash(request);
         request.getRequestDispatcher("/views/phieugiamgian3/viewadd.jsp")
                 .forward(request, response);
     }
@@ -121,6 +122,7 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             PhieuGiamGia pgg = repo.getOne(id);
             autoUpdateStatus(pgg);
 
+            moveFlash(request);
             request.setAttribute("phieugiamgiaS", pgg);
             request.getRequestDispatcher("/views/phieugiamgian3/updatePGG.jsp")
                     .forward(request, response);
@@ -186,6 +188,14 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             java.sql.Date ngayBatDau = parseDate(request.getParameter("ngayBatDau"));
             java.sql.Date ngayKetThuc = parseDate(request.getParameter("ngayKetThuc"));
 
+            String loi = validate(maVoucher, tenVoucher, loaiGiamGia, giaTriGiamGia,
+                    donToiThieu, soLuong, ngayBatDau, ngayKetThuc, null);
+            if (loi != null) {
+                request.getSession().setAttribute("error", loi);
+                response.sendRedirect(request.getContextPath() + "/phieugiamgia/view-add");
+                return;
+            }
+
             PhieuGiamGia pgg = new PhieuGiamGia();
             pgg.setMaVoucher(maVoucher);
             pgg.setTenVoucher(tenVoucher);
@@ -199,7 +209,18 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             pgg.setNgayKetThuc(ngayKetThuc);
             pgg.setNgayTao(new java.util.Date());
 
-            pgg.setTrangThai(daHetHan(ngayKetThuc) ? 0 : 1);
+            // Xác định trạng thái ban đầu dựa theo ngày bắt đầu / kết thúc:
+            //  - Ngày kết thúc đã qua (hiếm khi xảy ra vì validate chặn) -> Ngừng hoạt động.
+            //  - Ngày bắt đầu ở tương lai (sau hôm nay) -> Sắp diễn ra.
+            //  - Còn lại (đã trong khoảng hiệu lực) -> Đang hoạt động.
+            java.util.Date today = new java.util.Date();
+            if (ngayKetThuc != null && ngayKetThuc.before(today)) {
+                pgg.setTrangThai(0);
+            } else if (ngayBatDau != null && ngayBatDau.after(today)) {
+                pgg.setTrangThai(2);
+            } else {
+                pgg.setTrangThai(1);
+            }
 
             repo.addPhieuGiamGia(pgg);
             request.getSession().setAttribute("success", "Thêm phiếu giảm giá thành công!");
@@ -221,12 +242,27 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             PhieuGiamGia pgg = repo.getOne(id);
 
             if (pgg != null) {
+                String maVoucher = request.getParameter("maVoucher");
+                String tenVoucher = request.getParameter("tenVoucher");
                 String loaiGiamGia = request.getParameter("loaiGiamGia");
+                BigDecimal giaTriGiamGia = parseBigDecimal(request.getParameter("giaTriGiamGia"));
+                BigDecimal donToiThieu = parseBigDecimal(request.getParameter("donToiThieu"));
+                Integer soLuong = parseInteger(request.getParameter("soLuong"));
+                java.sql.Date ngayBatDau = parseDate(request.getParameter("ngayBatDau"));
+                java.sql.Date ngayKetThuc = parseDate(request.getParameter("ngayKetThuc"));
 
-                pgg.setMaVoucher(request.getParameter("maVoucher"));
-                pgg.setTenVoucher(request.getParameter("tenVoucher"));
+                String loi = validate(maVoucher, tenVoucher, loaiGiamGia, giaTriGiamGia,
+                        donToiThieu, soLuong, ngayBatDau, ngayKetThuc, id);
+                if (loi != null) {
+                    request.getSession().setAttribute("error", loi);
+                    response.sendRedirect(request.getContextPath() + "/phieugiamgia/view-update?id=" + id);
+                    return;
+                }
+
+                pgg.setMaVoucher(maVoucher);
+                pgg.setTenVoucher(tenVoucher);
                 pgg.setLoaiGiamGia(loaiGiamGia);
-                pgg.setGiaTriGiamGia(parseBigDecimal(request.getParameter("giaTriGiamGia")));
+                pgg.setGiaTriGiamGia(giaTriGiamGia);
 
                 if ("%".equals(loaiGiamGia)) {
                     pgg.setGiamToiDa(parseBigDecimal(request.getParameter("giamToiDa")));
@@ -234,11 +270,21 @@ public class PhieuGiamGiaServlet extends HttpServlet {
                     pgg.setGiamToiDa(null);
                 }
 
-                pgg.setDonToiThieu(parseBigDecimal(request.getParameter("donToiThieu")));
-                pgg.setSoLuong(parseInteger(request.getParameter("soLuong")));
-                pgg.setNgayBatDau(parseDate(request.getParameter("ngayBatDau")));
-                pgg.setNgayKetThuc(parseDate(request.getParameter("ngayKetThuc")));
-                pgg.setTrangThai(parseInteger(request.getParameter("trangThai")));
+                pgg.setDonToiThieu(donToiThieu);
+                pgg.setSoLuong(soLuong);
+                pgg.setNgayBatDau(ngayBatDau);
+                pgg.setNgayKetThuc(ngayKetThuc);
+
+                // Trạng thái không còn cho chỉnh tay: chỉ dựa vào mốc ngày
+                // bắt đầu/kết thúc vừa nhập để tự tính lại.
+                java.util.Date today = new java.util.Date();
+                if (ngayKetThuc != null && ngayKetThuc.before(today)) {
+                    pgg.setTrangThai(0);
+                } else if (ngayBatDau != null && ngayBatDau.after(today)) {
+                    pgg.setTrangThai(2);
+                } else {
+                    pgg.setTrangThai(1);
+                }
 
                 repo.updatePhieuGiamGia(pgg);
                 request.getSession().setAttribute("success", "Cập nhật phiếu giảm giá thành công!");
@@ -280,6 +326,9 @@ public class PhieuGiamGiaServlet extends HttpServlet {
     // XUẤT EXCEL
     private void exportExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
         List<PhieuGiamGia> list = repo.getAll();
+        for (PhieuGiamGia pgg : list) {
+            autoUpdateStatus(pgg);
+        }
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Danh Sách Phiếu Giảm Giá");
@@ -314,7 +363,15 @@ public class PhieuGiamGiaServlet extends HttpServlet {
             row.createCell(7).setCellValue(pgg.getSoLuong() != null ? pgg.getSoLuong() : 0);
             row.createCell(8).setCellValue(pgg.getNgayBatDau() != null ? sdf.format(pgg.getNgayBatDau()) : "");
             row.createCell(9).setCellValue(pgg.getNgayKetThuc() != null ? sdf.format(pgg.getNgayKetThuc()) : "");
-            row.createCell(10).setCellValue(pgg.getTrangThai() != null && pgg.getTrangThai() == 1 ? "Đang hoạt động" : "Ngừng hoạt động");
+            String trangThaiText;
+            if (pgg.getTrangThai() != null && pgg.getTrangThai() == 1) {
+                trangThaiText = "Đang hoạt động";
+            } else if (pgg.getTrangThai() != null && pgg.getTrangThai() == 2) {
+                trangThaiText = "Sắp diễn ra";
+            } else {
+                trangThaiText = "Ngừng hoạt động";
+            }
+            row.createCell(10).setCellValue(trangThaiText);
         }
 
         // Auto size columns
@@ -327,6 +384,64 @@ public class PhieuGiamGiaServlet extends HttpServlet {
 
         workbook.write(response.getOutputStream());
         workbook.close();
+    }
+
+    /**
+     * Kiểm tra dữ liệu phiếu giảm giá trước khi lưu (dùng chung cho Thêm & Sửa).
+     * excludeId: null khi thêm mới; là id hiện tại khi sửa (để không tự báo trùng mã với chính nó).
+     * Trả về null nếu hợp lệ, ngược lại trả về chuỗi mô tả (các) lỗi.
+     */
+    private String validate(String maVoucher, String tenVoucher, String loaiGiamGia,
+                            BigDecimal giaTriGiamGia, BigDecimal donToiThieu, Integer soLuong,
+                            java.sql.Date ngayBatDau, java.sql.Date ngayKetThuc, Integer excludeId) {
+
+        StringBuilder loi = new StringBuilder();
+
+        // ----- Mã voucher: bắt buộc + không trùng -----
+        if (maVoucher == null || maVoucher.trim().isEmpty()) {
+            loi.append("Mã voucher không được để trống. ");
+        } else if (repo.existsByMaVoucher(maVoucher.trim(), excludeId)) {
+            loi.append("Mã voucher \"").append(maVoucher.trim()).append("\" đã tồn tại, vui lòng chọn mã khác. ");
+        }
+
+        // ----- Tên voucher: bắt buộc -----
+        if (tenVoucher == null || tenVoucher.trim().isEmpty()) {
+            loi.append("Tên voucher không được để trống. ");
+        }
+
+        // ----- Giá trị giảm: bắt buộc, không âm; riêng loại "%" chỉ trong khoảng 0-100 -----
+        if (giaTriGiamGia == null) {
+            loi.append("Giá trị giảm không được để trống. ");
+        } else if ("%".equals(loaiGiamGia)) {
+            if (giaTriGiamGia.compareTo(BigDecimal.ZERO) < 0 || giaTriGiamGia.compareTo(BigDecimal.valueOf(100)) > 0) {
+                loi.append("Giá trị giảm (%) chỉ được trong khoảng 0-100. ");
+            }
+        } else if (giaTriGiamGia.compareTo(BigDecimal.ZERO) < 0) {
+            loi.append("Giá trị giảm không được là số âm. ");
+        }
+
+        // ----- Đơn tối thiểu: không được âm (được phép để trống = không giới hạn) -----
+        if (donToiThieu != null && donToiThieu.compareTo(BigDecimal.ZERO) < 0) {
+            loi.append("Đơn tối thiểu không được là số âm. ");
+        }
+
+        // ----- Số lượng: không được âm (được phép để trống = không giới hạn) -----
+        if (soLuong != null && soLuong < 0) {
+            loi.append("Số lượng không được là số âm. ");
+        }
+
+        // ----- Ngày bắt đầu / kết thúc: bắt buộc + ngày bắt đầu phải nhỏ hơn ngày kết thúc -----
+        if (ngayBatDau == null) {
+            loi.append("Ngày bắt đầu không hợp lệ. ");
+        }
+        if (ngayKetThuc == null) {
+            loi.append("Ngày kết thúc không hợp lệ. ");
+        }
+        if (ngayBatDau != null && ngayKetThuc != null && !ngayBatDau.before(ngayKetThuc)) {
+            loi.append("Ngày bắt đầu phải nhỏ hơn ngày kết thúc. ");
+        }
+
+        return loi.length() == 0 ? null : loi.toString().trim();
     }
 
     private void moveFlash(HttpServletRequest request) {
@@ -353,12 +468,18 @@ public class PhieuGiamGiaServlet extends HttpServlet {
         }
     }
 
+    // Trả về null khi ô để trống (vd: "Số lượng" để trống nghĩa là KHÔNG GIỚI HẠN).
+    // TRƯỚC ĐÂY hàm này trả về 0 khi để trống, khiến voucher bị lưu soLuong=0
+    // thay vì NULL -> điều kiện "COALESCE(soLuongDaDung,0) < soLuong" ở
+    // getValidVouchers() luôn luôn sai (0 < 0 = false) -> phiếu giảm giá
+    // không bao giờ xuất hiện trong danh sách voucher ở màn Bán hàng tại quầy,
+    // dù màn quản lý vẫn hiển thị "Đang hoạt động" bình thường.
     private Integer parseInteger(String value) {
-        if (value == null || value.trim().isEmpty()) return 0;
+        if (value == null || value.trim().isEmpty()) return null;
         try {
             return Integer.valueOf(value.trim());
         } catch (Exception e) {
-            return 0;
+            return null;
         }
     }
 

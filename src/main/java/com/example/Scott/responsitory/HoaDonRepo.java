@@ -17,11 +17,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class HoaDonRepo {
+
+    private final SanPhamResponsitory sanPhamResponsitory = new SanPhamResponsitory();
 
     private Session getSession() {
         return HibernateConfig.getFACTORY().openSession();
@@ -526,12 +530,18 @@ public class HoaDonRepo {
 
     /**
      * Doanh thu theo thời gian (biểu đồ) - chỉ tính đơn đã thanh toán (trạng thái 1).
-     * groupBy: "day" | "week" | "month".
+     * groupBy: "hour" | "day" | "week" | "month".
      */
     public List<DoanhThuDiemDTO> getRevenueSeries(String from, String to, String groupBy) {
         String nhanExpr;
         String groupExpr;
         switch (groupBy == null ? "day" : groupBy) {
+            case "hour":
+                // Nhãn dạng "09:00", "14:00"... Nhóm theo cả ngày + giờ để không bị gộp
+                // nhầm dữ liệu cùng khung giờ nhưng khác ngày khi khoảng lọc trải nhiều ngày.
+                nhanExpr = "RIGHT('0' + CAST(DATEPART(HOUR, ngay_tao) AS varchar(2)), 2) + ':00'";
+                groupExpr = "CAST(ngay_tao AS DATE), DATEPART(HOUR, ngay_tao)";
+                break;
             case "month":
                 nhanExpr = "FORMAT(ngay_tao, 'yyyy-MM')";
                 groupExpr = "FORMAT(ngay_tao, 'yyyy-MM')";
@@ -644,6 +654,9 @@ public class HoaDonRepo {
             tx = session.beginTransaction();
 
             double tongTienHang = 0;
+            // Tập id các sản phẩm (cấp cha) bị ảnh hưởng bởi đơn hàng này -> sau khi trừ
+            // kho xong sẽ kiểm tra lại, nếu tổng tồn về 0 thì tự động chuyển "Ngừng bán".
+            Set<Integer> idSanPhamAnhHuong = new HashSet<>();
             for (HoaDonChiTiet ct : gioHang) {
                 if (ct.getIdSanPhamChiTiet() == null || ct.getSoLuong() == null || ct.getSoLuong() <= 0) {
                     throw new IllegalStateException("Sản phẩm trong giỏ hàng không hợp lệ.");
@@ -666,6 +679,13 @@ public class HoaDonRepo {
 
                 sp.setSoLuongTon(tonHienTai - ct.getSoLuong());
                 session.merge(sp);
+                if (sp.getSanPham() != null) idSanPhamAnhHuong.add(sp.getSanPham().getId());
+            }
+
+            // Sau khi trừ kho toàn bộ giỏ hàng: sản phẩm nào hết sạch tồn (tổng tồn tất cả
+            // biến thể <= 0) thì tự động chuyển sang "Ngừng bán" để không còn bán được nữa.
+            for (Integer idSp : idSanPhamAnhHuong) {
+                sanPhamResponsitory.dongBoTrangThaiTheoTonKho(session, idSp);
             }
 
             double tienGiam = 0;
@@ -956,13 +976,18 @@ public class HoaDonRepo {
     }
 
     /**
-     * Tự động hủy các hóa đơn "Chờ xử lý" (trạng thái 0 - được giữ đơn tại quầy) có
-     * ngày tạo KHÁC ngày hôm nay (tức đã sang ngày hôm sau) mà vẫn chưa được nhân viên
-     * hoàn tất thanh toán hoặc hủy thủ công. Được gọi:
+     * Tự động hủy các hóa đơn "Chờ xử lý" (trạng thái 0 - được giữ đơn tại quầy) đã được
+     * tạo/giữ cách đây TỪ 24 GIỜ TRỞ LÊN mà vẫn chưa được nhân viên hoàn tất thanh toán
+     * hoặc hủy thủ công. Mốc thời gian dùng đúng 24 giờ đồng hồ kể từ ngay_tao (không phải
+     * mốc sang ngày lịch), để đảm bảo mọi hóa đơn chờ luôn có đúng 24h để xử lý bất kể được
+     * giữ vào giờ nào trong ngày.
+     * <p>
+     * Được gọi:
      * - Mỗi khi màn "Quản lý hóa đơn" (HoaDonServlet) hoặc danh sách "Hóa đơn chờ" bên
      *   Bán hàng tại quầy (BanHangServlet) được tải, và
      * - Định kỳ dưới nền bởi HoaDonChoScheduler,
-     * để đảm bảo hóa đơn chờ quá hạn luôn tự động chuyển thành "Đã hủy".
+     * để đảm bảo hóa đơn chờ quá hạn luôn tự động chuyển thành "Đã hủy" và biến mất khỏi
+     * danh sách "Đơn hàng chờ" ngay khi vừa quá 24h, ngay cả khi không có ai đang thao tác.
      *
      * @return số lượng hóa đơn chờ đã bị tự động chuyển sang trạng thái "Đã hủy"
      */
@@ -972,7 +997,7 @@ public class HoaDonRepo {
             tx = session.beginTransaction();
 
             NativeQuery<?> idQuery = session.createNativeQuery(
-                    "SELECT id FROM hoa_don WHERE trang_thai = 0 AND CAST(ngay_tao AS DATE) < CAST(GETDATE() AS DATE)");
+                    "SELECT id FROM hoa_don WHERE trang_thai = 0 AND ngay_tao < DATEADD(HOUR, -24, GETDATE())");
             List<?> dsId = idQuery.getResultList();
 
             int soLuong = 0;
@@ -986,7 +1011,7 @@ public class HoaDonRepo {
                                 "VALUES (:id, :ma, GETDATE(), :ghiChu, :status)")
                         .setParameter("id", id)
                         .setParameter("ma", "LS-" + id + "-" + System.currentTimeMillis())
-                        .setParameter("ghiChu", "Tự động hủy: hóa đơn chờ xử lý đã quá hạn sang ngày hôm sau")
+                        .setParameter("ghiChu", "Tự động hủy: hóa đơn chờ xử lý đã quá hạn 24 giờ")
                         .setParameter("status", 2)
                         .executeUpdate();
                 soLuong++;

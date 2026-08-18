@@ -33,15 +33,27 @@ public class PhieuGiamGiaResponsitory {
 
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
 
+            // TRƯỚC ĐÂY dùng hàm HQL "CURRENT_DATE" ngay trong câu truy vấn.
+            // Với dialect SQLServer2016Dialect + cột @Temporal(DATE), hàm này
+            // có thể không được Hibernate dịch đúng sang cú pháp SQL Server,
+            // khiến câu query ném exception. Exception đó bị "nuốt" âm thầm
+            // ở catch bên dưới (chỉ in log ra console server), nên servlet
+            // vẫn trả JSON success:true với danh sách RỖNG cho Bán hàng tại
+            // quầy -> phiếu giảm giá như "biến mất" dù bên quản lý (dùng
+            // getAll(), không có CURRENT_DATE) vẫn hiển thị bình thường.
+            // SỬA: truyền ngày hôm nay vào làm tham số (:today) thay vì gọi
+            // hàm HQL, tránh phụ thuộc cách dialect dịch CURRENT_DATE.
+            java.sql.Date today = new java.sql.Date(System.currentTimeMillis());
+
             String hql =
                     "FROM PhieuGiamGia p " +
                             "WHERE p.trangThai = 1 " +
 
                             // Đã đến ngày bắt đầu
-                            "AND (p.ngayBatDau IS NULL OR p.ngayBatDau <= CURRENT_DATE) " +
+                            "AND (p.ngayBatDau IS NULL OR p.ngayBatDau <= :today) " +
 
                             // Chưa hết hạn
-                            "AND (p.ngayKetThuc IS NULL OR p.ngayKetThuc >= CURRENT_DATE) " +
+                            "AND (p.ngayKetThuc IS NULL OR p.ngayKetThuc >= :today) " +
 
                             // Còn lượt sử dụng
                             "AND (p.soLuong IS NULL " +
@@ -51,6 +63,7 @@ public class PhieuGiamGiaResponsitory {
 
             list = session
                     .createQuery(hql, PhieuGiamGia.class)
+                    .setParameter("today", today)
                     .getResultList();
 
             System.out.println("Số voucher hợp lệ: " + list.size());
@@ -130,6 +143,24 @@ public class PhieuGiamGiaResponsitory {
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
             e.printStackTrace();
+        }
+    }
+
+    // Kiểm tra trùng mã voucher (không phân biệt hoa/thường).
+    // excludeId != null khi đang SỬA, để không tự báo trùng với chính bản ghi đó.
+    public boolean existsByMaVoucher(String maVoucher, Integer excludeId) {
+        if (maVoucher == null || maVoucher.trim().isEmpty()) return false;
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            String hql = "SELECT COUNT(p.id) FROM PhieuGiamGia p WHERE LOWER(p.maVoucher) = :ma";
+            if (excludeId != null) hql += " AND p.id <> :id";
+            Query<Long> query = session.createQuery(hql, Long.class)
+                    .setParameter("ma", maVoucher.trim().toLowerCase());
+            if (excludeId != null) query.setParameter("id", excludeId);
+            Long count = query.uniqueResult();
+            return count != null && count > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

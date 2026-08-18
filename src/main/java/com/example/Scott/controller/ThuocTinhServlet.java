@@ -16,7 +16,7 @@ import java.util.List;
 
 @WebServlet(name = "ThuocTinhServlet", value = {
         "/thuoc-tinh/hien-thi", "/thuoc-tinh/add", "/thuoc-tinh/update",
-        "/thuoc-tinh/delete", "/thuoc-tinh/view-update"
+        "/thuoc-tinh/toggle-trang-thai", "/thuoc-tinh/view-update"
 })
 public class ThuocTinhServlet extends HttpServlet {
     private final ThuocTinhResponsitory repository = new ThuocTinhResponsitory();
@@ -26,8 +26,6 @@ public class ThuocTinhServlet extends HttpServlet {
         String uri = request.getRequestURI();
         if (uri.contains("view-update")) {
             viewUpdate(request, response);
-        } else if (uri.contains("delete")) {
-            delete(request, response);
         } else {
             hienThi(request, response);
         }
@@ -36,7 +34,9 @@ public class ThuocTinhServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String uri = request.getRequestURI();
-        if (uri.contains("update")) {
+        if (uri.contains("toggle-trang-thai")) {
+            toggleTrangThai(request, response);
+        } else if (uri.contains("update")) {
             update(request, response);
         } else {
             add(request, response);
@@ -67,6 +67,11 @@ public class ThuocTinhServlet extends HttpServlet {
     private void add(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         Config config = getConfig(request.getParameter("type"));
         ThuocTinhDTO form = readForm(request, null);
+        // Mã luôn được hệ thống tự sinh (không dùng mã người dùng gửi lên, kể cả khi họ
+        // sửa trực tiếp bằng devtools) để đảm bảo không thể trùng và không thể chỉnh sửa.
+        if (config != null && config.hasCode) {
+            form.setMa(repository.generateNextMa(config.entityClass, config.maField, prefixFor(config.type)));
+        }
         String error = validate(config, form, null);
         if (error != null) {
             request.setAttribute("error", error);
@@ -87,16 +92,20 @@ public class ThuocTinhServlet extends HttpServlet {
         Config config = getConfig(request.getParameter("type"));
         Integer id = parseId(request.getParameter("id"));
         ThuocTinhDTO form = readForm(request, id);
+        Object current = config == null || id == null ? null : repository.getOne(config.entityClass, id);
+        if (current == null) {
+            flash(request, "error", "Không tìm thấy dữ liệu cần cập nhật.");
+            response.sendRedirect(request.getContextPath() + "/thuoc-tinh/hien-thi?type=" + (config != null ? config.type : ""));
+            return;
+        }
+        // Giữ nguyên mã cũ khi sửa: không cho đổi mã dù người dùng gửi giá trị khác lên.
+        if (config.hasCode) {
+            form.setMa(toDTO(config, current).getMa());
+        }
         String error = validate(config, form, id);
         if (error != null) {
             request.setAttribute("error", error);
             render(request, response, form, true);
-            return;
-        }
-        Object current = repository.getOne(config.entityClass, id);
-        if (current == null) {
-            flash(request, "error", "Không tìm thấy dữ liệu cần cập nhật.");
-            response.sendRedirect(request.getContextPath() + "/thuoc-tinh/hien-thi?type=" + config.type);
             return;
         }
         try {
@@ -181,6 +190,9 @@ public class ThuocTinhServlet extends HttpServlet {
         request.setAttribute("type", config.type);
         request.setAttribute("typeLabel", config.label);
         request.setAttribute("hasCode", config.hasCode);
+        if (config.hasCode) {
+            request.setAttribute("nextMa", repository.generateNextMa(config.entityClass, config.maField, prefixFor(config.type)));
+        }
         request.setAttribute("hasDescription", config.hasDescription);
         request.setAttribute("listThuocTinh", rows);
         request.setAttribute("tongSoBanGhi", total);
@@ -262,6 +274,14 @@ public class ThuocTinhServlet extends HttpServlet {
         else if (entity instanceof KieuDang) ((KieuDang) entity).setTrangThai(status);
         else if (entity instanceof MauSac) ((MauSac) entity).setTrangThai(status);
         else if (entity instanceof Size) ((Size) entity).setTrangThai(status);
+    }
+
+    private String prefixFor(String type) {
+        if ("danh-muc".equals(type)) return "DM";
+        if ("thuong-hieu".equals(type)) return "TH";
+        if ("mau-sac".equals(type)) return "MS";
+        if ("size".equals(type)) return "SZ";
+        return "TT";
     }
 
     private Config getConfig(String type) {

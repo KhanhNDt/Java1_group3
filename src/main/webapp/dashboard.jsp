@@ -71,6 +71,7 @@
             <div class="col-lg-3 col-sm-6">
                 <label class="form-label">Nhóm dữ liệu</label>
                 <select class="form-select" name="groupBy">
+                    <option value="hour" ${groupBy == 'hour' ? 'selected' : ''}>Theo giờ</option>
                     <option value="day" ${groupBy == 'day' ? 'selected' : ''}>Theo ngày</option>
                     <option value="week" ${groupBy == 'week' ? 'selected' : ''}>Theo tuần</option>
                     <option value="month" ${groupBy == 'month' ? 'selected' : ''}>Theo tháng</option>
@@ -82,10 +83,10 @@
             </div>
 
             <div class="col-12 quick-range d-flex flex-wrap gap-2 mt-1">
-                <c:url var="qToday" value="/dashboard"><c:param name="fromDate" value="${todayLabel}"/><c:param name="toDate" value="${todayLabel}"/><c:param name="groupBy" value="day"/></c:url>
+                <c:url var="qToday" value="/dashboard"><c:param name="fromDate" value="${todayLabel}"/><c:param name="toDate" value="${todayLabel}"/><c:param name="groupBy" value="hour"/></c:url>
                 <c:url var="q30Days" value="/dashboard"><c:param name="groupBy" value="day"/></c:url>
                 <c:url var="q12Months" value="/dashboard"><c:param name="groupBy" value="month"/></c:url>
-                <a class="btn btn-sm btn-outline-secondary ${customRange && fromDate == todayLabel && toDate == todayLabel ? 'active' : ''}" href="${qToday}">Hôm nay</a>
+                <a class="btn btn-sm btn-outline-secondary ${customRange && fromDate == todayLabel && toDate == todayLabel ? 'active' : ''}" href="${qToday}">Hôm nay (theo giờ)</a>
                 <a class="btn btn-sm btn-outline-secondary ${!customRange && groupBy == 'day' ? 'active' : ''}" href="${q30Days}">30 ngày gần nhất</a>
                 <a class="btn btn-sm btn-outline-secondary ${!customRange && groupBy == 'month' ? 'active' : ''}" href="${q12Months}">12 tháng gần nhất</a>
                 <small class="text-secondary align-self-center ms-2">
@@ -193,7 +194,7 @@
             <div class="panel h-100 mb-0">
                 <div class="panel__head"><h5><i class="bi bi-pie-chart me-2"></i>Phân bố trạng thái đơn hàng</h5></div>
                 <c:choose>
-                    <c:when test="${soChoXuLy == 0 && soDaThanhToan == 0 && soDaHuy == 0 && soDaXoa == 0}">
+                    <c:when test="${soChoXuLy == 0 && soDaThanhToan == 0 && soDaHuy == 0}">
                         <div class="empty-note">Chưa có đơn hàng nào.</div>
                     </c:when>
                     <c:otherwise>
@@ -202,7 +203,6 @@
                             <li><span class="status-pill"><span class="status-dot" style="background:#d97706"></span>Chờ xử lý</span><strong>${soChoXuLy}</strong></li>
                             <li><span class="status-pill"><span class="status-dot" style="background:#059669"></span>Đã thanh toán</span><strong>${soDaThanhToan}</strong></li>
                             <li><span class="status-pill"><span class="status-dot" style="background:#dc2626"></span>Đã hủy</span><strong>${soDaHuy}</strong></li>
-                            <li><span class="status-pill"><span class="status-dot" style="background:#94a3b8"></span>Đã xóa</span><strong>${soDaXoa}</strong></li>
                         </ul>
                     </c:otherwise>
                 </c:choose>
@@ -366,9 +366,15 @@
         var ctx = document.getElementById('revenueChart');
         var chart = null;
 
+        // Debug tạm: mở console (F12) để xem số điểm dữ liệu thực tế của biểu đồ.
+        // Nếu labels.length chỉ là 1, đó là lý do biểu đồ đường trông như "không hiện" -
+        // Chart.js cần >= 2 điểm mới vẽ được đoạn đường nối, 1 điểm chỉ ra 1 chấm nhỏ.
+        console.log('[revenueChart] số điểm dữ liệu:', labels.length, labels, revenues);
+
         function renderChart(type) {
             if (!ctx) return;
             if (chart) chart.destroy();
+            var isLine = type === 'line';
             chart = new Chart(ctx, {
                 type: type,
                 data: {
@@ -379,9 +385,15 @@
                         borderColor: '#2563eb',
                         backgroundColor: type === 'bar' ? 'rgba(37,99,235,.55)' : 'rgba(37,99,235,.12)',
                         tension: .35,
-                        fill: type === 'line',
+                        fill: isLine,
+                        borderWidth: isLine ? 3 : 1,
                         borderRadius: type === 'bar' ? 6 : 0,
-                        pointRadius: type === 'line' ? 3 : 0
+                        // Điểm to hơn để dù chỉ có 1-2 điểm dữ liệu vẫn thấy rõ trên biểu đồ đường.
+                        pointRadius: isLine ? 5 : 0,
+                        pointHoverRadius: isLine ? 7 : 0,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
                     }]
                 },
                 options: {
@@ -389,6 +401,9 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: true } },
                     scales: {
+                        // offset: đẩy điểm đầu/cuối vào giữa cột, tránh bị dính sát mép trục
+                        // khiến chấm tròn của biểu đồ đường bị che khuất/khó thấy khi ít điểm.
+                        x: { offset: true },
                         y: {
                             beginAtZero: true,
                             ticks: {
@@ -419,10 +434,10 @@
             new Chart(statusCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Chờ xử lý', 'Đã thanh toán', 'Đã hủy', 'Đã xóa'],
+                    labels: ['Chờ xử lý', 'Đã thanh toán', 'Đã hủy'],
                     datasets: [{
-                        data: [${soChoXuLy}, ${soDaThanhToan}, ${soDaHuy}, ${soDaXoa}],
-                        backgroundColor: ['#d97706', '#059669', '#dc2626', '#94a3b8'],
+                        data: [${soChoXuLy}, ${soDaThanhToan}, ${soDaHuy}],
+                        backgroundColor: ['#d97706', '#059669', '#dc2626'],
                         borderWidth: 0
                     }]
                 },

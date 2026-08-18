@@ -56,11 +56,25 @@ public class DiaChiKhachHangResponsitory {
         if (idKhachHang == null) return null;
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
             return session.createQuery(
-                            "from DiaChiKhachHang where idKhachHang = :id order by isMacDinh desc, id desc",
-                            DiaChiKhachHang.class)
+                    "from DiaChiKhachHang where idKhachHang = :id order by isMacDinh desc, id desc",
+                    DiaChiKhachHang.class)
                     .setParameter("id", idKhachHang)
                     .setMaxResults(1)
                     .uniqueResult();
+        }
+    }
+
+    /**
+     * Lấy TOÀN BỘ địa chỉ của 1 khách hàng (hỗ trợ nhiều địa chỉ), địa chỉ mặc định lên đầu.
+     */
+    public List<DiaChiKhachHang> getListByIdKhachHang(Integer idKhachHang) {
+        if (idKhachHang == null) return new java.util.ArrayList<>();
+        try (Session session = HibernateConfig.getFACTORY().openSession()) {
+            return session.createQuery(
+                    "from DiaChiKhachHang where idKhachHang = :id order by isMacDinh desc, id desc",
+                    DiaChiKhachHang.class)
+                    .setParameter("id", idKhachHang)
+                    .list();
         }
     }
 

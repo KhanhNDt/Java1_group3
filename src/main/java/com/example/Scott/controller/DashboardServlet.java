@@ -56,6 +56,9 @@ public class DashboardServlet extends HttpServlet {
             // thay vì luôn chỉ có đúng 1 điểm dữ liệu của "hôm nay".
             to = today;
             switch (groupBy) {
+                case "hour":
+                    from = today; // Theo giờ chỉ có ý nghĩa trong phạm vi 1 ngày
+                    break;
                 case "month":
                     from = today.minusMonths(11).withDayOfMonth(1); // 12 tháng gần nhất
                     break;
