@@ -17,24 +17,27 @@ import java.io.IOException;
 
 /**
  * AUTHENTICATION + AUTHORIZATION
- * --------------------------------
- * 1) AUTHENTICATION: chặn mọi request chưa đăng nhập (không có "user" trong
- *    session), tự động đá về /login. Ngoại lệ: trang login, file tĩnh
- *    (css/js/ảnh...) vì các trang này phải xem được TRƯỚC khi đăng nhập.
  *
- * 2) AUTHORIZATION: khu vực "Quản lý nhân viên" (/nhan-vien/*) và trang
- *    "Thống kê" (/dashboard) chỉ dành cho tài khoản có chức vụ "Admin".
- *    Nhân viên thường cố truy cập sẽ bị chặn và trả về trang 403
- *    (access-denied.jsp), KHÔNG cho render dữ liệu.
+ * QUYỀN:
  *
- * Filter chạy sau CharacterEncodingFilter (do đặt tên A -> C theo alphabet,
- * container sẽ nạp theo thứ tự @WebFilter khai báo trong web.xml/scan;
- * để chắc chắn thứ tự, có thể khai báo trong web.xml nếu cần).
+ * 1. ADMIN
+ *    - Được truy cập toàn bộ hệ thống.
+ *
+ * 2. NHÂN VIÊN
+ *    - Chỉ được truy cập:
+ *      + Bán hàng tại quầy
+ *      + Khách hàng
+ *      + Quản lý hóa đơn
+ *
+ * 3. Chưa đăng nhập
+ *    - Chuyển về /login
  */
 @WebFilter("/*")
 public class AuthFilter implements Filter {
 
-    // Các đường dẫn không cần đăng nhập vẫn phải truy cập được
+    /**
+     * Những URL không cần đăng nhập.
+     */
     private static final String[] PUBLIC_PATHS = {
             "/login",
             "/assets/",
@@ -43,10 +46,34 @@ public class AuthFilter implements Filter {
             "/index.jsp"
     };
 
-    // Các đường dẫn chỉ Admin mới được vào
-    private static final String[] ADMIN_ONLY_PATHS = {
-            "/nhan-vien/",
-            "/dashboard"
+    /**
+     * Những URL nhân viên được phép sử dụng.
+     *
+     * Admin không bị giới hạn bởi danh sách này.
+     */
+    private static final String[] EMPLOYEE_ALLOWED_PATHS = {
+
+            // =========================
+            // BÁN HÀNG TẠI QUẦY
+            // =========================
+            "/ban-hang-tai-quay",
+
+            // =========================
+            // KHÁCH HÀNG
+            // =========================
+            "/khachhang/",
+
+            // =========================
+            // HÓA ĐƠN
+            // =========================
+            "/quanlyhoadon",
+
+            // =========================
+            // ĐĂNG XUẤT
+            // Nếu project dùng URL này
+            // =========================
+            "/logout",
+            "/dang-xuat"
     };
 
     @Override
@@ -54,67 +81,180 @@ public class AuthFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-            throws IOException, ServletException {
+    public void doFilter(
+            ServletRequest req,
+            ServletResponse res,
+            FilterChain chain
+    ) throws IOException, ServletException {
 
-        HttpServletRequest request = (HttpServletRequest) req;
-        HttpServletResponse response = (HttpServletResponse) res;
+        HttpServletRequest request =
+                (HttpServletRequest) req;
 
-        String contextPath = request.getContextPath();
-        String uri = request.getRequestURI();
-        String path = uri.substring(contextPath.length());
-        // Chuẩn hoá path rỗng ("/") thành "/index.jsp" để khớp welcome-file
-        if (path.isEmpty()) {
+        HttpServletResponse response =
+                (HttpServletResponse) res;
+
+        String contextPath =
+                request.getContextPath();
+
+        String uri =
+                request.getRequestURI();
+
+        String path =
+                uri.substring(contextPath.length());
+
+        if (path == null || path.isEmpty()) {
             path = "/";
         }
 
-        // 1) Cho qua thẳng các đường dẫn public, không cần check đăng nhập
+        // =====================================================
+        // 1. PUBLIC URL
+        // =====================================================
         if (isPublicPath(path)) {
             chain.doFilter(req, res);
             return;
         }
 
-        // 2) AUTHENTICATION: chưa đăng nhập -> đá về trang login
-        HttpSession session = request.getSession(false);
-        TaiKhoan user = (session != null) ? (TaiKhoan) session.getAttribute("user") : null;
+        // =====================================================
+        // 2. KIỂM TRA ĐĂNG NHẬP
+        // =====================================================
+        HttpSession session =
+                request.getSession(false);
+
+        TaiKhoan user =
+                session != null
+                        ? (TaiKhoan) session.getAttribute("user")
+                        : null;
 
         if (user == null) {
-            response.sendRedirect(contextPath + "/login");
+
+            response.sendRedirect(
+                    contextPath + "/login"
+            );
+
             return;
         }
 
-        // 3) AUTHORIZATION: khu vực Admin-only
-        if (isAdminOnlyPath(path) && !isAdmin(user)) {
-            request.setAttribute("error", "Bạn không có quyền truy cập chức năng thống kê.");
-            request.getRequestDispatcher("/access-denied.jsp").forward(request, response);
+        // =====================================================
+        // 3. ADMIN -> ĐƯỢC TRUY CẬP TOÀN BỘ
+        // =====================================================
+        if (isAdmin(user)) {
+
+            chain.doFilter(req, res);
             return;
         }
 
-        // Hợp lệ -> cho đi tiếp
-        chain.doFilter(req, res);
+        // =====================================================
+        // 4. NHÂN VIÊN -> CHỈ ĐƯỢC 3 KHU VỰC
+        // =====================================================
+        if (isEmployee(user)) {
+
+            if (isEmployeeAllowedPath(path)) {
+
+                chain.doFilter(req, res);
+                return;
+            }
+
+            // Nhân viên truy cập URL ngoài quyền
+            // -> chuyển về Bán hàng tại quầy
+            response.sendRedirect(
+                    contextPath + "/ban-hang-tai-quay"
+            );
+
+            return;
+        }
+
+        // =====================================================
+        // 5. ROLE KHÔNG XÁC ĐỊNH
+        // =====================================================
+        request.setAttribute(
+                "error",
+                "Bạn không có quyền truy cập chức năng này."
+        );
+
+        request.getRequestDispatcher(
+                "/access-denied.jsp"
+        ).forward(request, response);
     }
 
+    /**
+     * URL public.
+     */
     private boolean isPublicPath(String path) {
+
         for (String p : PUBLIC_PATHS) {
-            if (path.equals(p) || path.startsWith(p)) {
+
+            if (path.equals(p)
+                    || path.startsWith(p)) {
+
                 return true;
             }
         }
+
         return false;
     }
 
-    private boolean isAdminOnlyPath(String path) {
-        for (String p : ADMIN_ONLY_PATHS) {
-            if (path.startsWith(p)) {
+    /**
+     * Kiểm tra URL nhân viên được phép truy cập.
+     */
+    private boolean isEmployeeAllowedPath(
+            String path
+    ) {
+
+        for (String p : EMPLOYEE_ALLOWED_PATHS) {
+
+            if (path.equals(p)
+                    || path.startsWith(p)) {
+
                 return true;
             }
         }
+
         return false;
     }
 
+    /**
+     * ADMIN
+     */
     private boolean isAdmin(TaiKhoan user) {
-        NhanVien nv = user.getNhanVien();
-        return nv != null && "Admin".equalsIgnoreCase(nv.getChucVu());
+
+        if (user == null) {
+            return false;
+        }
+
+        NhanVien nv =
+                user.getNhanVien();
+
+        if (nv == null
+                || nv.getChucVu() == null) {
+
+            return false;
+        }
+
+        return "Admin".equalsIgnoreCase(
+                nv.getChucVu().trim()
+        );
+    }
+
+    /**
+     * NHÂN VIÊN.
+     *
+     * Tất cả tài khoản có nhân viên nhưng không phải Admin
+     * được coi là Nhân viên thường.
+     */
+    private boolean isEmployee(TaiKhoan user) {
+
+        if (user == null) {
+            return false;
+        }
+
+        NhanVien nv =
+                user.getNhanVien();
+
+        if (nv == null) {
+            return false;
+        }
+
+        return !isAdmin(user);
     }
 
     @Override

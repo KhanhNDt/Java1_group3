@@ -13,23 +13,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Logic dùng chung để tạo hóa đơn bán hàng tại quầy (tìm/tạo khách hàng + tạo hóa đơn).
- * Được gọi bởi:
- *  - BanHangServlet (thanh toán tiền mặt, hoặc khách bấm "Khách đã chuyển khoản xong")
- *  - SePayWebhookServlet (khi ngân hàng báo có tiền về khớp với đơn hàng QR đang chờ)
- * Tách riêng ra đây để 2 nơi gọi không bị trùng lặp / lệch logic.
+ * Logic dùng chung để tạo hóa đơn bán hàng tại quầy.
+ *
+ * Quy tắc khách hàng:
+ * - Khách vãng lai: không cần SĐT / email / địa chỉ, không tự tạo KhachHang mới.
+ * - Khách quen: frontend gửi SĐT của khách đã chọn trong CSDL.
  */
 public class ThanhToanService {
 
     private final KhachHangResponsitory khachHangRepo = new KhachHangResponsitory();
     private final HoaDonRepo hoaDonRepo = new HoaDonRepo();
 
-    /**
-     * @param payload    dữ liệu đơn hàng (giỏ hàng, khách hàng, ghi chú, phương thức...)
-     * @param idNhanVien nhân viên đứng tên tạo hóa đơn (thu ngân đang đăng nhập lúc mở phiên QR)
-     * @return map kết quả: success (boolean), message, và nếu thành công thì có thêm
-     *         maHoaDon, idHoaDon, tongTienThanhToan, maKhachHang, phuongThucThanhToan...
-     */
     public Map<String, Object> xuLyThanhToan(BanHangServlet.ThanhToanRequest payload, Integer idNhanVien) {
         Map<String, Object> result = new LinkedHashMap<>();
 
@@ -38,16 +32,10 @@ public class ThanhToanService {
             result.put("message", "Không xác định được nhân viên tạo hóa đơn.");
             return result;
         }
+
         if (payload == null) {
             result.put("success", false);
             result.put("message", "Dữ liệu đơn hàng không hợp lệ.");
-            return result;
-        }
-
-        String sdt = payload.sdtKhachHang == null ? "" : payload.sdtKhachHang.trim();
-        if (!sdt.matches("\\d{9,11}")) {
-            result.put("success", false);
-            result.put("message", "Số điện thoại khách hàng là bắt buộc và phải gồm 9-11 chữ số.");
             return result;
         }
 
@@ -57,64 +45,95 @@ public class ThanhToanService {
             return result;
         }
 
+        String sdt = payload.sdtKhachHang == null ? "" : payload.sdtKhachHang.trim();
         String email = payload.emailKhachHang == null ? "" : payload.emailKhachHang.trim();
+        String diaChi = payload.diaChiKhachHang == null ? "" : payload.diaChiKhachHang.trim();
+
+        // Có nhập SĐT thì phải đúng định dạng. Để trống hoàn toàn = khách vãng lai.
+        if (!sdt.isEmpty() && !sdt.matches("\\d{9,11}")) {
+            result.put("success", false);
+            result.put("message", "Số điện thoại khách hàng phải gồm 9-11 chữ số.");
+            return result;
+        }
+
         if (!email.isEmpty() && !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
             result.put("success", false);
             result.put("message", "Email khách hàng không hợp lệ.");
             return result;
         }
 
-        String diaChi = payload.diaChiKhachHang == null ? "" : payload.diaChiKhachHang.trim();
-        if (diaChi.isEmpty()) {
-            result.put("success", false);
-            result.put("message", "Địa chỉ khách hàng là bắt buộc, vui lòng nhập địa chỉ.");
-            return result;
-        }
-
         try {
-            KhachHang kh = khachHangRepo.findBySdt(sdt);
-            if (kh == null) {
-                kh = new KhachHang();
-                kh.setMa(khachHangRepo.generateNextMa());
-                kh.setSdt(sdt);
-                String ten = payload.tenKhachHang == null || payload.tenKhachHang.trim().isEmpty()
-                        ? "Khách lẻ" : payload.tenKhachHang.trim();
-                kh.setHoTen(ten);
-                kh.setEmail(email);
-                kh.setDiaChi(diaChi);
-                kh.setTrangThai(1);
-                khachHangRepo.addKhachHang(kh);
+            // ================= KHÁCH HÀNG =================
+            // null = khách vãng lai.
+            Integer idKhachHang = null;
+            KhachHang kh = null;
+
+            if (!sdt.isEmpty()) {
+                // Đây là khách quen đã chọn trên giao diện.
                 kh = khachHangRepo.findBySdt(sdt);
-            } else {
+
+                if (kh == null) {
+                    // Không tự sinh khách mới ở luồng bán hàng.
+                    // Tránh trường hợp dữ liệu khách bị tạo ngoài màn Quản lý khách hàng.
+                    result.put("success", false);
+                    result.put("message", "Không tìm thấy khách hàng đã chọn trong hệ thống.");
+                    return result;
+                }
+
+                idKhachHang = kh.getId();
+
+                // Chỉ bổ sung email/địa chỉ nếu DB đang thiếu và frontend có dữ liệu.
                 boolean canCapNhat = false;
-                if (kh.getEmail() == null || kh.getEmail().trim().isEmpty()) {
+
+                if ((kh.getEmail() == null || kh.getEmail().trim().isEmpty()) && !email.isEmpty()) {
                     kh.setEmail(email);
                     canCapNhat = true;
                 }
-                if (kh.getDiaChi() == null || kh.getDiaChi().trim().isEmpty()) {
+
+                if ((kh.getDiaChi() == null || kh.getDiaChi().trim().isEmpty()) && !diaChi.isEmpty()) {
                     kh.setDiaChi(diaChi);
                     canCapNhat = true;
                 }
-                if (canCapNhat) khachHangRepo.UpdateKhachHang(kh);
+
+                if (canCapNhat) {
+                    khachHangRepo.UpdateKhachHang(kh);
+                }
             }
 
+            // ================= GIỎ HÀNG =================
             List<HoaDonChiTiet> gioHang = new ArrayList<>();
+
             for (BanHangServlet.GioHangItem gh : payload.gioHang) {
-                if (gh.idSanPhamChiTiet == null || gh.soLuong == null || gh.soLuong <= 0) continue;
+                if (gh.idSanPhamChiTiet == null || gh.soLuong == null || gh.soLuong <= 0) {
+                    continue;
+                }
+
                 HoaDonChiTiet ct = new HoaDonChiTiet();
                 ct.setIdSanPhamChiTiet(gh.idSanPhamChiTiet);
                 ct.setSoLuong(gh.soLuong);
                 gioHang.add(ct);
             }
 
-            String phuongThuc = payload.phuongThucThanhToan == null || payload.phuongThucThanhToan.trim().isEmpty()
-                    ? "TIENMAT" : payload.phuongThucThanhToan.trim().toUpperCase();
+            if (gioHang.isEmpty()) {
+                result.put("success", false);
+                result.put("message", "Giỏ hàng không có sản phẩm hợp lệ.");
+                return result;
+            }
+
+            // ================= PHƯƠNG THỨC THANH TOÁN =================
+            String phuongThuc =
+                    payload.phuongThucThanhToan == null || payload.phuongThucThanhToan.trim().isEmpty()
+                            ? "TIENMAT"
+                            : payload.phuongThucThanhToan.trim().toUpperCase();
+
             if (!phuongThuc.equals("TIENMAT") && !phuongThuc.equals("CHUYENKHOAN")) {
                 phuongThuc = "TIENMAT";
             }
 
+            // ================= TẠO HÓA ĐƠN =================
+            // idKhachHang = null đối với khách vãng lai.
             HoaDon hoaDon = hoaDonRepo.taoHoaDonBanHang(
-                    kh.getId(),
+                    idKhachHang,
                     idNhanVien,
                     payload.idPhieuGiamGia,
                     gioHang,
@@ -129,12 +148,18 @@ public class ThanhToanService {
             result.put("maHoaDon", hoaDon.getMaHoaDon());
             result.put("idHoaDon", hoaDon.getId());
             result.put("tongTienThanhToan", hoaDon.getTongTienThanhToan());
-            result.put("maKhachHang", kh.getMa());
+            result.put("maKhachHang", kh != null ? kh.getMa() : null);
+            result.put("tenKhachHang", kh != null ? kh.getHoTen() : "Khách lẻ");
             result.put("phuongThucThanhToan", phuongThuc);
+
             if ("TIENMAT".equals(phuongThuc) && payload.tienKhachDua != null) {
                 result.put("tienKhachDua", payload.tienKhachDua);
-                result.put("tienThua", payload.tienKhachDua - hoaDon.getTongTienThanhToan());
+                result.put(
+                        "tienThua",
+                        payload.tienKhachDua - hoaDon.getTongTienThanhToan()
+                );
             }
+
         } catch (IllegalStateException | IllegalArgumentException e) {
             result.put("success", false);
             result.put("message", e.getMessage());
@@ -143,6 +168,7 @@ public class ThanhToanService {
             result.put("success", false);
             result.put("message", "Lỗi hệ thống khi tạo hóa đơn: " + e.getMessage());
         }
+
         return result;
     }
 }

@@ -2,6 +2,7 @@
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 <%@ taglib uri="jakarta.tags.fmt" prefix="fmt" %>
 <fmt:setLocale value="vi_VN"/>
+
 <table class="table table-hover align-middle">
     <thead>
     <tr>
@@ -25,7 +26,7 @@
             <td>${empty hd.tenKhachHang ? 'Khách lẻ' : hd.tenKhachHang}</td>
             <td><fmt:formatDate value="${hd.ngayTao}" pattern="dd/MM/yyyy HH:mm"/></td>
             <td><fmt:formatNumber value="${hd.tongTienThanhToan}" type="currency" currencySymbol="₫"/></td>
-            <td>${hd.sdtKhachHang}</td>
+            <td>${empty hd.sdtKhachHang ? '—' : hd.sdtKhachHang}</td>
             <td>
                 <c:choose>
                     <c:when test="${hd.trangThai==1}">
@@ -38,7 +39,9 @@
             </td>
             <td class="text-center">
                 <div class="btn-group">
-                    <a href="${pageContext.request.contextPath}/quanlyhoadon?action=detail&id=${hd.id}" class="btn btn-outline-primary btn-view" title="Chi tiết">
+                    <a href="${pageContext.request.contextPath}/quanlyhoadon?action=detail&id=${hd.id}"
+                       class="btn btn-outline-primary btn-view"
+                       title="Xem chi tiết hóa đơn">
                         <i class="bi bi-eye"></i>
                     </a>
                 </div>

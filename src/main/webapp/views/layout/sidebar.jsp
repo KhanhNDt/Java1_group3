@@ -54,47 +54,93 @@
             <span class="admin-sidebar__label">Quản lý hóa đơn</span>
         </a>
 
-        <div class="admin-sidebar__section-label mt-3">Kinh doanh</div>
+        <c:if test="${chucVuChuan == 'ADMIN'}">
 
-        <div class="admin-sidebar__group ${menu == 'sanpham' ? 'open' : ''}"
-             id="adminProductMenu" data-active="${menu == 'sanpham'}">
-            <button type="button"
-                    class="admin-sidebar__group-toggle ${menu == 'sanpham' ? 'active' : ''}"
-                    data-sidebar-submenu-toggle data-sidebar-tooltip="Quản lý sản phẩm"
-                    aria-controls="adminProductSubmenu" aria-expanded="${menu == 'sanpham'}">
-                <span class="admin-sidebar__icon"><i class="bi bi-box-seam"></i></span>
-                <span class="admin-sidebar__label">Quản lý sản phẩm</span>
-                <span class="admin-sidebar__caret"><i class="bi bi-chevron-down"></i></span>
-            </button>
-            <div class="admin-sidebar__submenu" id="adminProductSubmenu">
-                <a href="${pageContext.request.contextPath}/san-pham/hien-thi"
-                   class="admin-sidebar__item ${menu == 'sanpham' && submenu != 'bienthe' ? 'active' : ''}"
-                   data-sidebar-tooltip="Danh sách sản phẩm">
-                    <span class="admin-sidebar__icon"><i class="bi bi-list-ul"></i></span>
-                    <span class="admin-sidebar__label">Danh sách sản phẩm</span>
-                </a>
-                <a href="${pageContext.request.contextPath}/san-pham/chi-tiet/hien-thi"
-                   class="admin-sidebar__item ${submenu == 'bienthe' ? 'active' : ''}"
-                   data-sidebar-tooltip="Biến thể sản phẩm">
-                    <span class="admin-sidebar__icon"><i class="bi bi-layers"></i></span>
-                    <span class="admin-sidebar__label">Biến thể sản phẩm</span>
-                </a>
+            <div class="admin-sidebar__section-label mt-3">Kinh doanh</div>
+
+            <div class="admin-sidebar__group ${menu == 'sanpham' ? 'open' : ''}"
+                 id="adminProductMenu"
+                 data-active="${menu == 'sanpham'}">
+
+                <button type="button"
+                        class="admin-sidebar__group-toggle ${menu == 'sanpham' ? 'active' : ''}"
+                        data-sidebar-submenu-toggle
+                        data-sidebar-tooltip="Quản lý sản phẩm"
+                        aria-controls="adminProductSubmenu"
+                        aria-expanded="${menu == 'sanpham'}">
+
+            <span class="admin-sidebar__icon">
+                <i class="bi bi-box-seam"></i>
+            </span>
+
+                    <span class="admin-sidebar__label">
+                Quản lý sản phẩm
+            </span>
+
+                    <span class="admin-sidebar__caret">
+                <i class="bi bi-chevron-down"></i>
+            </span>
+                </button>
+
+                <div class="admin-sidebar__submenu"
+                     id="adminProductSubmenu">
+
+                    <a href="${pageContext.request.contextPath}/san-pham/hien-thi"
+                       class="admin-sidebar__item ${menu == 'sanpham' && submenu != 'bienthe' ? 'active' : ''}"
+                       data-sidebar-tooltip="Danh sách sản phẩm">
+
+                <span class="admin-sidebar__icon">
+                    <i class="bi bi-list-ul"></i>
+                </span>
+
+                        <span class="admin-sidebar__label">
+                    Danh sách sản phẩm
+                </span>
+                    </a>
+
+                    <a href="${pageContext.request.contextPath}/san-pham/chi-tiet/hien-thi"
+                       class="admin-sidebar__item ${submenu == 'bienthe' ? 'active' : ''}"
+                       data-sidebar-tooltip="Biến thể sản phẩm">
+
+                <span class="admin-sidebar__icon">
+                    <i class="bi bi-layers"></i>
+                </span>
+
+                        <span class="admin-sidebar__label">
+                    Biến thể sản phẩm
+                </span>
+                    </a>
+
+                </div>
             </div>
-        </div>
 
-        <a href="${pageContext.request.contextPath}/thuoc-tinh/hien-thi?type=danh-muc"
-           class="admin-sidebar__item ${menu == 'thuoctinh' ? 'active' : ''}"
-           data-sidebar-tooltip="Thuộc tính sản phẩm">
-            <span class="admin-sidebar__icon"><i class="bi bi-sliders2"></i></span>
-            <span class="admin-sidebar__label">Thuộc tính sản phẩm</span>
-        </a>
+            <a href="${pageContext.request.contextPath}/thuoc-tinh/hien-thi?type=danh-muc"
+               class="admin-sidebar__item ${menu == 'thuoctinh' ? 'active' : ''}"
+               data-sidebar-tooltip="Thuộc tính sản phẩm">
 
-        <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi"
-           class="admin-sidebar__item ${menu == 'phieugiamgia' ? 'active' : ''}"
-           data-sidebar-tooltip="Phiếu giảm giá">
-            <span class="admin-sidebar__icon"><i class="bi bi-ticket-perforated"></i></span>
-            <span class="admin-sidebar__label">Phiếu giảm giá</span>
-        </a>
+        <span class="admin-sidebar__icon">
+            <i class="bi bi-sliders2"></i>
+        </span>
+
+                <span class="admin-sidebar__label">
+            Thuộc tính sản phẩm
+        </span>
+            </a>
+
+            <a href="${pageContext.request.contextPath}/phieugiamgia/hien-thi"
+               class="admin-sidebar__item ${menu == 'phieugiamgia' ? 'active' : ''}"
+               data-sidebar-tooltip="Phiếu giảm giá">
+
+        <span class="admin-sidebar__icon">
+            <i class="bi bi-ticket-perforated"></i>
+        </span>
+
+                <span class="admin-sidebar__label">
+            Phiếu giảm giá
+        </span>
+            </a>
+
+        </c:if>
 
         <div class="admin-sidebar__section-label mt-3">Hệ thống</div>
 

@@ -39,6 +39,9 @@ public class HoaDonServlet extends HttpServlet {
             case "detail":
                 showDetail(req, resp);
                 break;
+            case "receipt":
+                showReceipt(req, resp);
+                break;
 //            case "delete":
 //                deleteInvoice(req, resp);
 //                break;
@@ -202,6 +205,70 @@ public class HoaDonServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             req.setAttribute("error", "Mã hóa đơn yêu cầu định dạng số bất hợp lệ!");
             listInvoices(req, resp);
+        }
+    }
+
+
+    /**
+     * Trả về riêng mẫu hóa đơn in nhiệt để nhúng vào modal/iframe.
+     * Không render sidebar và không chuyển sang trang chi tiết đầy đủ.
+     */
+    private void showReceipt(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String idParam = req.getParameter("id");
+        if (idParam == null || idParam.trim().isEmpty()) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Thiếu mã hóa đơn.");
+            return;
+        }
+
+        try {
+            int id = Integer.parseInt(idParam);
+            HoaDon hd = hoaDonRepo.getById(id);
+            if (hd == null) {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy hóa đơn.");
+                return;
+            }
+
+            if (hd.getTrangThai() != null && hd.getTrangThai() == 0) {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Hóa đơn đang chờ xử lý, chưa thể in.");
+                return;
+            }
+
+            List<HoaDonChiTiet> details = hoaDonRepo.getChiTietByHoaDonId(id);
+            List<ThanhToanHoaDon> payments = hoaDonRepo.getThanhToanByHoaDonId(id);
+
+            double tienHangGoc = 0;
+            int tongSoLuong = 0;
+            for (HoaDonChiTiet ct : details) {
+                if (ct.getTongTien() != null) tienHangGoc += ct.getTongTien();
+                if (ct.getSoLuong() != null) tongSoLuong += ct.getSoLuong();
+            }
+
+            hd.setSoLuongSanPham(tongSoLuong);
+            double tongThanhToan = hd.getTongTienThanhToan() == null ? 0 : hd.getTongTienThanhToan();
+            hd.setTienHangGoc(tienHangGoc);
+            hd.setTienGiam(Math.max(0, tienHangGoc - tongThanhToan));
+
+            for (ThanhToanHoaDon p : payments) {
+                if (p.getGhiChu() != null && p.getGhiChu().contains("Khách đưa:")) {
+                    java.util.regex.Matcher m = java.util.regex.Pattern
+                            .compile("Khách đưa:\\s*([-\\d.]+)\\s*-\\s*Trả lại:\\s*([-\\d.]+)")
+                            .matcher(p.getGhiChu());
+                    if (m.find()) {
+                        try {
+                            hd.setTienKhachDua(Double.parseDouble(m.group(1)));
+                            hd.setTienThua(Double.parseDouble(m.group(2)));
+                        } catch (NumberFormatException ignored) { }
+                    }
+                    break;
+                }
+            }
+
+            req.setAttribute("invoice", hd);
+            req.setAttribute("details", details);
+            req.setAttribute("payments", payments);
+            req.getRequestDispatcher("/views/hoadon/hoa-don-receipt.jsp").forward(req, resp);
+        } catch (NumberFormatException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Mã hóa đơn không hợp lệ.");
         }
     }
 

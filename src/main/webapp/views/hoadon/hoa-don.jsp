@@ -295,9 +295,52 @@
     </div>
 </div>
 
+
+<!-- Modal xem hóa đơn in nhiệt -->
+<div class="modal fade" id="invoiceReceiptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+            <div class="modal-header py-2">
+                <h6 class="modal-title"><i class="bi bi-receipt"></i> Xem trước hóa đơn (in nhiệt)</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background:#f3f3f3;">
+                <iframe id="invoiceReceiptFrame" title="Hóa đơn"
+                        style="width:100%;height:650px;border:0;background:#f3f3f3;display:block;"></iframe>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-dark" id="btnPrintInvoiceReceipt">
+                    <i class="bi bi-printer"></i> In / Lưu PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+
+    // Mở hóa đơn dạng phiếu in nhiệt ngay trên màn Quản lý hóa đơn.
+    window.openInvoiceReceipt = function (idHoaDon) {
+        const frame = document.getElementById('invoiceReceiptFrame');
+        frame.src = '${pageContext.request.contextPath}/quanlyhoadon?action=receipt&id=' + encodeURIComponent(idHoaDon);
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('invoiceReceiptModal')).show();
+    };
+
+    document.getElementById('btnPrintInvoiceReceipt').addEventListener('click', function () {
+        const frame = document.getElementById('invoiceReceiptFrame');
+        if (frame && frame.contentWindow) {
+            frame.contentWindow.focus();
+            frame.contentWindow.print();
+        }
+    });
+
+    document.getElementById('invoiceReceiptModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('invoiceReceiptFrame').src = 'about:blank';
+    });
+
     // Hàm bấm tab trạng thái nhanh nhưng giữ lại keyword tìm kiếm
     function filterByStatus(statusValue) {
         document.getElementById('formStatus').value = statusValue;

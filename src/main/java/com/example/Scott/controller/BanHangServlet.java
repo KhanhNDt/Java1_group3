@@ -68,6 +68,9 @@ public class BanHangServlet extends HttpServlet {
             case "timKhachHang":
                 timKhachHang(req, resp);
                 break;
+            case "danhSachKhachHang":
+                danhSachKhachHang(req, resp);
+                break;
             case "danhSachVoucher":
                 danhSachVoucher(req, resp);
                 break;
@@ -266,6 +269,33 @@ public class BanHangServlet extends HttpServlet {
             result.put("success", true);
             result.put("found", false);
         }
+        writeJson(resp, result);
+    }
+
+    // ================= AJAX: danh sách khách hàng đang hoạt động để chọn tại quầy =================
+    private void danhSachKhachHang(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String keyword = req.getParameter("keyword");
+        if (keyword != null) keyword = keyword.trim();
+
+        // Dùng luôn bộ lọc đang có sẵn của KhachHangResponsitory:
+        // keyword tìm theo thông tin khách, trạng thái = 1 (đang hoạt động).
+        List<KhachHang> list = khachHangRepo.filter(keyword, null, 1, 0, 500);
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        for (KhachHang kh : list) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", kh.getId());
+            item.put("ma", kh.getMa());
+            item.put("hoTen", kh.getHoTen());
+            item.put("sdt", kh.getSdt());
+            item.put("email", kh.getEmail());
+            item.put("diaChi", kh.getDiaChi());
+            items.add(item);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("success", true);
+        result.put("items", items);
         writeJson(resp, result);
     }
 
@@ -494,13 +524,6 @@ public class BanHangServlet extends HttpServlet {
         if (payload == null || payload.gioHang == null || payload.gioHang.isEmpty()) {
             result.put("success", false);
             result.put("message", "Giỏ hàng đang trống, vui lòng chọn sản phẩm trước khi thanh toán.");
-            writeJson(resp, result);
-            return;
-        }
-        String sdt = payload.sdtKhachHang == null ? "" : payload.sdtKhachHang.trim();
-        if (!sdt.matches("\\d{9,11}")) {
-            result.put("success", false);
-            result.put("message", "Vui lòng nhập số điện thoại khách hàng hợp lệ.");
             writeJson(resp, result);
             return;
         }

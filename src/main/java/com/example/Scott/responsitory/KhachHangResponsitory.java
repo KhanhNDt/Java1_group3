@@ -34,11 +34,16 @@ public class KhachHangResponsitory {
     /** Dung cho Ban hang tai quay: tra cuu khach hang theo dung so dien thoai da nhap. */
     public KhachHang findBySdt(String sdt) {
         if (sdt == null || sdt.trim().isEmpty()) return null;
+
         try (Session session = HibernateConfig.getFACTORY().openSession()) {
-            List<KhachHang> list = session.createQuery("from KhachHang where sdt = :sdt", KhachHang.class)
+            List<KhachHang> list = session.createQuery(
+                    "from KhachHang where sdt = :sdt and trangThai = 1",
+                    KhachHang.class
+            )
                     .setParameter("sdt", sdt.trim())
                     .setMaxResults(1)
                     .list();
+
             return list.isEmpty() ? null : list.get(0);
         }
     }

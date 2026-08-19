@@ -138,7 +138,14 @@
                             pattern="HH:mm:ss dd/MM/yyyy"/>
                 </div>
             </div>
-            <div class="no-print">
+            <div class="no-print d-flex gap-2">
+                <button type="button"
+                        class="btn btn-dark"
+                        onclick="openReceiptPreview()">
+                    <i class="bi bi-receipt"></i>
+                    Xem hóa đơn
+                </button>
+
                 <a href="${pageContext.request.contextPath}/quanlyhoadon"
                    class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i>
@@ -266,7 +273,7 @@
                     </div>
                 </div>
             </div>
-            <%--			Tong két thanh toan--%>
+            <%--         Tong két thanh toan--%>
             <div class="col-lg-4">
                 <div class="card h-100 shadow-sm">
                     <div class="card-header">
@@ -430,10 +437,10 @@
                         <div class="d-grid no-print">
                             <button
                                     type="button"
-                                    class="btn btn-primary"
-                                    onclick="printInvoice()">
-                                <i class="bi bi-printer"></i>
-                                In hóa đơn
+                                    class="btn btn-dark"
+                                    onclick="openReceiptPreview()">
+                                <i class="bi bi-receipt"></i>
+                                Xem / In hóa đơn
                             </button>
                         </div>
                     </div>
@@ -528,6 +535,39 @@
     </div>
 </div>
 
+
+<!-- MODAL XEM HÓA ĐƠN: mở từ trang Chi tiết hóa đơn -->
+<div class="modal fade" id="receiptPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+            <div class="modal-header py-2">
+                <h6 class="modal-title">
+                    <i class="bi bi-receipt"></i>
+                    Xem trước hóa đơn (in nhiệt)
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-0" style="background:#f3f3f3;">
+                <iframe id="receiptPreviewFrame"
+                        title="Xem trước hóa đơn"
+                        style="width:100%;height:650px;border:0;background:#f3f3f3;display:block;">
+                </iframe>
+            </div>
+
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Đóng
+                </button>
+                <button type="button" class="btn btn-dark" id="btnPrintReceiptPreview">
+                    <i class="bi bi-printer"></i>
+                    In / Lưu PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Hóa đơn dạng phiếu in nhiệt (ẩn trên màn hình thường, chỉ dùng làm nội dung cho cửa sổ in) -->
 <div id="receiptPrintable">
     <div class="receipt-paper" data-total="${invoice.tongTienThanhToan}">
@@ -579,6 +619,27 @@
 </div>
 
 <script>
+
+    function openReceiptPreview() {
+        var frame = document.getElementById('receiptPreviewFrame');
+        frame.src = '${pageContext.request.contextPath}/quanlyhoadon?action=receipt&id=${invoice.id}';
+        bootstrap.Modal.getOrCreateInstance(
+            document.getElementById('receiptPreviewModal')
+        ).show();
+    }
+
+    document.getElementById('btnPrintReceiptPreview').addEventListener('click', function () {
+        var frame = document.getElementById('receiptPreviewFrame');
+        if (frame && frame.contentWindow) {
+            frame.contentWindow.focus();
+            frame.contentWindow.print();
+        }
+    });
+
+    document.getElementById('receiptPreviewModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('receiptPreviewFrame').src = 'about:blank';
+    });
+
     // Đọc số tiền thành chữ kiểu hóa đơn Việt Nam (VD: 9500 -> "Chín nghìn năm trăm đồng")
     function soTienBangChu(soTien) {
         soTien = Math.round(Math.abs(soTien || 0));
@@ -642,17 +703,6 @@
             printWindow.close();
         };
     }
-
-    // Nếu được điều hướng tới đây từ luồng thanh toán QR ở màn Bán hàng tại quầy (autoprint=1),
-    // tự động mở hộp thoại in hóa đơn ngay khi tải xong trang, không cần bấm nút In.
-    (function () {
-        var params = new URLSearchParams(window.location.search);
-        if (params.get('autoprint') === '1') {
-            window.addEventListener('load', function () {
-                setTimeout(printInvoice, 400);
-            });
-        }
-    })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

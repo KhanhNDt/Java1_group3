@@ -251,7 +251,7 @@
     <div id="alertBox"></div>
 
     <!-- ĐƠN HÀNG CHỜ -->
-    <div class="card-custom">
+    <div class="card-custom" id="orderSectionCard" style="display:none;">
         <div class="card-head-row" id="orderTabsHeadRow" style="display:none;">
             <div class="title-box"><i class="bi bi-receipt-cutoff"></i><span>Đơn hàng chờ</span></div>
             <span class="text-muted" id="orderCountLabel" style="font-weight:400;font-size:13px;">0/10 đơn</span>
@@ -300,18 +300,63 @@
             <div class="card-custom">
                 <div class="title-box"><i class="bi bi-person"></i><span>Thông tin khách hàng</span></div>
 
-                <label class="form-label">Số điện thoại</label>
-                <input type="text" id="sdtInput" class="form-control" placeholder="Số điện thoại (không bắt buộc)">
-                <div id="khStatus"></div>
+                <div class="pay-method-toggle mb-3">
+                    <button type="button" class="pay-method-btn active" id="btnLoaiKhVangLaiForm"
+                            onclick="chonLoaiKhachHangForm('vang_lai')">
+                        <i class="bi bi-person"></i> Khách vãng lai
+                    </button>
+                    <button type="button" class="pay-method-btn" id="btnLoaiKhHeThong"
+                            onclick="chonLoaiKhachHangForm('he_thong')">
+                        <i class="bi bi-people"></i> Khách quen
+                    </button>
+                </div>
 
-                <label class="form-label mt-3">Tên khách hàng</label>
-                <input type="text" id="tenKhInput" class="form-control" placeholder="Khách lẻ">
+                <!-- Khách vãng lai: không cần nhập gì -->
+                <div id="paneKhVangLai">
+                    <div class="border rounded-3 p-3" style="background:#fafafa;">
+                        <div class="fw-semibold"><i class="bi bi-person-check"></i> Khách vãng lai</div>
+                        <div class="text-muted small mt-1">Không cần nhập thông tin. Hóa đơn sẽ ghi nhận là "Khách lẻ".</div>
+                    </div>
+                </div>
 
-                <label class="form-label mt-3">Email</label>
-                <input type="email" id="emailKhInput" class="form-control" placeholder="Email (không bắt buộc)">
+                <!-- Khách quen: hiển thị danh sách từ CSDL -->
+                <div id="paneKhHeThong" style="display:none;">
+                    <div id="khHeThongSearchBox">
+                        <label class="form-label">Chọn khách hàng</label>
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="text" id="timKhachHangInput" class="form-control"
+                                   placeholder="Tìm theo tên, mã hoặc số điện thoại..." autocomplete="off">
+                            <button type="button" class="btn-outline-black" id="btnTaiDanhSachKhachHang" title="Tìm khách hàng">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        <div id="khStatus"></div>
+                        <div id="danhSachKhachHangBox"
+                             style="max-height:300px;overflow-y:auto;border:1px solid #eee;border-radius:12px;"></div>
+                    </div>
 
-                <label class="form-label mt-3">Địa chỉ <span class="text-danger">*</span></label>
-                <input type="text" id="diaChiKhInput" class="form-control" placeholder="Bắt buộc nhập địa chỉ">
+                    <div id="khHeThongInfoBox" style="display:none;">
+                        <div class="border rounded-3 p-3" style="background:#fafafa;">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <div style="min-width:0;">
+                                    <div class="fw-bold" id="khHeThongTen"></div>
+                                    <div class="text-muted small" id="khHeThongSdt"></div>
+                                    <div class="text-muted small" id="khHeThongEmail"></div>
+                                    <div class="text-muted small" id="khHeThongDiaChi"></div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" id="btnDoiKhHeThong">
+                                    Đổi khách
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dữ liệu khách hàng gửi lên backend -->
+                <input type="hidden" id="sdtInput">
+                <input type="hidden" id="tenKhInput" value="Khách lẻ">
+                <input type="hidden" id="emailKhInput">
+                <input type="hidden" id="diaChiKhInput">
 
                 <label class="form-label mt-3">Nhân viên phụ trách</label>
                 <input type="text" class="form-control" disabled value="${sessionScope.user.nhanVien.hoTen}">
@@ -567,9 +612,64 @@
     </div>
 </div>
 
+
+<!-- MODAL: XEM / IN HÓA ĐƠN SAU THANH TOÁN -->
+<div class="modal fade" id="modalHoaDonPreview" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:560px;">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+            <div class="modal-header py-2">
+                <h6 class="modal-title"><i class="bi bi-receipt"></i> Xem trước hóa đơn (in nhiệt)</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" style="background:#f3f3f3;">
+                <iframe id="hoaDonPreviewFrame" title="Xem trước hóa đơn"
+                        style="width:100%;height:650px;border:0;background:#f3f3f3;display:block;"></iframe>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn-outline-black" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn-black" id="btnInHoaDonPreview">
+                    <i class="bi bi-printer"></i> In / Lưu PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="${pageContext.request.contextPath}/assets/js/vendor/jsQR.js"></script>
 <script>
     const ctx = "${pageContext.request.contextPath}";
+
+    let hoaDonPreviewId = null;
+
+    function moHoaDonPreview(idHoaDon) {
+        if (!idHoaDon) return;
+        hoaDonPreviewId = idHoaDon;
+
+        const frame = document.getElementById('hoaDonPreviewFrame');
+        frame.src = ctx + '/quanlyhoadon?action=receipt&id=' + encodeURIComponent(idHoaDon);
+
+        const qrModalEl = document.getElementById('modalQRPayment');
+        const qrModal = qrModalEl ? bootstrap.Modal.getInstance(qrModalEl) : null;
+        if (qrModal) qrModal.hide();
+
+        setTimeout(function () {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalHoaDonPreview')).show();
+        }, qrModal ? 250 : 0);
+    }
+
+    document.getElementById('btnInHoaDonPreview').addEventListener('click', function () {
+        const frame = document.getElementById('hoaDonPreviewFrame');
+        if (frame && frame.contentWindow) {
+            frame.contentWindow.focus();
+            frame.contentWindow.print();
+        }
+    });
+
+    document.getElementById('modalHoaDonPreview').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('hoaDonPreviewFrame').src = 'about:blank';
+        hoaDonPreviewId = null;
+    });
+
     const MAX_ORDERS = 10; // tối đa 10 đơn chờ
 
     // TODO: thay bằng thông tin ngân hàng thật của cửa hàng để mã QR nhận đúng tiền
@@ -593,6 +693,7 @@
         return {
             id: 'don_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
             sdt: '', tenKh: '', email: '', diaChi: '', ghiChu: '', voucherId: '',
+            loaiKhachHang: 'vang_lai', // 'he_thong' = khách chọn từ CSDL theo SĐT; 'vang_lai' = khách lẻ, không cần thông tin
             voucherAuto: true, // true = hệ thống tự chọn phiếu giảm giá tốt nhất; false = khách hàng/thu ngân đã tự chọn tay
             khStatusHtml: '',
             phuongThucThanhToan: 'tien_mat',
@@ -647,17 +748,218 @@
         document.getElementById('tienKhachDuaInput').value = don.tienKhachDua || '';
         cart = don.cart;
         chonPhuongThuc(don.phuongThucThanhToan || 'tien_mat');
+
+        const loai = don.loaiKhachHang || 'vang_lai';
+        chonLoaiKhachHangForm(loai, { giuDuLieu: true });
     }
+
+    // ============== KHÁCH HÀNG: VÃNG LAI / KHÁCH QUEN TỪ CSDL ==============
+    let danhSachKhachHang = [];
+    let khachHangSearchTimer = null;
+
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function hienKhHeThongSearchBox() {
+        document.getElementById('khHeThongSearchBox').style.display = 'block';
+        document.getElementById('khHeThongInfoBox').style.display = 'none';
+    }
+
+    function hienKhHeThongInfo(kh) {
+        document.getElementById('khHeThongSearchBox').style.display = 'none';
+        document.getElementById('khHeThongInfoBox').style.display = 'block';
+        document.getElementById('khHeThongTen').textContent = kh.hoTen || '';
+        document.getElementById('khHeThongSdt').textContent = kh.sdt ? ('SĐT: ' + kh.sdt) : 'SĐT: —';
+        document.getElementById('khHeThongEmail').textContent = kh.email ? ('Email: ' + kh.email) : '';
+        document.getElementById('khHeThongDiaChi').textContent = kh.diaChi ? ('Địa chỉ: ' + kh.diaChi) : 'Địa chỉ: —';
+
+        document.getElementById('sdtInput').value = kh.sdt || '';
+        document.getElementById('tenKhInput').value = kh.hoTen || '';
+        document.getElementById('emailKhInput').value = kh.email || '';
+        document.getElementById('diaChiKhInput').value = kh.diaChi || '';
+
+        const don = donHienTai();
+        if (don) {
+            don.loaiKhachHang = 'he_thong';
+            don.sdt = kh.sdt || '';
+            don.tenKh = kh.hoTen || '';
+            don.email = kh.email || '';
+            don.diaChi = kh.diaChi || '';
+        }
+    }
+
+    function renderDanhSachKhachHang() {
+        const box = document.getElementById('danhSachKhachHangBox');
+        if (!danhSachKhachHang.length) {
+            box.innerHTML = '<div class="text-center text-muted small py-4">' +
+                '<i class="bi bi-people fs-4 d-block mb-1"></i>Không tìm thấy khách hàng phù hợp.</div>';
+            return;
+        }
+
+        box.innerHTML = danhSachKhachHang.map((kh, index) => {
+            const ten = escapeHtml(kh.hoTen || 'Chưa có tên');
+            const ma = escapeHtml(kh.ma || '');
+            const sdt = escapeHtml(kh.sdt || '—');
+            const email = escapeHtml(kh.email || '');
+            const diaChi = escapeHtml(kh.diaChi || '');
+            return '<div class="p-3 border-bottom" style="background:#fff;">' +
+                '<div class="d-flex justify-content-between align-items-start gap-3">' +
+                '<div style="min-width:0;">' +
+                '<div class="fw-bold">' + ten +
+                (ma ? ' <span class="text-muted fw-normal small">(' + ma + ')</span>' : '') +
+                '</div>' +
+                '<div class="small text-muted mt-1"><i class="bi bi-telephone"></i> ' + sdt + '</div>' +
+                (email ? '<div class="small text-muted"><i class="bi bi-envelope"></i> ' + email + '</div>' : '') +
+                (diaChi ? '<div class="small text-muted"><i class="bi bi-geo-alt"></i> ' + diaChi + '</div>' : '') +
+                '</div>' +
+                '<button type="button" class="btn-black btn-sm flex-shrink-0" onclick="chonKhachHangTuDanhSach(' + index + ')">' +
+                '<i class="bi bi-check2"></i> Chọn' +
+                '</button>' +
+                '</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    window.taiDanhSachKhachHang = function () {
+        const keywordEl = document.getElementById('timKhachHangInput');
+        const keyword = keywordEl ? keywordEl.value.trim() : '';
+        const box = document.getElementById('danhSachKhachHangBox');
+        const status = document.getElementById('khStatus');
+
+        status.innerHTML = '<span class="text-muted"><span class="spinner-border spinner-border-sm"></span> Đang tải khách hàng...</span>';
+        box.innerHTML = '';
+
+        fetch(ctx + '/ban-hang-tai-quay?action=danhSachKhachHang&keyword=' + encodeURIComponent(keyword))
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success) throw new Error(data.message || 'Không tải được danh sách khách hàng.');
+                danhSachKhachHang = data.items || [];
+                status.innerHTML = '<span class="text-muted">' + danhSachKhachHang.length + ' khách hàng</span>';
+                renderDanhSachKhachHang();
+            })
+            .catch(() => {
+                danhSachKhachHang = [];
+                status.innerHTML = '<span class="text-danger">Không thể tải danh sách khách hàng.</span>';
+                renderDanhSachKhachHang();
+            });
+    };
+
+    window.chonKhachHangTuDanhSach = function (index) {
+        const kh = danhSachKhachHang[index];
+        if (!kh) return;
+        hienKhHeThongInfo(kh);
+    };
+
+    // Chuyển giữa hai chế độ. Đơn mới mặc định là khách vãng lai.
+    window.chonLoaiKhachHangForm = function (loai, opts) {
+        opts = opts || {};
+        const don = donHienTai();
+        if (don) don.loaiKhachHang = loai;
+
+        document.getElementById('btnLoaiKhHeThong').classList.toggle('active', loai === 'he_thong');
+        document.getElementById('btnLoaiKhVangLaiForm').classList.toggle('active', loai === 'vang_lai');
+        document.getElementById('paneKhHeThong').style.display = loai === 'he_thong' ? 'block' : 'none';
+        document.getElementById('paneKhVangLai').style.display = loai === 'vang_lai' ? 'block' : 'none';
+
+        if (opts.giuDuLieu) {
+            if (loai === 'he_thong') {
+                if (don && don.sdt && don.tenKh) {
+                    hienKhHeThongInfo({
+                        sdt: don.sdt,
+                        hoTen: don.tenKh,
+                        email: don.email,
+                        diaChi: don.diaChi
+                    });
+                } else {
+                    hienKhHeThongSearchBox();
+                    taiDanhSachKhachHang();
+                }
+            }
+            return;
+        }
+
+        document.getElementById('khStatus').innerHTML = '';
+
+        if (loai === 'vang_lai') {
+            document.getElementById('sdtInput').value = '';
+            document.getElementById('tenKhInput').value = 'Khách lẻ';
+            document.getElementById('emailKhInput').value = '';
+            document.getElementById('diaChiKhInput').value = '';
+
+            if (don) {
+                don.sdt = '';
+                don.tenKh = 'Khách lẻ';
+                don.email = '';
+                don.diaChi = '';
+            }
+        } else {
+            document.getElementById('sdtInput').value = '';
+            document.getElementById('tenKhInput').value = '';
+            document.getElementById('emailKhInput').value = '';
+            document.getElementById('diaChiKhInput').value = '';
+
+            if (don) {
+                don.sdt = '';
+                don.tenKh = '';
+                don.email = '';
+                don.diaChi = '';
+            }
+
+            hienKhHeThongSearchBox();
+            document.getElementById('timKhachHangInput').value = '';
+            taiDanhSachKhachHang();
+            setTimeout(() => document.getElementById('timKhachHangInput').focus(), 50);
+        }
+    };
+
+    document.getElementById('btnDoiKhHeThong').addEventListener('click', function () {
+        const don = donHienTai();
+        if (don) {
+            don.sdt = '';
+            don.tenKh = '';
+            don.email = '';
+            don.diaChi = '';
+        }
+
+        document.getElementById('sdtInput').value = '';
+        document.getElementById('tenKhInput').value = '';
+        document.getElementById('emailKhInput').value = '';
+        document.getElementById('diaChiKhInput').value = '';
+        document.getElementById('timKhachHangInput').value = '';
+        hienKhHeThongSearchBox();
+        taiDanhSachKhachHang();
+    });
+
+    document.getElementById('btnTaiDanhSachKhachHang').addEventListener('click', taiDanhSachKhachHang);
+    document.getElementById('timKhachHangInput').addEventListener('input', function () {
+        clearTimeout(khachHangSearchTimer);
+        khachHangSearchTimer = setTimeout(taiDanhSachKhachHang, 350);
+    });
 
     window.taoDonMoi = function () {
         if (orders.length >= MAX_ORDERS) {
             showAlert('warning', 'Đã đạt tối đa ' + MAX_ORDERS + ' đơn chờ. Vui lòng thanh toán hoặc xóa bớt đơn trước khi thêm mới.');
             return;
         }
+
         luuDonHienTai();
+
         const don = taoDonRong();
+        don.loaiKhachHang = 'vang_lai';
+        don.sdt = '';
+        don.tenKh = 'Khách lẻ';
+        don.email = '';
+        don.diaChi = '';
+
         orders.push(don);
         activeOrderId = don.id;
+
         napDonVaoForm();
         renderOrderTabs();
         renderCart();
@@ -676,6 +978,7 @@
                     don.tenKh = hd.tenKhachHang || '';
                     don.diaChi = hd.diaChiKhachHang || '';
                     don.ghiChu = hd.ghiChu || '';
+                    don.loaiKhachHang = hd.sdtKhachHang ? 'he_thong' : 'vang_lai';
                     don.voucherId = hd.idPhieuGiamGia || '';
                     don.voucherAuto = !hd.idPhieuGiamGia;
                     don.cart = (hd.gioHang || []).map(it => ({
@@ -747,19 +1050,23 @@
         }
     };
 
-    // Gọi khi 1 đơn thanh toán thành công: đóng đơn đó, chuyển sang đơn kế nếu còn / về màn hình danh nếu hết
+    // Gọi khi 1 đơn thanh toán thành công: đóng đơn đó.
+    // Nếu không còn đơn nào thì quay về màn hình trống và chờ bấm "Tạo đơn hàng".
     function hoanTatDonHienTai() {
         const idx = orders.findIndex(o => o.id === activeOrderId);
         if (idx === -1) return;
+
         orders.splice(idx, 1);
 
         if (!orders.length) {
             activeOrderId = null;
+            cart = [];
         } else {
             const ke = orders[idx] || orders[idx - 1];
             activeOrderId = ke.id;
             napDonVaoForm();
         }
+
         renderOrderTabs();
         renderCart();
     }
@@ -768,6 +1075,7 @@
         const bar = document.getElementById('orderTabsBar');
         const headRow = document.getElementById('orderTabsHeadRow');
         const emptyState = document.getElementById('salesEmptyState');
+        const orderSectionCard = document.getElementById('orderSectionCard');
         const workArea = document.getElementById('salesWorkArea');
         const countLabel = document.getElementById('orderCountLabel');
         const countLabelEmpty = document.getElementById('orderCountLabelEmpty');
@@ -780,15 +1088,17 @@
         if (btnTaoDonHang) btnTaoDonHang.disabled = dayRoi;
 
         if (!orders.length) {
-            // Chưa có đơn hàng nào: chỉ hiện danh, ẩn hết khu vực làm việc
+            // Chưa tạo đơn: chỉ giữ phần tiêu đề trang + nút "Tạo đơn hàng".
+            if (orderSectionCard) orderSectionCard.style.display = 'none';
             bar.style.display = 'none';
             headRow.style.display = 'none';
-            emptyState.style.display = 'block';
+            emptyState.style.display = 'none';
             workArea.style.display = 'none';
             bar.innerHTML = '';
             return;
         }
 
+        if (orderSectionCard) orderSectionCard.style.display = 'block';
         headRow.style.display = 'flex';
         bar.style.display = 'flex';
         emptyState.style.display = 'none';
@@ -855,6 +1165,7 @@
                         id: 'srv_' + item.id,
                         sdt: item.sdtKhachHang || '', tenKh: item.tenKhachHang || '',
                         email: '', diaChi: '', ghiChu: '', voucherId: '', voucherAuto: true,
+                        loaiKhachHang: item.sdtKhachHang ? 'he_thong' : 'vang_lai',
                         khStatusHtml: '', phuongThucThanhToan: 'tien_mat', tienKhachDua: '', tienKhachDuaAuto: true,
                         cart: [], idHoaDonCho: item.id, ngayTao: item.ngayTao, daTaiChiTiet: false
                     });
@@ -1349,34 +1660,6 @@
         if (don && don.phuongThucThanhToan === 'qr') capNhatQR();
     }
 
-    // ============== KHÁCH HÀNG ==============
-    let sdtTimer = null;
-    document.getElementById('sdtInput').addEventListener('input', function () {
-        clearTimeout(sdtTimer);
-        const sdt = this.value.trim();
-        if (!/^\d{9,11}$/.test(sdt)) {
-            document.getElementById('khStatus').innerHTML = sdt ? '<span class="text-danger">Số điện thoại chưa hợp lệ (9-11 số)</span>' : '';
-            return;
-        }
-        sdtTimer = setTimeout(() => {
-            fetch(ctx + '/ban-hang-tai-quay?action=timKhachHang&sdt=' + encodeURIComponent(sdt))
-                .then(r => r.json())
-                .then(data => {
-                    if (data.found) {
-                        document.getElementById('khStatus').innerHTML =
-                            '<span class="text-success"><i class="bi bi-check-circle"></i> Khách quen: ' +
-                            data.khachHang.hoTen + ' (' + data.khachHang.ma + ')</span>';
-                        if (!document.getElementById('tenKhInput').value.trim()) {
-                            document.getElementById('tenKhInput').value = data.khachHang.hoTen || '';
-                        }
-                    } else {
-                        document.getElementById('khStatus').innerHTML =
-                            '<span class="text-primary"><i class="bi bi-person-plus"></i> Khách mới, sẽ tạo hồ sơ khi thanh toán</span>';
-                    }
-                });
-        }, 400);
-    });
-
     // ============== VOUCHER ==============
     function taiVoucher() {
         fetch(ctx + '/ban-hang-tai-quay?action=danhSachVoucher')
@@ -1485,8 +1768,8 @@
                         timSanPham();
                         taiVoucher();
                         setTimeout(function () {
-                            window.location.href = ctx + '/quanlyhoadon?action=detail&id=' + data.idHoaDon + '&autoprint=1';
-                        }, 1200);
+                            window.location.href = ctx + '/quanlyhoadon?action=detail&id=' + encodeURIComponent(data.idHoaDon);
+                        }, 700);
                     } else if (data.trangThai === 'loi') {
                         const errBox = document.getElementById('qrErrorState');
                         errBox.textContent = data.message || 'Số tiền chuyển khoản không khớp, vui lòng kiểm tra lại hoặc xác nhận thủ công.';
@@ -1579,11 +1862,8 @@
             return null;
         }
 
+        // Địa chỉ không còn bắt buộc: khách vãng lai có thể thanh toán mà không cần nhập gì.
         const diaChi = document.getElementById('diaChiKhInput').value.trim();
-        if (!diaChi) {
-            showAlert('danger', 'Vui lòng nhập địa chỉ khách hàng.');
-            return null;
-        }
 
         const pt = donHienTai() ? donHienTai().phuongThucThanhToan : 'tien_mat';
         let ghiChu = document.getElementById('ghiChuInput').value.trim();
@@ -1676,11 +1956,13 @@
                 if (data.success) {
                     showAlert('success', 'Thanh toán thành công! Mã hóa đơn <strong>' + data.maHoaDon +
                         '</strong> - Tổng tiền: ' + formatTien(data.tongTienThanhToan) +
-                        ' &nbsp; <a href="' + ctx + '/quanlyhoadon?action=detail&id=' + data.idHoaDon +
-                        '" class="alert-link">Xem hóa đơn</a>');
+                        '. Đang chuyển sang chi tiết hóa đơn...');
                     hoanTatDonHienTai();
                     timSanPham();
                     taiVoucher();
+                    setTimeout(function () {
+                        window.location.href = ctx + '/quanlyhoadon?action=detail&id=' + encodeURIComponent(data.idHoaDon);
+                    }, 700);
                 } else {
                     showAlert('danger', data.message || 'Thanh toán thất bại.');
                 }
@@ -1719,9 +2001,7 @@
                     timSanPham();
                     taiVoucher();
                     // Thông báo thành công + tự động chuyển sang màn in hóa đơn sau ít giây.
-                    setTimeout(function () {
-                        window.location.href = ctx + '/quanlyhoadon?action=detail&id=' + data.idHoaDon + '&autoprint=1';
-                    }, 1200);
+                    moHoaDonPreview(data.idHoaDon);
                 } else {
                     errBox.textContent = data.message || 'Thanh toán thất bại, vui lòng thử lại.';
                     errBox.style.display = 'block';
@@ -1789,18 +2069,16 @@
         timSanPham();
     });
 
-    // Khởi tạo: hiện danh sách rỗng cho tới khi bấm "Tạo đơn hàng", đồng thời nạp lại các đơn
-    // hàng chờ đã "Giữ đơn" từ trước (còn trong hạn 24h) đang lưu trên server.
+    // Khởi tạo: chưa tạo đơn và cũng chưa nạp đơn chờ từ server.
+    // Màn hình ban đầu chỉ có tiêu đề + nút "Tạo đơn hàng".
     renderOrderTabs();
     taiVoucher();
     taiBoLocSanPham();
-    taiDanhSachHoaDonChoTuServer();
 
-    // Đồng bộ định kỳ với server: giúp các tab hết hạn 24h tự "biến mất" khỏi Đơn hàng chờ
-    // trong vòng vài phút (không cần tải lại trang thủ công).
-    setInterval(taiDanhSachHoaDonChoTuServer, 3 * 60 * 1000);
-    // Cập nhật riêng huy hiệu đếm ngược mỗi phút mà không cần gọi server, cho mượt hơn.
-    setInterval(renderOrderTabs, 60 * 1000);
+    // Chỉ cập nhật badge/tab cục bộ nếu đã có đơn trên màn hình.
+    setInterval(function () {
+        if (orders.length) renderOrderTabs();
+    }, 60 * 1000);
 
     // ================= QUÉT MÃ QR BIẾN THỂ (camera hoặc tải ảnh lên) =================
     (function initQrScan() {

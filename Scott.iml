@@ -14,7 +14,9 @@
     <facet type="jpa" name="JPA">
       <configuration>
         <setting name="validation-enabled" value="true" />
-        <datasource-mapping />
+        <datasource-mapping>
+          <factory-entry name="Scott" />
+        </datasource-mapping>
         <naming-strategy-map />
       </configuration>
     </facet>
@@ -62,6 +64,11 @@
     <orderEntry type="library" name="Maven: org.glassfish.web:jakarta.servlet.jsp.jstl:3.0.1" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.13.1" level="project" />
     <orderEntry type="library" name="Maven: com.google.errorprone:error_prone_annotations:2.38.0" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.19.0" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.19.0" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.19.0" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.mail:jakarta.mail:2.0.1" level="project" />
+    <orderEntry type="library" name="Maven: com.sun.activation:jakarta.activation:2.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.poi:poi-ooxml:5.5.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.poi:poi:5.5.1" level="project" />
     <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.20.0" level="project" />
@@ -75,10 +82,5 @@
     <orderEntry type="library" name="Maven: com.github.virtuald:curvesapi:1.08" level="project" />
     <orderEntry type="library" name="Maven: org.apache.logging.log4j:log4j-api:2.24.3" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-collections4:4.5.0" level="project" />
-    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.19.0" level="project" />
-    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.19.0" level="project" />
-    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.19.0" level="project" />
-    <orderEntry type="library" name="Maven: com.sun.mail:jakarta.mail:2.0.1" level="project" />
-    <orderEntry type="library" name="Maven: com.sun.activation:jakarta.activation:2.0.1" level="project" />
   </component>
 </module>
