@@ -165,4 +165,177 @@
             pendingToggle = null;
         });
     }
+
+    // =========================================================
+    // LOAD MA TRẬN MÀU × SIZE KHI THÊM BIẾN THỂ
+    // =========================================================
+    var addModal = document.getElementById('addVariantModal');
+    var matrix = document.getElementById('variantMatrixContainer');
+    var selectAll = document.getElementById('matrixSelectAll');
+
+    if (addModal && matrix) {
+        var addForm = addModal.querySelector('form');
+        var productSelect = addModal.querySelector('select[name="idSanPham"]');
+
+        function loadMatrix(idSanPham) {
+            if (!idSanPham) {
+                matrix.innerHTML =
+                    '<div class="text-secondary small py-4 text-center">' +
+                    '<i class="bi bi-info-circle me-1"></i>' +
+                    'Chọn sản phẩm ở trên để hiển thị bảng màu × size.' +
+                    '</div>';
+                return;
+            }
+
+            matrix.innerHTML =
+                '<div class="text-secondary small py-4 text-center">' +
+                '<span class="spinner-border spinner-border-sm me-1"></span>' +
+                'Đang tải màu × size...' +
+                '</div>';
+
+            var url = addForm.action.replace(
+                '/chi-tiet/add',
+                '/chi-tiet/ma-tran'
+            );
+
+            fetch(url + '?idSanPham=' + encodeURIComponent(idSanPham), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Không thể tải ma trận biến thể.');
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (!data.success) {
+                        throw new Error(data.message || 'Không thể tải dữ liệu.');
+                    }
+
+                    renderMatrix(data);
+                })
+                .catch(function (error) {
+                    matrix.innerHTML =
+                        '<div class="text-danger small py-4 text-center">' +
+                        '<i class="bi bi-exclamation-circle me-1"></i>' +
+                        error.message +
+                        '</div>';
+                });
+        }
+
+        function renderMatrix(data) {
+            var mauSac = data.mauSac || [];
+            var sizes = data.size || [];
+            var existing = new Set((data.existing || []).map(String));
+
+            if (mauSac.length === 0 || sizes.length === 0) {
+                matrix.innerHTML =
+                    '<div class="text-warning small py-4 text-center">' +
+                    'Sản phẩm chưa có màu sắc hoặc kích thước.' +
+                    '</div>';
+                return;
+            }
+
+            var html = '<table class="variant-matrix">';
+            html += '<thead><tr>';
+            html += '<th>Màu / Size</th>';
+
+            sizes.forEach(function (size) {
+                html += '<th>' + size.ten + '</th>';
+            });
+
+            html += '</tr></thead><tbody>';
+
+            mauSac.forEach(function (mau) {
+                html += '<tr>';
+                html += '<th>' + mau.ten + '</th>';
+
+                sizes.forEach(function (size) {
+                    var key = mau.id + '-' + size.id;
+                    var daCo = existing.has(String(key));
+                    var ngungHoatDong = !mau.active || !size.active;
+                    var disabled = daCo || ngungHoatDong;
+
+                    html += '<td>';
+                    html += '<label class="matrix-cell' +
+                        (daCo ? ' taken' : '') +
+                        (ngungHoatDong ? ' inactive' : '') +
+                        '">';
+
+                    html += '<input type="checkbox" ' +
+                        'name="combo" ' +
+                        'value="' + key + '" ' +
+                        (disabled ? 'disabled' : '') +
+                        '>';
+
+                    html += '<span></span>';
+                    html += '</label>';
+                    html += '</td>';
+                });
+
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            matrix.innerHTML = html;
+        }
+
+        // Chọn sản phẩm -> tải ma trận
+        if (productSelect) {
+            productSelect.addEventListener('change', function () {
+                loadMatrix(this.value);
+            });
+        }
+
+        // Mở modal mà sản phẩm đã được chọn sẵn
+        addModal.addEventListener('shown.bs.modal', function () {
+            if (productSelect && productSelect.value) {
+                loadMatrix(productSelect.value);
+            }
+        });
+
+        // Chọn tất cả ô chưa có biến thể
+        if (selectAll) {
+            selectAll.addEventListener('click', function () {
+                var inputs = matrix.querySelectorAll(
+                    'input[name="combo"]:not(:disabled)'
+                );
+
+                if (inputs.length === 0) {
+                    return;
+                }
+
+                var allChecked = Array.from(inputs).every(function (input) {
+                    return input.checked;
+                });
+
+                inputs.forEach(function (input) {
+                    input.checked = !allChecked;
+                });
+
+                selectAll.textContent = allChecked
+                    ? 'Chọn tất cả ô còn trống'
+                    : 'Bỏ chọn tất cả';
+            });
+        }
+
+        // Không cho submit nếu chưa chọn màu × size
+        if (addForm) {
+            addForm.addEventListener('submit', function (event) {
+                var checked = addForm.querySelectorAll(
+                    'input[name="combo"]:checked'
+                );
+
+                if (checked.length === 0) {
+                    event.preventDefault();
+                    alert('Vui lòng chọn ít nhất một màu × size.');
+                }
+            });
+        }
+    }
+
 }());

@@ -175,9 +175,8 @@ public class SanPhamServlet extends HttpServlet {
         String[] giaNhapValues = request.getParameterValues("variantGiaNhap");
         String[] giaBanValues = request.getParameterValues("variantGiaBan");
         String[] soLuongValues = request.getParameterValues("variantSoLuongTon");
-        // variantMa là TÙY CHỌN: nếu người dùng để trống ô "Mã biến thể" thì hệ thống
-        // vẫn tự sinh mã như cũ; nếu điền thì dùng đúng mã đó (sau khi kiểm tra trùng).
-        String[] maValues = request.getParameterValues("variantMa");
+        // Mã biến thể được hệ thống tự sinh theo: MÃ_SP - MÃ_MÀU - MÃ_SIZE.
+        // Ví dụ: SP006-TRANG-XL. Không lấy mã biến thể do người dùng nhập từ form.
 
         int rowCount = mauValues == null ? 0 : mauValues.length;
         if (rowCount == 0) {
@@ -186,8 +185,7 @@ public class SanPhamServlet extends HttpServlet {
             loi.append("Mỗi lần chỉ được tạo tối đa 100 biến thể. ");
         } else if (sizeValues == null || giaNhapValues == null || giaBanValues == null || soLuongValues == null
                 || sizeValues.length != rowCount || giaNhapValues.length != rowCount
-                || giaBanValues.length != rowCount || soLuongValues.length != rowCount
-                || (maValues != null && maValues.length != rowCount)) {
+                || giaBanValues.length != rowCount || soLuongValues.length != rowCount) {
             loi.append("Dữ liệu biến thể không đầy đủ hoặc số cột không khớp nhau. ");
         }
 
@@ -214,7 +212,6 @@ public class SanPhamServlet extends HttpServlet {
                 BigDecimal giaNhap = parseMoney(giaNhapValues[i], "Giá nhập dòng " + (i + 1), loi);
                 BigDecimal giaBan = parseMoney(giaBanValues[i], "Giá bán dòng " + (i + 1), loi);
                 Integer soLuong = parseInt(soLuongValues[i], "Số lượng dòng " + (i + 1), loi);
-                String maTuyChon = maValues == null ? null : (maValues[i] == null ? null : maValues[i].trim());
 
                 com.example.Scott.entity.MauSac mau = idMau == null ? null : chiTietSanPhamResponsitory.getMauSac(idMau);
                 com.example.Scott.entity.Size size = idSize == null ? null : chiTietSanPhamResponsitory.getSize(idSize);
@@ -224,7 +221,6 @@ public class SanPhamServlet extends HttpServlet {
                 if (giaBan != null && giaBan.compareTo(BigDecimal.ZERO) < 0) loi.append("Giá bán dòng ").append(i + 1).append(" không được âm. ");
                 if (giaNhap != null && giaBan != null && giaBan.compareTo(giaNhap) < 0) loi.append("Giá bán dòng ").append(i + 1).append(" phải lớn hơn hoặc bằng giá nhập. ");
                 if (soLuong != null && soLuong < 0) loi.append("Số lượng dòng ").append(i + 1).append(" không được âm. ");
-                if (maTuyChon != null && !maTuyChon.isEmpty() && maTuyChon.length() > 50) loi.append("Mã biến thể dòng ").append(i + 1).append(" tối đa 50 ký tự. ");
 
                 if (mau != null && size != null && giaNhap != null && giaBan != null && soLuong != null) {
                     String combination = idMau + "-" + idSize;
@@ -233,25 +229,19 @@ public class SanPhamServlet extends HttpServlet {
                         continue;
                     }
 
-                    String ma;
-                    if (maTuyChon != null && !maTuyChon.isEmpty()) {
-                        // Người dùng tự nhập mã -> phải đúng mã đó, không tự ý đổi. Báo lỗi rõ ràng nếu trùng.
-                        if (chiTietSanPhamResponsitory.existsMa(maTuyChon, null) || codes.contains(maTuyChon)) {
-                            loi.append("Mã biến thể \"").append(maTuyChon).append("\" ở dòng ").append(i + 1).append(" đã tồn tại, vui lòng đổi mã khác. ");
-                            continue;
-                        }
-                        ma = maTuyChon;
-                    } else {
-                        // Để trống -> tự sinh mã như cũ (SP-MÀU-SIZE, tự thêm hậu tố nếu trùng).
-                        String maGoc = taoMaBienThe(sp, mau, size);
-                        ma = maGoc;
-                        int suffix = 2;
-                        while (chiTietSanPhamResponsitory.existsMa(ma, null) || codes.contains(ma)) {
-                            String duoi = "-" + suffix++;
-                            ma = gioiHanMa(maGoc, Math.max(1, 50 - duoi.length())) + duoi;
-                        }
+                    // Tự sinh mã theo SP-MÀU-SIZE, ví dụ SP006-TRANG-XL.
+                    // Nếu dữ liệu cũ đã chiếm mã này thì tự thêm -2, -3... để không trùng.
+                    String maGoc = taoMaBienThe(sp, mau, size);
+                    String ma = maGoc;
+                    int suffix = 2;
+
+                    while (chiTietSanPhamResponsitory.existsMa(ma, null)
+                            || codes.contains(ma.toUpperCase(Locale.ROOT))) {
+                        String duoi = "-" + suffix++;
+                        ma = gioiHanMa(maGoc, Math.max(1, 50 - duoi.length())) + duoi;
                     }
-                    codes.add(ma);
+
+                    codes.add(ma.toUpperCase(Locale.ROOT));
                     distinctColorIds.add(idMau);
 
                     ChiTietSanPham ct = new ChiTietSanPham();
@@ -562,10 +552,12 @@ public class SanPhamServlet extends HttpServlet {
             String ma = taoMaBienThe(sanPham, mau, size);
             String maGoc = ma;
             int suffix = 2;
-            while (chiTietSanPhamResponsitory.existsMa(ma, null) || maTrongLo.contains(ma)) {
-                ma = maGoc + "-" + suffix++;
+            while (chiTietSanPhamResponsitory.existsMa(ma, null)
+                    || maTrongLo.contains(ma.toUpperCase(Locale.ROOT))) {
+                String duoi = "-" + suffix++;
+                ma = gioiHanMa(maGoc, Math.max(1, 50 - duoi.length())) + duoi;
             }
-            maTrongLo.add(ma);
+            maTrongLo.add(ma.toUpperCase(Locale.ROOT));
 
             ChiTietSanPham ct = new ChiTietSanPham();
             ct.setSanPham(sanPham);
@@ -626,9 +618,9 @@ public class SanPhamServlet extends HttpServlet {
             return;
         }
 
-        String ma = request.getParameter("maChiTiet");
-        if (chiTietSanPhamResponsitory.existsMa(ma, id)) {
-            request.getSession().setAttribute("error", "Mã biến thể đã tồn tại.");
+        ChiTietSanPham CT = chiTietSanPhamResponsitory.getOne(id);
+        if (CT == null) {
+            request.getSession().setAttribute("error", "Cập nhật biến thể thất bại: Biến thể không tồn tại.");
             response.sendRedirect(request.getContextPath() + "/san-pham/hien-thi?selectedId=" + idSanPham);
             return;
         }
@@ -654,10 +646,29 @@ public class SanPhamServlet extends HttpServlet {
             return;
         }
 
-        ChiTietSanPham CT = chiTietSanPhamResponsitory.getOne(id);
+        com.example.Scott.entity.MauSac mauMoi = chiTietSanPhamResponsitory.getMauSac(idMauSac);
+        com.example.Scott.entity.Size sizeMoi = chiTietSanPhamResponsitory.getSize(idSize);
+
+        if (mauMoi == null || sizeMoi == null) {
+            request.getSession().setAttribute("error", "Cập nhật biến thể thất bại: Màu sắc hoặc size không tồn tại.");
+            response.sendRedirect(request.getContextPath() + "/san-pham/hien-thi?selectedId=" + idSanPham);
+            return;
+        }
+
+        // Khi sửa màu/size, mã biến thể cũng được gen lại cho đúng dữ liệu mới.
+        // Ví dụ SP006-DEN-XL -> đổi màu thành TRẮNG -> SP006-TRANG-XL.
+        String maGoc = taoMaBienThe(CT.getSanPham(), mauMoi, sizeMoi);
+        String ma = maGoc;
+        int suffix = 2;
+
+        while (chiTietSanPhamResponsitory.existsMa(ma, id)) {
+            String duoi = "-" + suffix++;
+            ma = gioiHanMa(maGoc, Math.max(1, 50 - duoi.length())) + duoi;
+        }
+
         CT.setMa(ma);
-        CT.setMauSac(chiTietSanPhamResponsitory.getMauSac(idMauSac));
-        CT.setSize(chiTietSanPhamResponsitory.getSize(idSize));
+        CT.setMauSac(mauMoi);
+        CT.setSize(sizeMoi);
         CT.setGiaNhap(giaNhap);
         CT.setGiaBan(giaBan);
         CT.setSoLuongTon(soLuongTon);

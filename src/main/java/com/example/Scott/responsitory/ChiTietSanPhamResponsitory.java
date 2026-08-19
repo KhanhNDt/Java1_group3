@@ -247,13 +247,24 @@ public class ChiTietSanPhamResponsitory {
         }
     }
 
+    /**
+     * Kiểm tra trùng mã biến thể, không phân biệt hoa/thường.
+     * excludeId = null khi thêm mới; có id khi cập nhật để bỏ qua chính bản ghi đang sửa.
+     */
     public boolean existsMa(String ma, Integer excludeId){
+        if (ma == null || ma.trim().isEmpty()) return false;
+
         try (Session s = HibernateConfig.getFACTORY().openSession()) {
-            String hql = "SELECT COUNT(ct.id) FROM ChiTietSanPham ct WHERE ct.ma = :ma";
+            String hql = "SELECT COUNT(ct.id) FROM ChiTietSanPham ct WHERE UPPER(ct.ma) = :ma";
             if (excludeId != null) hql += " AND ct.id <> :id";
-            org.hibernate.query.Query<Long> q = s.createQuery(hql, Long.class).setParameter("ma", ma);
+
+            org.hibernate.query.Query<Long> q = s.createQuery(hql, Long.class)
+                    .setParameter("ma", ma.trim().toUpperCase());
+
             if (excludeId != null) q.setParameter("id", excludeId);
-            return q.uniqueResult() > 0;
+
+            Long count = q.uniqueResult();
+            return count != null && count > 0;
         }
     }
 

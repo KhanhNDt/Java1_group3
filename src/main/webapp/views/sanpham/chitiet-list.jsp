@@ -145,7 +145,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="${pageContext.request.contextPath}/assets/js/vendor/qrcode.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/sanpham-variant-list.js?v=live3"></script>
+<script src="${pageContext.request.contextPath}/assets/js/sanpham-variant-list.js?v=live4"></script>
 <script>
     // ================= QR CODE cho từng biến thể (xem + tải về) =================
     (function initVariantQr() {
